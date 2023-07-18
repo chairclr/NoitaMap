@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Reflection.PortableExecutable;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace NoitaMap;
@@ -9,7 +10,7 @@ internal class Viewer : Game
 
     private readonly string WorldPath;
 
-    private readonly List<Chunk> Chunks = new List<Chunk>();
+    private readonly Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
 
     private SpriteBatch? ChunkSpriteBatch;
 
@@ -59,7 +60,8 @@ internal class Viewer : Game
 
         foreach (string path in Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri"))
         {
-            Chunks.Add(ChunkRenderer.RenderChunk(path));
+            Chunk chunk = ChunkRenderer.RenderChunk(path);
+            Chunks.Add(chunk.Position, chunk);
         }
     }
 
@@ -98,11 +100,18 @@ internal class Viewer : Game
 
         ChunkSpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: ViewMatrix);
 
-        foreach (Chunk chunk in Chunks)
+        foreach (Chunk chunk in Chunks.Values)
         {
-            ChunkSpriteBatch.Draw(chunk.Texture, new Vector2(chunk.X, chunk.Y), Color.White);
+            ChunkSpriteBatch.Draw(chunk.Texture, chunk.Position, Color.White);
         }
 
         ChunkSpriteBatch.End();
+    }
+
+    private Chunk? GetChunkContaining(Vector2 position)
+    {
+        Chunks.TryGetValue(Vector2.Floor(position / 512), out Chunk? chunk);
+
+        return chunk;
     }
 }
