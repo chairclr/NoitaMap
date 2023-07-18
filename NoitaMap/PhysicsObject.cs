@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Buffers;
+using System.Reflection.PortableExecutable;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace NoitaMap;
@@ -7,20 +9,42 @@ internal class PhysicsObject
 {
     public Vector2 Position;
 
-    public Vector2 Size;
-
     public float Rotation;
 
     public Texture2D Texture;
 
-    public PhysicsObject(Vector2 position, Vector2 size, float rotation, Texture2D image)
+    public PhysicsObject(BinaryReader reader)
     {
-        Position = position;
+        reader.ReadUInt64();
+        reader.ReadUInt32();
+        Position.X = reader.BEReadSingle();
+        Position.Y = reader.BEReadSingle();
+        Rotation = reader.BEReadSingle();
+        reader.BEReadInt64();
+        reader.BEReadInt64();
+        reader.BEReadInt64();
+        reader.BEReadInt64();
+        reader.BEReadInt64();
+        reader.ReadBoolean();
+        reader.ReadBoolean();
+        reader.ReadBoolean();
+        reader.ReadBoolean();
+        reader.ReadBoolean();
+        reader.BEReadSingle();
+        int textureWidth = reader.BEReadInt32();
+        int textureHeight = reader.BEReadInt32();
 
-        Size = size;
+        Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, textureWidth, textureHeight);
 
-        Rotation = rotation;
+        Color[] colors = ArrayPool<Color>.Shared.Rent(textureWidth * textureHeight);
 
-        Texture = image;
+        for (int j = 0; j < textureWidth * textureHeight; j++)
+        {
+            colors[j].PackedValue = reader.BEReadUInt32();
+        }
+
+        Texture.SetData(colors, 0, textureWidth * textureHeight);
+
+        ArrayPool<Color>.Shared.Return(colors);
     }
 }
