@@ -23,8 +23,6 @@ internal class Chunk
     {
         Position = new Vector2(chunkX, chunkY);
 
-        Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Width, Height);
-
         byte[] packedMaterialInfo = new byte[Width * Height];
 
         reader.Read(packedMaterialInfo);
