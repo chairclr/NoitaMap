@@ -9,6 +9,10 @@ internal class Material
 
     public const int MaterialHeight = 252;
 
+    public const int MaterialWidthM1 = 251;
+
+    public const int MaterialHeightM1 = 251;
+
     public readonly string Name;
 
     public readonly Texture2D Texture;

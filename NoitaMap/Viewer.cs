@@ -62,12 +62,15 @@ internal class Viewer : Game
         {
             PreferredBackBufferWidth = 1280,
             PreferredBackBufferHeight = 720,
-            GraphicsProfile = GraphicsProfile.HiDef
+            GraphicsProfile = GraphicsProfile.HiDef,
+            SynchronizeWithVerticalRetrace = false
         };
 
         Graphics.ApplyChanges();
 
         Window.AllowUserResizing = true;
+
+        IsFixedTimeStep = false;
 
         IsMouseVisible = true;
     }
@@ -85,23 +88,55 @@ internal class Viewer : Game
         // Init material provider before doing multithreaded work
         MaterialProvider.GetMaterial("");
 
+
+        string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
+
+        TotalChunks = chunkPaths.Length;
+
         Task.Run(() =>
         {
-            string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
+            Task[] tasks = new Task[TotalChunks];
 
-            TotalChunks = chunkPaths.Length;
-
-            Parallel.ForEach(chunkPaths, chunkPath =>
+            for (int i = 0; i < chunkPaths.Length; i++)
             {
-                Chunk chunk = ChunkRenderer.RenderChunk(chunkPath);
+                string chunkPath = chunkPaths[i];
 
-                LoadingChunks.Enqueue(chunk);
+                tasks[i] = Task.Run(() =>
+                {
+                    Chunk chunk = ChunkRenderer.RenderChunk(chunkPath);
 
-                Interlocked.Increment(ref LoadedChunks);
-            });
+                    LoadingChunks.Enqueue(chunk);
+
+                    Interlocked.Increment(ref LoadedChunks);
+                });
+            }
+
+            Task.WaitAll(tasks);
 
             LoadedAllChunks = true;
+
+            Graphics.SynchronizeWithVerticalRetrace = true;
+
+            Graphics.ApplyChanges();
         });
+
+        //Task.Run(() =>
+        //{
+        //    string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
+
+        //    TotalChunks = chunkPaths.Length;
+
+        //    //Parallel.ForEach(chunkPaths, chunkPath =>
+        //    //{
+        //    //    Chunk chunk = ChunkRenderer.RenderChunk(chunkPath);
+
+        //    //    LoadingChunks.Enqueue(chunk);
+
+        //    //    Interlocked.Increment(ref LoadedChunks);
+        //    //});
+
+        //    LoadedAllChunks = true;
+        //});
     }
 
     protected override void Update(GameTime gameTime)

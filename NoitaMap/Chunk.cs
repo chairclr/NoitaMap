@@ -33,6 +33,8 @@ internal class Chunk
 
         Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Width, Height);
 
+        PhysicsObjects = ReadPhysicsObjects(reader);
+
         Color[] colors = ArrayPool<Color>.Shared.Rent(Width * Height);
         int customColorIndex = 0;
 
@@ -65,8 +67,8 @@ internal class Chunk
                         int wx = (x + chunkX * Width) * 6;
                         int wy = (y + chunkY * Height) * 6;
 
-                        int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidth) % Material.MaterialWidth;
-                        int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeight) % Material.MaterialHeight;
+                        int colorX = ((wx & Material.MaterialWidthM1) + Material.MaterialWidthM1) & Material.MaterialWidthM1;
+                        int colorY = ((wy & Material.MaterialHeightM1) + Material.MaterialHeightM1) & Material.MaterialHeightM1;
 
                         colors[i] = mat.Colors[colorX + (colorY * Material.MaterialWidth)];
                     }
@@ -78,7 +80,6 @@ internal class Chunk
 
         ArrayPool<Color>.Shared.Return(colors);
 
-        PhysicsObjects = ReadPhysicsObjects(reader);
     }
 
     private static string[] ReadMaterialNames(BinaryReader reader)
