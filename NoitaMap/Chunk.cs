@@ -13,7 +13,9 @@ internal class Chunk
 
     public Vector2 Position;
 
-    public Texture2D Texture;
+    public Color[]? Colors;
+
+    public Texture2D? Texture;
 
     public PhysicsObject[] PhysicsObjects;
 
@@ -21,10 +23,7 @@ internal class Chunk
     {
         Position = new Vector2(chunkX, chunkY);
 
-        Task createTextureTask = Task.Run(() =>
-        {
-            Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Width, Height);
-        });
+        Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Width, Height);
 
         byte[] packedMaterialInfo = new byte[Width * Height];
 
@@ -38,7 +37,7 @@ internal class Chunk
 
         PhysicsObjects = ReadPhysicsObjects(reader);
 
-        Color[] colors = ArrayPool<Color>.Shared.Rent(Width * Height);
+        Colors = new Color[Width * Height];
         int customColorIndex = 0;
 
         for (int x = 0; x < Width; x++)
@@ -53,7 +52,7 @@ internal class Chunk
 
                 if (customColor)
                 {
-                    colors[i] = customColors[customColorIndex];
+                    Colors[i] = customColors[customColorIndex];
                     // explicit > implicit
                     customColorIndex++;
                 }
@@ -63,7 +62,7 @@ internal class Chunk
 
                     if (mat.Name == "err")
                     {
-                        colors[i] = mat.Colors[(x + y) % 4];
+                        Colors[i] = mat.Colors[(x + y) % 4];
                     }
                     else
                     {
@@ -73,17 +72,11 @@ internal class Chunk
                         int colorX = ((wx & Material.MaterialWidthM1) + Material.MaterialWidthM1) & Material.MaterialWidthM1;
                         int colorY = ((wy & Material.MaterialHeightM1) + Material.MaterialHeightM1) & Material.MaterialHeightM1;
 
-                        colors[i] = mat.Colors[colorX + (colorY * Material.MaterialWidth)];
+                        Colors[i] = mat.Colors[colorX + (colorY * Material.MaterialWidth)];
                     }
                 }
             }
         }
-
-        createTextureTask.Wait();
-
-        Texture!.SetData(colors, 0, Width * Height);
-
-        ArrayPool<Color>.Shared.Return(colors);
     }
 
     private static string[] ReadMaterialNames(BinaryReader reader)

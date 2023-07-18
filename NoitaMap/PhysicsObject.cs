@@ -11,7 +11,13 @@ internal class PhysicsObject
 
     public float Rotation;
 
-    public Texture2D Texture;
+    public int Width;
+
+    public int Height;
+
+    public Color[]? Colors;
+
+    public Texture2D? Texture;
 
     public PhysicsObject(BinaryReader reader)
     {
@@ -31,20 +37,27 @@ internal class PhysicsObject
         reader.ReadBoolean();
         reader.ReadBoolean();
         reader.BEReadSingle();
-        int textureWidth = reader.BEReadInt32();
-        int textureHeight = reader.BEReadInt32();
+        Width = reader.BEReadInt32();
+        Height = reader.BEReadInt32();
 
-        Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, textureWidth, textureHeight);
+        Colors = new Color[Width * Height];
 
-        Color[] colors = ArrayPool<Color>.Shared.Rent(textureWidth * textureHeight);
-
-        for (int j = 0; j < textureWidth * textureHeight; j++)
+        for (int j = 0; j < Width * Height; j++)
         {
-            colors[j].PackedValue = reader.BEReadUInt32();
+            Colors[j].PackedValue = reader.BEReadUInt32();
         }
 
-        Texture.SetData(colors, 0, textureWidth * textureHeight);
+        //Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, textureWidth, textureHeight);
 
-        ArrayPool<Color>.Shared.Return(colors);
+        //Color[] colors = ArrayPool<Color>.Shared.Rent(textureWidth * textureHeight);
+
+        //for (int j = 0; j < textureWidth * textureHeight; j++)
+        //{
+        //    colors[j].PackedValue = reader.BEReadUInt32();
+        //}
+
+        //Texture.SetData(colors, 0, textureWidth * textureHeight);
+
+        //ArrayPool<Color>.Shared.Return(colors);
     }
 }

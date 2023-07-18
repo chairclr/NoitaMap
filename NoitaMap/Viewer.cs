@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reflection.PortableExecutable;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -63,20 +64,19 @@ internal class Viewer : Game
             PreferredBackBufferWidth = 1280,
             PreferredBackBufferHeight = 720,
             GraphicsProfile = GraphicsProfile.HiDef,
-            SynchronizeWithVerticalRetrace = false
+            SynchronizeWithVerticalRetrace = true
         };
 
         Graphics.ApplyChanges();
 
         Window.AllowUserResizing = true;
 
-        IsFixedTimeStep = false;
-
         IsMouseVisible = true;
     }
 
     protected override void LoadContent()
     {
+
         GraphicsDeviceProvider.GraphicsDevice = Graphics.GraphicsDevice;
 
         ChunkSpriteBatch = new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
@@ -87,7 +87,6 @@ internal class Viewer : Game
 
         // Init material provider before doing multithreaded work
         MaterialProvider.GetMaterial("");
-
 
         string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
 
@@ -114,29 +113,7 @@ internal class Viewer : Game
             Task.WaitAll(tasks);
 
             LoadedAllChunks = true;
-
-            Graphics.SynchronizeWithVerticalRetrace = true;
-
-            Graphics.ApplyChanges();
         });
-
-        //Task.Run(() =>
-        //{
-        //    string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
-
-        //    TotalChunks = chunkPaths.Length;
-
-        //    //Parallel.ForEach(chunkPaths, chunkPath =>
-        //    //{
-        //    //    Chunk chunk = ChunkRenderer.RenderChunk(chunkPath);
-
-        //    //    LoadingChunks.Enqueue(chunk);
-
-        //    //    Interlocked.Increment(ref LoadedChunks);
-        //    //});
-
-        //    LoadedAllChunks = true;
-        //});
     }
 
     protected override void Update(GameTime gameTime)
@@ -177,7 +154,23 @@ internal class Viewer : Game
         while (LoadingChunks.TryDequeue(out Chunk? chunk))
         {
             Chunks.Add(chunk.Position, chunk);
+
             PhysicsObjects.AddRange(chunk.PhysicsObjects);
+
+            foreach (PhysicsObject physicsObject in chunk.PhysicsObjects)
+            {
+                physicsObject.Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, physicsObject.Width, physicsObject.Height);
+
+                physicsObject.Texture.SetData(physicsObject.Colors);
+
+                physicsObject.Colors = null;
+            }
+
+            chunk.Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Chunk.Width, Chunk.Height);
+
+            chunk.Texture.SetData(chunk.Colors);
+
+            chunk.Colors = null;
         }
 
         ChunkSpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: ViewMatrix);
@@ -210,7 +203,7 @@ internal class Viewer : Game
 
     private void DrawText(string text, Vector2 position, float scale = 3f)
     {
-        FontSpriteBatch?.DrawString(NoitaFont, text, position, Color.White, 0f, Vector2.Zero, 3f, SpriteEffects.None, 0f);
+        FontSpriteBatch?.DrawString(NoitaFont, text, position, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
     }
 
     private Chunk? GetChunkContaining(Vector2 position)
