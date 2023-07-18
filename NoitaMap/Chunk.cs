@@ -21,6 +21,11 @@ internal class Chunk
     {
         Position = new Vector2(chunkX, chunkY);
 
+        Task createTextureTask = Task.Run(() =>
+        {
+            Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Width, Height);
+        });
+
         byte[] packedMaterialInfo = new byte[Width * Height];
 
         reader.Read(packedMaterialInfo);
@@ -30,8 +35,6 @@ internal class Chunk
         Material[] materials = MaterialProvider.CreateMaterialMap(materialNames);
 
         Color[] customColors = ReadCustomColors(reader);
-
-        Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Width, Height);
 
         PhysicsObjects = ReadPhysicsObjects(reader);
 
@@ -76,10 +79,11 @@ internal class Chunk
             }
         }
 
-        Texture.SetData(colors, 0, Width * Height);
+        createTextureTask.Wait();
+
+        Texture!.SetData(colors, 0, Width * Height);
 
         ArrayPool<Color>.Shared.Return(colors);
-
     }
 
     private static string[] ReadMaterialNames(BinaryReader reader)
