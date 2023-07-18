@@ -178,24 +178,22 @@ internal partial class ChunkRenderer
 
         for (int i = 0; i < physicsObjectCount; i++)
         {
-            ulong a = reader.ReadUInt64();
-
-            uint b = reader.ReadUInt32();
-
+            reader.ReadUInt64();
+            reader.ReadUInt32();
             float x = reader.BEReadSingle();
             float y = reader.BEReadSingle();
             float rotation = reader.BEReadSingle();
-            double c = reader.BEReadDouble();
-            double d = reader.BEReadDouble();
-            double e = reader.BEReadDouble();
-            double f = reader.BEReadDouble();
-            double g = reader.BEReadDouble();
-            bool h = reader.ReadBoolean();
-            bool _i = reader.ReadBoolean();
-            bool _j = reader.ReadBoolean();
-            bool k = reader.ReadBoolean();
-            bool l = reader.ReadBoolean();
-            float m = reader.BEReadSingle();
+            reader.BEReadInt64();
+            reader.BEReadInt64();
+            reader.BEReadInt64();
+            reader.BEReadInt64();
+            reader.BEReadInt64();
+            reader.ReadBoolean();
+            reader.ReadBoolean();
+            reader.ReadBoolean();
+            reader.ReadBoolean();
+            reader.ReadBoolean();
+            reader.BEReadSingle();
             int width = reader.BEReadInt32();
             int height = reader.BEReadInt32();
 
