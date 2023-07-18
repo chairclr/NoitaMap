@@ -9,10 +9,14 @@ internal class Chunk
 
     public Texture2D Texture;
 
-    internal Chunk(int x, int y, Texture2D texture)
+    public PhysicsObject[] PhysicsObjects;
+
+    internal Chunk(int x, int y, Texture2D texture, PhysicsObject[] physicsObjects)
     {
         Position = new Vector2(x, y);
 
         Texture = texture;
+
+        PhysicsObjects = physicsObjects;
     }
 }

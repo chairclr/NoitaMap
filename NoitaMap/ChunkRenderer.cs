@@ -44,8 +44,6 @@ internal partial class ChunkRenderer
 
         Color[] customColors = ReadCustomColors(reader);
 
-        // TODO: Read physics objects
-
         (int chunkX, int chunkY) = GetChunkPositionFromPath(chunkPath);
 
         Texture2D texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, 512, 512);
@@ -93,7 +91,9 @@ internal partial class ChunkRenderer
 
         texture.SetData(colors);
 
-        return new Chunk(chunkX, chunkY, texture);
+        PhysicsObject[] physicsObjects = ReadPhysicsObjects(reader);
+
+        return new Chunk(chunkX, chunkY, texture, physicsObjects);
     }
 
     private static byte[] ReadAndDecompress(string chunkPath)
@@ -168,6 +168,52 @@ internal partial class ChunkRenderer
         }
 
         return materialWorldColors;
+    }
+
+    private static PhysicsObject[] ReadPhysicsObjects(BinaryReader reader)
+    {
+        int physicsObjectCount = reader.BEReadInt32();
+
+        PhysicsObject[] physicsObjects = new PhysicsObject[physicsObjectCount];
+
+        for (int i = 0; i < physicsObjectCount; i++)
+        {
+            ulong a = reader.ReadUInt64();
+
+            uint b = reader.ReadUInt32();
+
+            float x = reader.BEReadSingle();
+            float y = reader.BEReadSingle();
+            float rotation = reader.BEReadSingle();
+            double c = reader.BEReadDouble();
+            double d = reader.BEReadDouble();
+            double e = reader.BEReadDouble();
+            double f = reader.BEReadDouble();
+            double g = reader.BEReadDouble();
+            bool h = reader.ReadBoolean();
+            bool _i = reader.ReadBoolean();
+            bool _j = reader.ReadBoolean();
+            bool k = reader.ReadBoolean();
+            bool l = reader.ReadBoolean();
+            float m = reader.BEReadSingle();
+            int width = reader.BEReadInt32();
+            int height = reader.BEReadInt32();
+
+            Texture2D texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, width, height);
+
+            Color[] colors = new Color[width * height];
+
+            for (int j = 0; j < colors.Length; j++)
+            {
+                colors[j].PackedValue = reader.BEReadUInt32();
+            }
+
+            texture.SetData(colors);
+
+            physicsObjects[i] = new PhysicsObject(new Vector2(x, y), new Vector2(width, height), rotation, texture);
+        }
+
+        return physicsObjects;
     }
 
     [GeneratedRegex("world_(?<x>-?\\d+)_(?<y>-?\\d+)\\.png_petri")]

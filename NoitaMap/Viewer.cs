@@ -12,7 +12,11 @@ internal class Viewer : Game
 
     private readonly Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
 
+    private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
+
     private SpriteBatch? ChunkSpriteBatch;
+
+    private SpriteBatch? PhysicsObjectsSpriteBatch;
 
     private Vector2 ViewOffset = Vector2.Zero;
 
@@ -58,10 +62,13 @@ internal class Viewer : Game
 
         ChunkSpriteBatch = new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
 
+        PhysicsObjectsSpriteBatch = new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
+
         foreach (string path in Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri"))
         {
             Chunk chunk = ChunkRenderer.RenderChunk(path);
             Chunks.Add(chunk.Position, chunk);
+            PhysicsObjects.AddRange(chunk.PhysicsObjects);
         }
     }
 
@@ -95,6 +102,7 @@ internal class Viewer : Game
     protected override void Draw(GameTime gameTime)
     {
         ChunkSpriteBatch ??= new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
+        PhysicsObjectsSpriteBatch ??= new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
 
         GraphicsDeviceProvider.GraphicsDevice.Clear(Color.LightPink);
 
@@ -106,6 +114,15 @@ internal class Viewer : Game
         }
 
         ChunkSpriteBatch.End();
+
+        PhysicsObjectsSpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: ViewMatrix);
+
+        foreach (PhysicsObject physicsObject in PhysicsObjects)
+        {
+            PhysicsObjectsSpriteBatch.Draw(physicsObject.Texture, physicsObject.Position, null, Color.White, physicsObject.Rotation, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+        }
+
+        PhysicsObjectsSpriteBatch.End();
     }
 
     private Chunk? GetChunkContaining(Vector2 position)
