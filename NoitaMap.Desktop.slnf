@@ -1,0 +1,11 @@
+﻿{
+  "solution": {
+    "path": "NoitaMap.sln",
+    "projects": [
+      "NoitaMap.Desktop\\NoitaMap.Desktop.csproj",
+      "NoitaMap.Game\\NoitaMap.Game.csproj",
+      "NoitaMap.Game.Tests\\NoitaMap.Game.Tests.csproj",
+      "NoitaMap.Resources\\NoitaMap.Resources.csproj"
+    ]
+  }
+}
