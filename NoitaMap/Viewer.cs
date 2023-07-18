@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq.Expressions;
@@ -94,23 +95,14 @@ internal class Viewer : Game
 
         Task.Run(() =>
         {
-            Task[] tasks = new Task[TotalChunks];
-
-            for (int i = 0; i < chunkPaths.Length; i++)
+            Parallel.ForEach(chunkPaths, x =>
             {
-                string chunkPath = chunkPaths[i];
+                Chunk chunk = ChunkRenderer.RenderChunk(x);
 
-                tasks[i] = Task.Run(() =>
-                {
-                    Chunk chunk = ChunkRenderer.RenderChunk(chunkPath);
+                LoadingChunks.Enqueue(chunk);
 
-                    LoadingChunks.Enqueue(chunk);
-
-                    Interlocked.Increment(ref LoadedChunks);
-                });
-            }
-
-            Task.WaitAll(tasks);
+                Interlocked.Increment(ref LoadedChunks);
+            });
 
             LoadedAllChunks = true;
         });
