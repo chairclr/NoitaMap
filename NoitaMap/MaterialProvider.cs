@@ -38,4 +38,16 @@ internal static class MaterialProvider
 
         return MissingMaterial;
     }
+
+    public static Material[] CreateMaterialMap(string[] materialNames)
+    {
+        Material[] materials = new Material[materialNames.Length];
+
+        for (int i = 0; i < materials.Length; i++)
+        {
+            materials[i] = GetMaterial(materialNames[i]);
+        }
+
+        return materials;
+    }
 }

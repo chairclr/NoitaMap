@@ -78,8 +78,6 @@ internal partial class ChunkRenderer
         return (int.Parse(match.Groups["x"].Value), int.Parse(match.Groups["y"].Value));
     }
 
-    
-
     [GeneratedRegex("world_(?<x>-?\\d+)_(?<y>-?\\d+)\\.png_petri")]
     private static partial Regex GenerateChunkPositionRegex();
 }

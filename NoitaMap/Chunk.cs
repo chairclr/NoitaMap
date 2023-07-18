@@ -27,6 +27,8 @@ internal class Chunk
 
         string[] materialNames = ReadMaterialNames(reader);
 
+        Material[] materials = MaterialProvider.CreateMaterialMap(materialNames);
+
         Color[] customColors = ReadCustomColors(reader);
 
         Texture = new Texture2D(GraphicsDeviceProvider.GraphicsDevice, Width, Height);
@@ -52,7 +54,7 @@ internal class Chunk
                 }
                 else
                 {
-                    Material mat = MaterialProvider.GetMaterial(materialNames[material]);
+                    Material mat = materials[material];
 
                     if (mat.Name == "err")
                     {
@@ -128,5 +130,10 @@ internal class Chunk
         }
 
         return physicsObjects;
+    }
+
+    public override int GetHashCode()
+    {
+        return Position.GetHashCode();
     }
 }

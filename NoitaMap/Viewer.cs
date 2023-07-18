@@ -1,4 +1,7 @@
-﻿using System.Reflection.PortableExecutable;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Reflection.PortableExecutable;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -10,6 +13,14 @@ internal class Viewer : Game
 
     private readonly string WorldPath;
 
+    private readonly ConcurrentQueue<Chunk> LoadingChunks = new ConcurrentQueue<Chunk>();
+
+    private int LoadedChunks = 0;
+
+    private int TotalChunks = 0;
+
+    private bool LoadedAllChunks = false;
+
     private readonly Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
 
     private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
@@ -18,6 +29,8 @@ internal class Viewer : Game
 
     private SpriteBatch? PhysicsObjectsSpriteBatch;
 
+    private SpriteBatch? FontSpriteBatch;
+
     private Vector2 ViewOffset = Vector2.Zero;
 
     private Vector2 ViewScale = Vector2.One;
@@ -25,6 +38,9 @@ internal class Viewer : Game
     private Matrix ViewMatrix => Matrix.CreateTranslation(-ViewOffset.X, -ViewOffset.Y, 0) * Matrix.CreateScale(ViewScale.X, ViewScale.Y, 1f);
 
     private Vector2 MouseTranslateOrigin = Vector2.Zero;
+
+    [NotNull]
+    private SpriteFont? NoitaFont = null;
 
     public Viewer(string[] args)
     {
@@ -64,12 +80,28 @@ internal class Viewer : Game
 
         PhysicsObjectsSpriteBatch = new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
 
-        foreach (string path in Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri"))
+        NoitaFont = NoitaFontLoader.Load();
+
+        // Init material provider before doing multithreaded work
+        MaterialProvider.GetMaterial("");
+
+        Task.Run(() =>
         {
-            Chunk chunk = ChunkRenderer.RenderChunk(path);
-            Chunks.Add(chunk.Position, chunk);
-            PhysicsObjects.AddRange(chunk.PhysicsObjects);
-        }
+            string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
+
+            TotalChunks = chunkPaths.Length;
+
+            Parallel.ForEach(chunkPaths, chunkPath =>
+            {
+                Chunk chunk = ChunkRenderer.RenderChunk(chunkPath);
+
+                LoadingChunks.Enqueue(chunk);
+
+                Interlocked.Increment(ref LoadedChunks);
+            });
+
+            LoadedAllChunks = true;
+        });
     }
 
     protected override void Update(GameTime gameTime)
@@ -103,8 +135,15 @@ internal class Viewer : Game
     {
         ChunkSpriteBatch ??= new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
         PhysicsObjectsSpriteBatch ??= new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
+        FontSpriteBatch ??= new SpriteBatch(GraphicsDeviceProvider.GraphicsDevice);
 
         GraphicsDeviceProvider.GraphicsDevice.Clear(Color.LightPink);
+
+        while (LoadingChunks.TryDequeue(out Chunk? chunk))
+        {
+            Chunks.Add(chunk.Position, chunk);
+            PhysicsObjects.AddRange(chunk.PhysicsObjects);
+        }
 
         ChunkSpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: ViewMatrix);
 
@@ -123,6 +162,20 @@ internal class Viewer : Game
         }
 
         PhysicsObjectsSpriteBatch.End();
+
+        FontSpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+        if (!LoadedAllChunks)
+        {
+            DrawText($"{LoadedChunks} / {TotalChunks} Chunks Loaded ({MathF.Floor((float)LoadedChunks / TotalChunks * 100f)}%)", new Vector2(10f, 10f));
+        }
+
+        FontSpriteBatch.End();
+    }
+
+    private void DrawText(string text, Vector2 position, float scale = 3f)
+    {
+        FontSpriteBatch?.DrawString(NoitaFont, text, position, Color.White, 0f, Vector2.Zero, 3f, SpriteEffects.None, 0f);
     }
 
     private Chunk? GetChunkContaining(Vector2 position)
