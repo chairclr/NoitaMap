@@ -7,8 +7,9 @@ public static class Program
 {
     public static void Main()
     {
-        using (GameHost host = Host.GetSuitableDesktopHost("visual-tests"))
-        using (var game = new NoitaMapTestBrowser())
-            host.Run(game);
+        using GameHost host = Host.GetSuitableDesktopHost("visual-tests");
+        using NoitaMapTestBrowser game = new NoitaMapTestBrowser();
+
+        host.Run(game);
     }
 }

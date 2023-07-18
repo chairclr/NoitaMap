@@ -5,11 +5,7 @@ using System.Threading.Tasks;
 using NoitaMap.Game.Map;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Screens;
-using osuTK.Graphics;
-using osuTK.Graphics.ES11;
 
 namespace NoitaMap.Game;
 

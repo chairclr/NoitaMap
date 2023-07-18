@@ -1,7 +1,6 @@
-using osu.Framework.Graphics;
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
-using NoitaMap.Game.Compression;
 
 namespace NoitaMap.Game.Tests.Visual;
 

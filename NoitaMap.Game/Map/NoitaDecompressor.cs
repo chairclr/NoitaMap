@@ -1,7 +1,6 @@
-﻿using System.IO;
-using System;
+﻿using System;
+using System.IO;
 using NoitaMap.Game.Compression;
-using System.Runtime.CompilerServices;
 
 namespace NoitaMap.Game.Map;
 

@@ -10,6 +10,7 @@ public static class Program
     {
         using GameHost host = Host.GetSuitableDesktopHost(@"NoitaMap");
         using osu.Framework.Game game = new NoitaMapGame();
+
         host.Run(game);
     }
 }

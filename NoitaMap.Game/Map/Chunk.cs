@@ -1,16 +1,14 @@
-﻿using System.Buffers;
-using System;
+﻿using System;
+using System.Buffers;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
+using NoitaMap.Game.Materials;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
-using NoitaMap.Game.Materials;
-using SixLabors.ImageSharp.PixelFormats;
-using osu.Framework.Graphics.Rendering;
-using System.Runtime.InteropServices;
-using NUnit.Framework.Constraints;
-using System.Runtime.CompilerServices;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace NoitaMap.Game.Map;
 

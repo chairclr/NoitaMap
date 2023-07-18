@@ -9,4 +9,7 @@
     <EmbeddedResource Include="Tracks\**\*" />
     <EmbeddedResource Include="Materials\**\*" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Textures\" />
+  </ItemGroup>
 </Project>
