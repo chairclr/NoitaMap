@@ -9,6 +9,6 @@ public partial class TestSceneMainScreen : NoitaMapTestScene
 {
     public TestSceneMainScreen()
     {
-        Add(new ScreenStack(new MainScreen()) { RelativeSizeAxes = Axes.Both });
+        Add(new ScreenStack(new MapViewerScreen()));
     }
 }

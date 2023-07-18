@@ -1,7 +1,12 @@
-﻿using NoitaMap.Game.Map;
+﻿using System;
+using System.Runtime.InteropServices;
+using NoitaMap.Game.Map;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
+using osu.Framework.Graphics.Rendering.Vertices;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osuTK;
 using osuTK.Graphics;
 
@@ -10,6 +15,8 @@ namespace NoitaMap.Game.Graphics;
 public class ChunkContainerDrawNode : TexturedShaderDrawNode
 {
     protected readonly ChunkContainer ChunkContainer;
+
+    protected IUniformBuffer<TransformUniform>? TransformBuffer;
 
     public ChunkContainerDrawNode(ChunkContainer chunkContainer)
         : base(chunkContainer)
@@ -28,10 +35,17 @@ public class ChunkContainerDrawNode : TexturedShaderDrawNode
 
         BindTextureShader(renderer);
 
+        TransformBuffer ??= renderer.CreateUniformBuffer<TransformUniform>();
+
+        TransformBuffer.Data = new TransformUniform()
+        {
+            ViewMatrix = ChunkContainer.ViewMatrix
+        };
+
+        ChunkContainer.TextureShader.BindUniformBlock("g_Transform", TransformBuffer);
+
         foreach (Chunk chunk in ChunkContainer.Chunks.Values)
         {
-            Vector2 position = chunk.Position;
-
             if (chunk.ReadyForTextureCreation)
             {
                 chunk.CreateTexture(renderer);
@@ -42,11 +56,24 @@ public class ChunkContainerDrawNode : TexturedShaderDrawNode
                 continue;
             }
 
+            Vector2 position = chunk.Position;
+
             Quad quad = new Quad(position.X, position.Y, Chunk.ChunkWidth, Chunk.ChunkHeight);
 
             renderer.DrawQuad(chunk.InternalTexture, quad, Color4.White);
         }
 
         UnbindTextureShader(renderer);
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    protected struct TransformUniform : IEquatable<TransformUniform>
+    {
+        public UniformMatrix4 ViewMatrix;
+
+        public bool Equals(TransformUniform other)
+        {
+            return ViewMatrix == other.ViewMatrix;
+        }
     }
 }

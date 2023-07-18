@@ -6,6 +6,7 @@ using NoitaMap.Game.Graphics;
 using NoitaMap.Game.Materials;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osuTK;
 
@@ -24,33 +25,43 @@ public partial class ChunkContainer : Drawable, ITexturedShaderDrawable
 
     public ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
 
+    public Vector2 ViewOffset = Vector2.Zero;
+
+    public Vector2 ViewScale = Vector2.One;
+
+    public Matrix4 ViewMatrix => Matrix4.CreateTranslation(-ViewOffset.X, -ViewOffset.Y, 0f) * Matrix4.CreateScale(ViewScale.X, ViewScale.Y, 1f);
+
     [BackgroundDependencyLoader]
     private void Load(ShaderManager shaders)
     {
-        TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+        TextureShader = shaders.Load("ChunkView", "ChunkView");
     }
 
     public void LoadChunk(string chunkFilePath)
     {
-        byte[] decompressedData = NoitaDecompressor.ReadAndDecompressChunk(chunkFilePath);
-
-        using MemoryStream ms = new MemoryStream(decompressedData);
-        using BinaryReader reader = new BinaryReader(ms);
-
-        int version = reader.ReadBEInt32();
-        int width = reader.ReadBEInt32();
-        int height = reader.ReadBEInt32();
-
-        if (version != 24 || width != Chunk.ChunkWidth || height != Chunk.ChunkHeight)
-        {
-            throw new InvalidDataException($"Chunk header was not correct. Version = {version} Width = {width} Height = {height}");
-        }
-
         Vector2 chunkPosition = GetChunkPositionFromPath(chunkFilePath);
 
         Chunk chunk = new Chunk(chunkPosition, MaterialProvider!);
 
-        chunk.Deserialize(reader);
+        byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(chunkFilePath);
+
+        using (MemoryStream ms = new MemoryStream(decompressedData))
+        {
+            using BinaryReader reader = new BinaryReader(ms);
+
+            int version = reader.ReadBEInt32();
+            int width = reader.ReadBEInt32();
+            int height = reader.ReadBEInt32();
+
+            if (version != 24 || width != Chunk.ChunkWidth || height != Chunk.ChunkHeight)
+            {
+                throw new InvalidDataException($"Chunk header was not correct. Version = {version} Width = {width} Height = {height}");
+            }
+
+            chunk.Deserialize(reader);
+        }
+
+        decompressedData = null;
 
         FinishedChunks.Enqueue(chunk);
     }

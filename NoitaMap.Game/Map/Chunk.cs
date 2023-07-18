@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using NoitaMap.Game.Materials;
+using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -12,7 +14,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace NoitaMap.Game.Map;
 
-public partial class Chunk
+public partial class Chunk : IDisposable
 {
     public const int ChunkWidth = 512;
 
@@ -27,6 +29,8 @@ public partial class Chunk
     public bool ReadyForTextureCreation { get; private set; }
 
     private MaterialProvider MaterialProvider;
+
+    private bool Disposed;
 
     public Chunk(Vector2 position, MaterialProvider materialProvider)
     {
@@ -72,7 +76,7 @@ public partial class Chunk
 
                     if (mat.Name == "err")
                     {
-                        TextureData[x, y] = mat.Colors[x % mat.Colors.GetLength(0), y % mat.Colors.GetLength(1)];
+                        TextureData[x, y] = mat.Colors[Math.Abs(x + chunkX * ChunkWidth) % mat.Colors.GetLength(0), Math.Abs(y + chunkY * ChunkHeight) % mat.Colors.GetLength(1)];
                     }
                     else
                     {
@@ -91,7 +95,7 @@ public partial class Chunk
         ReadyForTextureCreation = true;
     }
 
-    public void CreateTexture(IRenderer renderer)
+    public unsafe void CreateTexture(IRenderer renderer)
     {
         if (!ReadyForTextureCreation)
         {
@@ -102,7 +106,9 @@ public partial class Chunk
 
         InternalTexture = renderer.CreateTexture(ChunkWidth, ChunkHeight, filteringMode: TextureFilteringMode.Nearest);
 
-        Image<Rgba32> image = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(MemoryMarshal.CreateSpan(ref TextureData![0, 0], ChunkWidth * ChunkHeight), ChunkWidth, ChunkHeight);
+        Span<Rgba32> span = MemoryMarshal.CreateSpan(ref TextureData![0, 0], ChunkWidth * ChunkHeight);
+
+        Image<Rgba32> image = SixLabors.ImageSharp.Image.WrapMemory<Rgba32>(Unsafe.AsPointer(ref span[0]), ChunkWidth, ChunkHeight);
 
         InternalTexture.BypassTextureUploadQueueing = true;
 
@@ -144,5 +150,23 @@ public partial class Chunk
         }
 
         return materialWorldColors;
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            TextureData = null;
+
+            InternalTexture?.Dispose();
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

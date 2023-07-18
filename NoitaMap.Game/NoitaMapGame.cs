@@ -11,15 +11,13 @@ public partial class NoitaMapGame : NoitaMapGameBase
     [BackgroundDependencyLoader]
     private void Load()
     {
-        // Add your top-level game components here.
-        // A screen stack and sample screen has been provided for convenience, but you can replace it if you don't want to use screens.
-        Child = ScreenStack = new ScreenStack { RelativeSizeAxes = Axes.Both };
+        Child = ScreenStack = new ScreenStack();
     }
 
     protected override void LoadComplete()
     {
         base.LoadComplete();
 
-        ScreenStack.Push(new MainScreen());
+        ScreenStack.Push(new MapViewerScreen());
     }
 }

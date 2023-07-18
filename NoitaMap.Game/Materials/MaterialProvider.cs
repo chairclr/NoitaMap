@@ -28,7 +28,7 @@ public partial class MaterialProvider : IDependencyInjectionCandidate
                 Rgba32 color = Color.DeepPink;
 
                 if ((x > image.Width / 2 && y > image.Height / 2) ||
-                    (x < image.Width / 2 && y < image.Height / 2))
+                    (x <= image.Width / 2 && y <= image.Height / 2))
                 {
                     color = Color.Black;
                 }
