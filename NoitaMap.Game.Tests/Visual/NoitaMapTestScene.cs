@@ -4,7 +4,10 @@ namespace NoitaMap.Game.Tests.Visual;
 
 public partial class NoitaMapTestScene : TestScene
 {
-    protected override ITestSceneTestRunner CreateRunner() => new NoitaMapTestSceneTestRunner();
+    protected override ITestSceneTestRunner CreateRunner()
+    {
+        return new NoitaMapTestSceneTestRunner();
+    }
 
     private partial class NoitaMapTestSceneTestRunner : NoitaMapGameBase, ITestSceneTestRunner
     {
@@ -16,6 +19,9 @@ public partial class NoitaMapTestScene : TestScene
             Add(Runner = new TestSceneTestRunner.TestRunner());
         }
 
-        public void RunTestBlocking(TestScene test) => Runner.RunTestBlocking(test);
+        public void RunTestBlocking(TestScene test)
+        {
+             Runner.RunTestBlocking(test);
+        }
     }
 }
