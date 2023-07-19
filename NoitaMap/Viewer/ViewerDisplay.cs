@@ -1,13 +1,10 @@
 ﻿using System.Runtime.InteropServices;
-using CommunityToolkit.HighPerformance.Helpers;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
-using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
-using Vulkan;
 
 namespace NoitaMap.Viewer;
 
@@ -20,6 +17,8 @@ public class ViewerDisplay : IDisposable
     private readonly CommandList MainCommandList;
 
     private Framebuffer MainFrameBuffer;
+
+    //private readonly Pipeline MainPipeline;
 
     private readonly StagingResourcePool StagingResourcePool;
 
@@ -77,6 +76,35 @@ public class ViewerDisplay : IDisposable
         TestTexture = GraphicsDevice.ResourceFactory.CreateTexture(desc);
 
         GraphicsDevice.UpdateTexture(TestTexture, MemoryMarshal.CreateSpan(ref brick.MaterialTexture.Span.DangerousGetReference(), (int)brick.MaterialTexture.Length), 0, 0, 0, (uint)brick.MaterialTexture.Width, (uint)brick.MaterialTexture.Height, 1, 0, 0);
+
+        //MainPipeline = GraphicsDevice.ResourceFactory.CreateGraphicsPipeline(new GraphicsPipelineDescription()
+        //{
+        //    BlendState = BlendStateDescription.SingleAdditiveBlend,
+        //    DepthStencilState = new DepthStencilStateDescription()
+        //    {
+        //        DepthComparison = ComparisonKind.Less,
+        //        DepthTestEnabled = true,
+        //        DepthWriteEnabled = true
+        //    },
+        //    Outputs = MainFrameBuffer.OutputDescription,
+        //    PrimitiveTopology = PrimitiveTopology.TriangleList,
+        //    RasterizerState = new RasterizerStateDescription()
+        //    {
+        //        CullMode = FaceCullMode.None,
+        //        FillMode = PolygonFillMode.Solid,
+        //        FrontFace = FrontFace.Clockwise,
+        //    },
+        //    ShaderSet = new ShaderSetDescription()
+        //    {
+        //        Shaders = new Shader[]
+        //        {
+        //            GraphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
+        //            {
+
+        //            })
+        //        }
+        //    }
+        //});
 
         Window.Center();
 
