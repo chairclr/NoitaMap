@@ -1,9 +1,13 @@
-﻿using CommunityToolkit.HighPerformance.Helpers;
+﻿using System.Runtime.InteropServices;
+using CommunityToolkit.HighPerformance.Helpers;
+using NoitaMap.Graphics;
+using NoitaMap.Map;
 using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
+using Vulkan;
 
 namespace NoitaMap.Viewer;
 
@@ -16,6 +20,12 @@ public class ViewerDisplay : IDisposable
     private readonly CommandList MainCommandList;
 
     private Framebuffer MainFrameBuffer;
+
+    private readonly StagingResourcePool StagingResourcePool;
+
+    private readonly Texture TestTexture;
+
+    private readonly MaterialProvider MaterialProvider;
 
     private bool Disposed;
 
@@ -42,6 +52,31 @@ public class ViewerDisplay : IDisposable
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
+
+        StagingResourcePool = new StagingResourcePool(GraphicsDevice);
+
+        MaterialProvider = new MaterialProvider();
+
+        Material brick = MaterialProvider.GetMaterial("brick");
+
+        TextureDescription desc = new TextureDescription()
+        {
+            Type = TextureType.Texture2D,
+            Format = PixelFormat.R8_G8_B8_A8_UNorm,
+            Width = (uint)brick.MaterialTexture.Width,
+            Height = (uint)brick.MaterialTexture.Height,
+            Usage = TextureUsage.Staging,
+            MipLevels = 1,
+
+            // Nececessary
+            Depth = 1,
+            ArrayLayers = 1,
+            SampleCount = TextureSampleCount.Count1,
+        };
+
+        TestTexture = GraphicsDevice.ResourceFactory.CreateTexture(desc);
+
+        GraphicsDevice.UpdateTexture(TestTexture, MemoryMarshal.CreateSpan(ref brick.MaterialTexture.Span.DangerousGetReference(), (int)brick.MaterialTexture.Length), 0, 0, 0, (uint)brick.MaterialTexture.Width, (uint)brick.MaterialTexture.Height, 1, 0, 0);
 
         Window.Center();
 
