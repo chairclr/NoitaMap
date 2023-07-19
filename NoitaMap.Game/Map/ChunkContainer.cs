@@ -2,40 +2,69 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using NoitaMap.Game.Graphics;
 using NoitaMap.Game.Materials;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Screens;
 using osuTK;
 
 namespace NoitaMap.Game.Map;
 
-public partial class ChunkContainer : Drawable, ITexturedShaderDrawable
+public partial class ChunkContainer : CompositeDrawable
 {
     private static readonly Regex ChunkPositionRegex = new Regex("world_(?<x>-?\\d+)_(?<y>-?\\d+)\\.png_petri", RegexOptions.Compiled);
-
-    public IShader TextureShader { get; protected set; }
 
     [Resolved]
     private MaterialProvider MaterialProvider { get; set; }
 
-    public Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
+    protected Dictionary<Vector2, Chunk> InternalChunks = new Dictionary<Vector2, Chunk>();
+
+    public IReadOnlyDictionary<Vector2, Chunk> Chunks => InternalChunks;
+
+    public List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
 
     public ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
 
-    public Vector2 ViewOffset = Vector2.Zero;
+    private Vector2 ViewOffsetBacking = Vector2.Zero;
 
-    public Vector2 ViewScale = Vector2.One;
-
-    public Matrix4 ViewMatrix => Matrix4.CreateTranslation(-ViewOffset.X, -ViewOffset.Y, 0f) * Matrix4.CreateScale(ViewScale.X, ViewScale.Y, 1f);
-
-    [BackgroundDependencyLoader]
-    private void Load(ShaderManager shaders)
+    public Vector2 ViewOffset
     {
-        TextureShader = shaders.Load("ChunkView", "ChunkView");
+        get => ViewOffsetBacking;
+
+        set
+        {
+            ViewOffsetBacking = value;
+
+            Invalidate(Invalidation.DrawInfo);
+        }
     }
+
+    private Vector2 ViewScaleBacking = Vector2.One;
+
+    public Vector2 ViewScale
+    {
+        get => ViewScaleBacking;
+
+        set
+        {
+            ViewScaleBacking = value;
+
+            Invalidate(Invalidation.DrawInfo);
+        }
+    }
+
+    //public Matrix3 ViewMatrix
+    //{
+    //    get
+    //    {
+    //        Matrix3 transformation = Matrix3.Identity;
+    //        MatrixExtensions.TranslateFromLeft(ref transformation, ViewOffset);
+    //        return transformation * Matrix3.CreateScale(ViewScale.X, ViewScale.Y, 1f);
+    //    }
+    //}
+
+    //public override DrawInfo DrawInfo => new DrawInfo(ViewMatrix, ViewMatrix.Inverted());
 
     public void LoadChunk(string chunkFilePath)
     {
@@ -66,9 +95,30 @@ public partial class ChunkContainer : Drawable, ITexturedShaderDrawable
         FinishedChunks.Enqueue(chunk);
     }
 
-    protected override DrawNode CreateDrawNode()
+    public void AddChunk(Chunk chunk)
     {
-        return new ChunkContainerDrawNode(this);
+        InternalChunks.Add(chunk.Position, chunk);
+
+        AddInternal(chunk);
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+
+        while (FinishedChunks.TryDequeue(out Chunk? chunk))
+        {
+            AddChunk(chunk);
+            //ChunkContainer.Chunks.Add(chunk.ChunkPosition, chunk);
+
+            //if (chunk.PhysicsObjects is not null)
+            //{
+            //    ChunkContainer.PhysicsObjects.AddRange(chunk.PhysicsObjects);
+            //}
+        }
+
+        Position = ViewOffset;
+        Scale = ViewScale;
     }
 
     private static Vector2 GetChunkPositionFromPath(string filePath)

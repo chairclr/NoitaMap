@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NoitaMap.Game.Map;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Screens;
 using osuTK;
@@ -21,6 +22,8 @@ public partial class MapViewerScreen : Screen
     private bool Panning = false;
 
     private Vector2 MouseTranslateOrigin = Vector2.Zero;
+
+    private Sprite? Sprite;
 
     public MapViewerScreen()
     {
@@ -45,7 +48,35 @@ public partial class MapViewerScreen : Screen
             {
                 ChunkContainer.LoadChunk(chunkPath);
             });
+
+            //Schedule(() =>
+            //{
+            //    InternalChildren = new Drawable[]
+            //    {
+            //        Sprite = new Sprite()
+            //        {
+            //            Texture = ChunkContainer.Chunks.First().Value.InternalTexture,
+            //            Width = 512f,
+            //            Height = 512f,
+            //            X = 0,
+            //            Y = 0,
+            //        }
+            //    };
+            //});
+            
         });
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+
+        if (Sprite is not null)
+        {
+            Sprite.X += 0.05f;
+            Sprite.Rotation += MathF.PI / 300f;
+        }
+
     }
 
     protected override bool OnMouseMove(MouseMoveEvent e)
@@ -53,7 +84,7 @@ public partial class MapViewerScreen : Screen
         if (Panning)
         {
             Vector2 currentMousePosition = ScalePosition(e.ScreenSpaceMousePosition) + ChunkContainer.ViewOffset;
-
+        
             ChunkContainer.ViewOffset += MouseTranslateOrigin - currentMousePosition;
         }
 

@@ -2,78 +2,135 @@
 using System.Runtime.InteropServices;
 using NoitaMap.Game.Map;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
-using osu.Framework.Graphics.Rendering.Vertices;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
-using osuTK;
-using osuTK.Graphics;
 
 namespace NoitaMap.Game.Graphics;
 
-public class ChunkContainerDrawNode : TexturedShaderDrawNode
-{
-    protected readonly ChunkContainer ChunkContainer;
+//public class ChunkContainerDrawNode : TexturedShaderDrawNode
+//{
+//    protected readonly ChunkContainer ChunkContainer;
 
-    protected IUniformBuffer<TransformUniform>? TransformBuffer;
+//    protected IUniformBuffer<TransformUniform>? TransformBuffer;
 
-    public ChunkContainerDrawNode(ChunkContainer chunkContainer)
-        : base(chunkContainer)
-    {
-        ChunkContainer = chunkContainer;
-    }
+//    protected IndexedTextureAtlas? PhysicsObjectAtlas;
 
-    public override void Draw(IRenderer renderer)
-    {
-        base.Draw(renderer);
+//    public ChunkContainerDrawNode(ChunkContainer chunkContainer)
+//        : base(chunkContainer)
+//    {
+//        ChunkContainer = chunkContainer;
+//    }
 
-        while (ChunkContainer.FinishedChunks.TryDequeue(out Chunk? chunk))
-        {
-            ChunkContainer.Chunks.Add(chunk.Position, chunk);
-        }
+//    float i = 0;
 
-        BindTextureShader(renderer);
+//    public override void Draw(IRenderer renderer)
+//    {
+//        base.Draw(renderer);
 
-        TransformBuffer ??= renderer.CreateUniformBuffer<TransformUniform>();
+//        while (ChunkContainer.FinishedChunks.TryDequeue(out Chunk? chunk))
+//        {
+//            ChunkContainer.AddChunk(chunk);
+//            //ChunkContainer.Chunks.Add(chunk.ChunkPosition, chunk);
 
-        TransformBuffer.Data = new TransformUniform()
-        {
-            ViewMatrix = ChunkContainer.ViewMatrix
-        };
+//            //if (chunk.PhysicsObjects is not null)
+//            //{
+//            //    ChunkContainer.PhysicsObjects.AddRange(chunk.PhysicsObjects);
+//            //}
+//        }
 
-        ChunkContainer.TextureShader.BindUniformBlock("g_Transform", TransformBuffer);
+//        BindTextureShader(renderer);
 
-        foreach (Chunk chunk in ChunkContainer.Chunks.Values)
-        {
-            if (chunk.ReadyForTextureCreation)
-            {
-                chunk.CreateTexture(renderer);
-            }
+//        //TransformBuffer ??= renderer.CreateUniformBuffer<TransformUniform>();
 
-            if (chunk.InternalTexture?.Available != true)
-            {
-                continue;
-            }
+//        //PhysicsObjectAtlas ??= new IndexedTextureAtlas(renderer, 4096, 4096, filteringMode: TextureFilteringMode.Nearest);
 
-            Vector2 position = chunk.Position;
+//        //TransformBuffer.Data = new TransformUniform()
+//        //{
+//        //    ViewMatrix = ChunkContainer.ViewMatrix,
+//        //    ModelMatrix = Matrix4.Identity
+//        //};
 
-            Quad quad = new Quad(position.X, position.Y, Chunk.ChunkWidth, Chunk.ChunkHeight);
+//        //ChunkContainer.TextureShader.BindUniformBlock("g_Transform", TransformBuffer);
 
-            renderer.DrawQuad(chunk.InternalTexture, quad, Color4.White);
-        }
+//        //ApplyState();
 
-        UnbindTextureShader(renderer);
-    }
+//        //foreach (Chunk chunk in ChunkContainer.Chunks.Values)
+//        //{
+//        //    if (chunk.ReadyForTextureCreation)
+//        //    {
+//        //        chunk.CreateTexture(renderer);
+//        //    }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    protected struct TransformUniform : IEquatable<TransformUniform>
-    {
-        public UniformMatrix4 ViewMatrix;
+//        //    if (chunk.InternalTexture?.Available != true)
+//        //    {
+//        //        continue;
+//        //    }
 
-        public readonly bool Equals(TransformUniform other)
-        {
-            return ViewMatrix == other.ViewMatrix;
-        }
-    }
-}
+//        //    Vector2 position = Vector2Extensions.Transform(chunk.Position, Source.DrawInfo.Matrix);
+//        //    Vector2 size = new Vector2(Chunk.ChunkWidth, Chunk.ChunkHeight) * Source.DrawInfo.Matrix.ExtractScale().Xy;
+
+//        //    Quad quad = new Quad(position, position + size * Vector2.UnitX, position + size * Vector2.UnitY, position + size);
+
+//        //    renderer.DrawQuad(chunk.InternalTexture, quad, Color4.White);
+//        //}
+
+//        //float i = 0;
+//        //foreach (PhysicsObject physicsObject in ChunkContainer.PhysicsObjects)
+//        //{
+//        //    if (physicsObject.ReadyToBeAddedToAtlas)
+//        //    {
+//        //        if (PhysicsObjectAtlas.TryFind(physicsObject.TextureHash, out Texture? texture))
+//        //        {
+//        //            physicsObject.InternalTexture = texture;
+
+//        //            physicsObject.ReadyToBeAddedToAtlas = false;
+//        //        }
+//        //        else
+//        //        {
+//        //            Texture? textureRegion = PhysicsObjectAtlas.Add(physicsObject.TextureHash, physicsObject.Width, physicsObject.Height);
+
+//        //            if (textureRegion is not null)
+//        //            {
+//        //                physicsObject.SetTexture(textureRegion);
+//        //            }
+//        //        }
+//        //    }
+
+//        //    osuTK.Input.MouseState state = Mouse.GetCursorState();
+
+//        //    TransformBuffer.Data = new TransformUniform()
+//        //    {
+//        //        ViewMatrix = ChunkContainer.ViewMatrix,
+//        //        ModelMatrix = Matrix4.CreateRotationZ(physicsObject.Rotation),
+//        //        CoolPosition = physicsObject.Position
+//        //    };
+
+//        //    Quad quad = new Quad(physicsObject.Position.X, physicsObject.Position.Y, physicsObject.Width, physicsObject.Height);
+//        //    renderer.DrawQuad(physicsObject.InternalTexture, quad, Color4.White);
+//        //    //TransformBuffer.Data = new TransformUniform()
+//        //    //{
+//        //    //    ViewMatrix = ChunkContainer.ViewMatrix,
+//        //    //    ModelMatrix = Matrix4.Identity
+//        //    //};
+
+//        //    //Quad quad2 = new Quad(physicsObject.Position.X, physicsObject.Position.Y - 10f, physicsObject.Width, physicsObject.Height);
+//        //    //renderer.DrawQuad(physicsObject.InternalTexture, quad, Color4.Red);
+//        //}
+
+//        UnbindTextureShader(renderer);
+//    }
+
+//    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+//    protected struct TransformUniform : IEquatable<TransformUniform>
+//    {
+//        public UniformMatrix4 ViewMatrix;
+//        public UniformMatrix4 ModelMatrix;
+//        public UniformVector2 CoolPosition;
+//        private UniformPadding8 __padding1;
+
+//        public readonly bool Equals(TransformUniform other)
+//        {
+//            return ViewMatrix == other.ViewMatrix && ModelMatrix == other.ModelMatrix;
+//        }
+//    }
+//}

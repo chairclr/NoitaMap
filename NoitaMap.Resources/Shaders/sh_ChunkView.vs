@@ -2,6 +2,8 @@
 layout(std140, set = 1, binding = 0) uniform g_Transform
 {
     highp mat4 g_ViewMatrix;
+    highp mat4 g_ModelMatrix;
+	highp vec2 g_CoolPosition;
 };
 
 layout(location = 0) in highp vec2 m_Position;
@@ -18,7 +20,9 @@ void main() {
 	v_TexCoord = m_TexCoord;
 	v_TexRect = m_TexRect;
 
-	highp vec4 pos = vec4(m_Position, 1.0, 1.0);
+	vec2 localPosition = m_Position - g_CoolPosition;
 
-    gl_Position = g_ProjMatrix * g_ViewMatrix * pos;
+	highp vec4 rotatedPos = vec4(g_CoolPosition, 0.0, 0.0) + (g_ModelMatrix * vec4(localPosition, 1.0, 1.0));
+
+    gl_Position = g_ProjMatrix * g_ViewMatrix * rotatedPos;
 }
