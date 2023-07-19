@@ -84,6 +84,8 @@ public class ViewerDisplay : IDisposable
     {
         if (!Disposed)
         {
+            MainCommandList.Dispose();
+
             GraphicsDevice.Dispose();
 
             Window.Dispose();
