@@ -9,24 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
+    <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.17.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+    <PackageReference Include="Veldrid" Version="4.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="$(ProjectDir)Materials\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(ProjectDir)]Assets\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Assets\font_pixel.png">
+    <None Update="Compression\x64\fastlz.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\font_pixel.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="x64\fastlz.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="x86\fastlz.dll">
+    <None Update="Compression\x86\fastlz.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
