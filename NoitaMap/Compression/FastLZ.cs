@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 
 namespace NoitaMap.Compression;
@@ -16,17 +11,19 @@ public partial class FastLZ
         {
             if (dllName == "fastlz")
             {
+                string compressionPath = Path.Combine(File.Exists(assembly.Location) ? Path.GetDirectoryName(assembly.Location)! : Environment.CurrentDirectory, "Compression");
+
                 if (Environment.Is64BitProcess)
                 {
-                    return NativeLibrary.Load(Path.Combine(Path.GetDirectoryName(assembly.Location)!, "Compression", "x64", "fastlz.dll"));
+                    return NativeLibrary.Load(Path.Combine(compressionPath, "x64", "fastlz.dll"));
                 }
                 else
                 {
-                    return NativeLibrary.Load(Path.Combine(Path.GetDirectoryName(assembly.Location)!, "Compression", "x86", "fastlz.dll"));
+                    return NativeLibrary.Load(Path.Combine(compressionPath, "x86", "fastlz.dll"));
                 }
             }
 
-            return (nint)0;
+            return 0;
         });
     }
 
