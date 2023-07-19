@@ -362,5 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-!NoitaMap/Compression/x64/
-!NoitaMap/Compression/x86/
+!NoitaMap/Assets/Libraries/x64/
+!NoitaMap/Assets/Libraries/x86/

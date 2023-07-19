@@ -11,15 +11,15 @@ public partial class FastLZ
         {
             if (dllName == "fastlz")
             {
-                string compressionPath = Path.Combine(File.Exists(assembly.Location) ? Path.GetDirectoryName(assembly.Location)! : Environment.CurrentDirectory, "Compression");
+                string libraryPath = Path.Combine(File.Exists(assembly.Location) ? Path.GetDirectoryName(assembly.Location)! : Environment.CurrentDirectory, "Assets", "Libraries");
 
                 if (Environment.Is64BitProcess)
                 {
-                    return NativeLibrary.Load(Path.Combine(compressionPath, "x64", "fastlz.dll"));
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "x64", "fastlz.dll"));
                 }
                 else
                 {
-                    return NativeLibrary.Load(Path.Combine(compressionPath, "x86", "fastlz.dll"));
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "x86", "fastlz.dll"));
                 }
             }
 
