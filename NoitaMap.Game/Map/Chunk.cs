@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using NoitaMap.Game.Materials;
-using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osuTK;
@@ -20,15 +19,17 @@ public partial class Chunk : IDisposable
 
     public const int ChunkHeight = 512;
 
+    private readonly MaterialProvider MaterialProvider;
+
     public readonly Vector2 Position;
+
+    public PhysicsObject[]? PhysicsObjects;
 
     public Texture? InternalTexture = null;
 
     public Rgba32[,]? TextureData;
 
     public bool ReadyForTextureCreation { get; private set; }
-
-    private MaterialProvider MaterialProvider;
 
     private bool Disposed;
 
@@ -93,6 +94,8 @@ public partial class Chunk : IDisposable
         }
 
         ReadyForTextureCreation = true;
+
+        int physicsObjectCount = reader.ReadBEInt32();
     }
 
     public unsafe void CreateTexture(IRenderer renderer)

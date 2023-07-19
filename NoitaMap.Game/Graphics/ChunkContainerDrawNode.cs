@@ -71,7 +71,7 @@ public class ChunkContainerDrawNode : TexturedShaderDrawNode
     {
         public UniformMatrix4 ViewMatrix;
 
-        public bool Equals(TransformUniform other)
+        public readonly bool Equals(TransformUniform other)
         {
             return ViewMatrix == other.ViewMatrix;
         }
