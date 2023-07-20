@@ -18,13 +18,11 @@ public class ViewerDisplay : IDisposable
 
     private Framebuffer MainFrameBuffer;
 
-    private Pipeline MainPipeline;
+    private readonly Pipeline MainPipeline;
 
     private readonly ChunkContainer ChunkContainer;
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
-
-    private readonly StagingResourcePool StagingResourcePool;
 
     public readonly MaterialProvider MaterialProvider;
 
@@ -57,8 +55,6 @@ public class ViewerDisplay : IDisposable
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
-
-        StagingResourcePool = new StagingResourcePool(GraphicsDevice);
 
         string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
 
