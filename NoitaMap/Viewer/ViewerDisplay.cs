@@ -87,11 +87,35 @@ public class ViewerDisplay : IDisposable
     {
         Task.Run(() =>
         {
+
+            const int ChunksPerThread = 16;
+
             string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
 
-            Parallel.ForEach(chunkPaths, chunkPath =>
+            // Split up all of the paths into a collection of (at most) 16 paths for each thread to process
+            // This is so that each thread can process 16 chunks at once, rather than having too many threads
+            string[][] threadedChunkPaths = new string[(int)MathF.Ceiling((float)chunkPaths.Length / (float)ChunksPerThread)][];
+
+            int total = 0;
+            for (int i = 0; i < threadedChunkPaths.Length; i++)
             {
-                ChunkContainer.LoadChunk(chunkPath);
+                int chunkCountForThread = Math.Min(chunkPaths.Length - total, ChunksPerThread);
+                threadedChunkPaths[i] = new string[chunkCountForThread];
+
+                for (int j = 0; j < chunkCountForThread; j++)
+                {
+                    threadedChunkPaths[i][j] = chunkPaths[total];
+
+                    total++;
+                }
+            }
+
+            Parallel.ForEach(threadedChunkPaths, chunkPaths =>
+            {
+                for (int i = 0; i < chunkPaths.Length; i++)
+                {
+                    ChunkContainer.LoadChunk(chunkPaths[i]);
+                }
             });
         });
 
