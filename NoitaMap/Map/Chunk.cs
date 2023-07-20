@@ -68,7 +68,7 @@ public class Chunk
                 {
                     Material mat = materials[material];
 
-                    if (mat.Name == "err")
+                    if (mat.Name == "_")
                     {
                         textureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
                     }

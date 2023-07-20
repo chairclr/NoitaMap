@@ -27,7 +27,10 @@ public static class ShaderLoader
                 _ => throw new Exception()
             };
 
-            VertexFragmentCompilationResult result = SpirvCompilation.CompileVertexFragment(vertexShaderBytes, pixelShaderBytes, compileTarget);
+            VertexFragmentCompilationResult result = SpirvCompilation.CompileVertexFragment(vertexShaderBytes, pixelShaderBytes, compileTarget, new CrossCompileOptions()
+            {
+                InvertVertexOutputY = true
+            });
 
             pixelShaderBytes = Encoding.UTF8.GetBytes(result.FragmentShader);
             vertexShaderBytes = Encoding.UTF8.GetBytes(result.VertexShader);

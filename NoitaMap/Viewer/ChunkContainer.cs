@@ -67,11 +67,15 @@ public class ChunkContainer
             Chunks.Add(chunk.Position, chunk);
         }
 
+        float i = 0;
+
         foreach (Chunk chunk in Chunks.Values)
         {
             if (chunk.Ready)
             {
-                ConstantBuffer.Data.World = Matrix4x4.CreateTranslation(new Vector3(chunk.Position, 0));
+                ConstantBuffer.Data.World = Matrix4x4.CreateTranslation(new Vector3(chunk.Position, 0f));
+
+                ConstantBuffer.Update(commandList);
 
                 chunk.Buffer!.Draw(commandList);
             }
