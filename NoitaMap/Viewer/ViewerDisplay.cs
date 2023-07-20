@@ -97,8 +97,6 @@ public class ViewerDisplay : IDisposable
     {
         Task.Run(() =>
         {
-            while (!InputSystem.MiddleMouseDown) { Thread.Sleep(100); }
-
             const int ChunksPerThread = 16;
 
             string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
