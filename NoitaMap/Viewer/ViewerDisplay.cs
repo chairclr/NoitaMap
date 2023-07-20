@@ -140,7 +140,7 @@ public class ViewerDisplay : IDisposable
         Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
 
         ViewScale += new Vector2(InputSystem.ScrollDelta) * (ViewScale / 10f);
-        ViewScale = Vector2.Clamp(ViewScale, new Vector2(0.1f, 0.1f), new Vector2(20f, 20f));
+        ViewScale = Vector2.Clamp(ViewScale, new Vector2(0.01f, 0.01f), new Vector2(20f, 20f));
 
         Vector2 currentScaledMouse = ScalePosition(InputSystem.MousePosition);
 
