@@ -67,8 +67,6 @@ public class ChunkContainer
             Chunks.Add(chunk.Position, chunk);
         }
 
-        float i = 0;
-
         foreach (Chunk chunk in Chunks.Values)
         {
             if (chunk.Ready)

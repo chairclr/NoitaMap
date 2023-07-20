@@ -107,12 +107,8 @@ public class ViewerDisplay : IDisposable
         Window.Run();
     }
 
-    float r = 0;
-
     private void Render()
     {
-        r += 0.001f;
-
         ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
 
         ConstantBuffer.Update();
