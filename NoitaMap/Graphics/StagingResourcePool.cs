@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Veldrid;
+﻿using Veldrid;
 
 namespace NoitaMap.Graphics;
 

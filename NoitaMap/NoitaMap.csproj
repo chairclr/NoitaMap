@@ -14,11 +14,69 @@
     <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.17.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
     <PackageReference Include="Veldrid" Version="4.9.0" />
+    <PackageReference Include="Veldrid.RenderDoc" Version="1.0.1" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="$(ProjectDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\Shaders\Compiled\" />
+  </ItemGroup>
+
+  <UsingTask TaskName="CompileShaderTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <ShaderFile ParameterType="System.String" Required="true" />
+      <ShaderProfile ParameterType="System.String" Required="true" />
+      <ShaderEntryPoint ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Diagnostics" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          Log.LogMessage(MessageImportance.High, "Compiling Shader " + ShaderFile);
+        
+          string projectDirectory = Path.GetDirectoryName(BuildEngine.ProjectFileOfTaskNode);
+          
+          string shaderSourcePathNoExtension = Path.Combine(projectDirectory, "Assets", "Shaders", "Source", ShaderFile);
+          string shaderCompilationPathNoExtension = Path.Combine(projectDirectory, "Assets", "Shaders", "Compiled", ShaderFile);
+          
+          Process process = new Process();
+          process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", "dxc.exe");
+          process.StartInfo.Arguments = string.Format("-spirv -fvk-s-shift 1 0 -T {0} -E {1}  \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderCompilationPathNoExtension);
+          process.StartInfo.CreateNoWindow = true;
+          process.StartInfo.UseShellExecute = false;
+          process.StartInfo.RedirectStandardOutput = true;
+          process.StartInfo.RedirectStandardError = true;
+          process.Start();
+          process.WaitForExit();
+          
+          string standardOutput = process.StandardOutput.ReadToEnd();
+          
+          if (!string.IsNullOrWhiteSpace(standardOutput))
+          {
+              Log.LogMessage(MessageImportance.High, standardOutput);
+          }
+          
+          if (process.ExitCode != 0)
+          {
+              string message = "Failed to compile shader \"" + ShaderFile + ".hlsl\"";
+              Log.LogError(message);
+              Log.LogError(process.StandardError.ReadToEnd());
+              return false;
+          }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="CompileShaders" BeforeTargets="PreBuildEvent">
+    <CompileShaderTask ShaderFile="VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
+    <CompileShaderTask ShaderFile="PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
+  </Target>
 
 </Project>

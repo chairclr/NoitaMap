@@ -1,6 +1,4 @@
 ﻿using NoitaMap.Viewer;
-using Silk.NET.Windowing;
-using Silk.NET.Windowing.Extensions.Veldrid;
 
 namespace NoitaMap;
 
