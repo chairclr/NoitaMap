@@ -16,9 +16,9 @@ public class ChunkContainer
 
     public readonly MaterialProvider MaterialProvider;
 
-    private Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
+    private readonly Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
 
-    private ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
+    private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
@@ -71,7 +71,7 @@ public class ChunkContainer
         {
             if (chunk.Ready)
             {
-                ConstantBuffer.Data.World = Matrix4x4.CreateTranslation(new Vector3(chunk.Position, 0f));
+                ConstantBuffer.Data.World = chunk.PrecalculatedWorldMatrix;
 
                 ConstantBuffer.Update(commandList);
 

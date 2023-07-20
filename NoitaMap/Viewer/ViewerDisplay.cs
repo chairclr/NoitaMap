@@ -1,15 +1,10 @@
-﻿using System.Collections.Concurrent;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Numerics;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
-using Veldrid.SPIRV;
-using Vortice.Direct3D11;
 
 namespace NoitaMap.Viewer;
 
@@ -197,12 +192,11 @@ public class ViewerDisplay : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    
-
     public struct VertexConstantBuffer
     {
-        public Matrix4x4 ViewProjection;
-        public Matrix4x4 World;
+        public Matrix4x4 ViewProjection; // 64 bytes
+
+        public Matrix4x4 World; // 128 bytes
     }
 }
 

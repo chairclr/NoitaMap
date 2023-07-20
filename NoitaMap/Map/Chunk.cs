@@ -22,6 +22,8 @@ public class Chunk
 
     public QuadVertexBuffer<Vertex>? Buffer;
 
+    public Matrix4x4 PrecalculatedWorldMatrix = Matrix4x4.Identity;
+
     public bool Ready = false;
 
     public Chunk(ViewerDisplay viewerDisplay, Vector2 position, MaterialProvider materialProvider)
@@ -109,9 +111,9 @@ public class Chunk
             UV = uv
         }, ViewerDisplay.CreateResourceSet(texture));
 
-        Ready = true;
+        PrecalculatedWorldMatrix = Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
 
-        //ReadyForTextureCreation = true;
+        Ready = true;
 
         //// Physics objects
         //int physicsObjectCount = reader.ReadBEInt32();
