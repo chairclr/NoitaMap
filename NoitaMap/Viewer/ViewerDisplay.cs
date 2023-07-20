@@ -1,6 +1,8 @@
-﻿using System.Numerics;
+﻿using System.Data;
+using System.Numerics;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
+using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
@@ -78,7 +80,11 @@ public class ViewerDisplay : IDisposable
 
         Window.Center();
 
+        InputSystem.SetInputContext(Window.CreateInput());
+
         Window.Render += x => Render();
+
+        Window.Update += x => Update();
 
         Window.Resize += HandleResize;
     }
@@ -87,7 +93,6 @@ public class ViewerDisplay : IDisposable
     {
         Task.Run(() =>
         {
-
             const int ChunksPerThread = 16;
 
             string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
@@ -122,9 +127,51 @@ public class ViewerDisplay : IDisposable
         Window.Run();
     }
 
+    private Vector2 MouseTranslateOrigin = Vector2.Zero;
+
+    private Vector2 ViewScale = Vector2.One;
+
+    private Vector2 ViewOffset = Vector2.Zero;
+
+    private void Update()
+    {
+        InputSystem.Update();
+
+        Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
+
+        ViewScale += new Vector2(InputSystem.ScrollDelta) * (ViewScale / 10f);
+        ViewScale = Vector2.Clamp(ViewScale, new Vector2(0.1f, 0.1f), new Vector2(20f, 20f));
+
+        Vector2 currentScaledMouse = ScalePosition(InputSystem.MousePosition);
+
+        // Zoom in on where the mouse is
+        ViewOffset += originalScaledMouse - currentScaledMouse;
+
+        if (InputSystem.LeftMousePressed)
+        {
+            MouseTranslateOrigin = ScalePosition(InputSystem.MousePosition) + ViewOffset;
+        }
+
+        if (InputSystem.LeftMouseDown)
+        {
+            Vector2 currentMousePosition = ScalePosition(InputSystem.MousePosition) + ViewOffset;
+
+            ViewOffset += MouseTranslateOrigin - currentMousePosition;
+        }
+    }
+
+    private Vector2 ScalePosition(Vector2 position)
+    {
+        return position / ViewScale;
+    }
+
     private void Render()
     {
-        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
+        ConstantBuffer.Data.ViewProjection =
+            Matrix4x4.CreateTranslation(new Vector3(-ViewOffset, 0f)) *
+            Matrix4x4.CreateScale(new Vector3(ViewScale, 1f)) *
+            Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f) *
+            Matrix4x4.CreateTranslation(-1f, -1f, 0f);
 
         ConstantBuffer.Update();
 

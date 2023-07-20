@@ -82,7 +82,7 @@ public class Chunk
                         int colorX = ((wx & Material.MaterialWidthM1) + Material.MaterialWidthM1) & Material.MaterialWidthM1;
                         int colorY = ((wy & Material.MaterialHeightM1) + Material.MaterialHeightM1) & Material.MaterialHeightM1;
 
-                        textureData[x, y] = mat.MaterialTexture.Span[colorX, colorY];
+                        textureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
                     }
                 }
             }
