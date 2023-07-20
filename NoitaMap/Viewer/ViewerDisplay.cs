@@ -25,6 +25,8 @@ public class ViewerDisplay : IDisposable
 
     private readonly DeviceBuffer TestVertexBuffer;
 
+    private readonly ConstantBuffer<VertexConstantBuffer> TestConstantBuffer;
+
     private ResourceSet TestResourceSet;
 
     private readonly StagingResourcePool StagingResourcePool;
@@ -88,17 +90,16 @@ public class ViewerDisplay : IDisposable
 
         GraphicsDevice.UpdateTexture(TestTexture, MemoryMarshal.CreateSpan(ref brick.MaterialTexture.Span.DangerousGetReference(), (int)brick.MaterialTexture.Length), 0, 0, 0, (uint)brick.MaterialTexture.Width, (uint)brick.MaterialTexture.Height, 1, 0, 0);
 
-        TestResourceSet = CreateTestResourceSet(resourceLayout.Single());
 
         Vertex[] quadVertices = new Vertex[]
         {
-            new Vertex() { Position = new Vector3(-0.5f, -0.5f, 0f), UV = new Vector2(0f, 0f) }, // Bottom-left vertex
-            new Vertex() { Position = new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
-            new Vertex() { Position = new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
+            new Vertex() { Position = 1000f * new Vector3(-0.5f, -0.5f, 0f), UV = new Vector2(0f, 0f) }, // Bottom-left vertex
+            new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
+            new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
 
-            new Vertex() { Position = new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
-            new Vertex() { Position = new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
-            new Vertex() { Position = new Vector3(0.5f, 0.5f, 0f), UV = new Vector2(1f, 1f) }    // Top-right vertex
+            new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
+            new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
+            new Vertex() { Position = 1000f * new Vector3(0.5f, 0.5f, 0f), UV = new Vector2(1f, 1f) }    // Top-right vertex
         };
 
         TestVertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
@@ -119,6 +120,14 @@ public class ViewerDisplay : IDisposable
             GraphicsDevice.Unmap(TestVertexBuffer);
         }
 
+        TestConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
+
+        TestConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
+
+        TestConstantBuffer.Update();
+
+        TestResourceSet = CreateTestResourceSet(resourceLayout.Single());
+
         Window.Center();
 
         Window.Render += x => Render();
@@ -131,8 +140,16 @@ public class ViewerDisplay : IDisposable
         Window.Run();
     }
 
+    float r = 0;
+
     private void Render()
     {
+        r += 0.001f;
+
+        TestConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f) * Matrix4x4.CreateRotationZ(r);
+
+        TestConstantBuffer.Update();
+
         MainCommandList.Begin();
 
         MainCommandList.SetFramebuffer(MainFrameBuffer);
@@ -186,7 +203,7 @@ public class ViewerDisplay : IDisposable
     {
         return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
         {
-            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(TestTexture), GraphicsDevice.PointSampler },
+            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(TestTexture), GraphicsDevice.PointSampler, TestConstantBuffer.DeviceBuffer },
             Layout = GraphicsDevice.ResourceFactory.CreateResourceLayout(resourceLayout)
         });
     }
@@ -226,5 +243,10 @@ public class ViewerDisplay : IDisposable
         public Vector3 Position;
 
         public Vector2 UV;
+    }
+
+    private struct VertexConstantBuffer
+    {
+        public Matrix4x4 ViewProjection;
     }
 }
