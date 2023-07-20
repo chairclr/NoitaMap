@@ -8,9 +8,9 @@ public class ConstantBuffer<T> : IDisposable
 {
     private bool Disposed;
 
-    protected GraphicsDevice GraphicsDevice;
+    protected readonly GraphicsDevice GraphicsDevice;
 
-    public DeviceBuffer DeviceBuffer;
+    public readonly DeviceBuffer DeviceBuffer;
 
     public T Data;
 
