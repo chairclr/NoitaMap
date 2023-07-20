@@ -40,7 +40,8 @@ public class ViewerDisplay : IDisposable
         {
             API = GraphicsAPI.None,
             Title = "Noita Map Viewer",
-            Size = new Vector2D<int>(1280, 720)
+            Size = new Vector2D<int>(1280, 720),
+            IsContextControlDisabled = true
         };
 
         GraphicsDeviceOptions graphicsOptions = new GraphicsDeviceOptions()
@@ -49,10 +50,13 @@ public class ViewerDisplay : IDisposable
             Debug = true,
 #endif
             SyncToVerticalBlank = true,
-            HasMainSwapchain = true
+            HasMainSwapchain = true,
+            
         };
 
         VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
+
+        Window.IsContextControlDisabled = true;
 
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
@@ -93,6 +97,8 @@ public class ViewerDisplay : IDisposable
     {
         Task.Run(() =>
         {
+            while (!InputSystem.MiddleMouseDown) { Thread.Sleep(100); }
+
             const int ChunksPerThread = 16;
 
             string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
@@ -243,11 +249,11 @@ public class ViewerDisplay : IDisposable
     {
         if (!Disposed)
         {
+            Window.Dispose();
+
             MainCommandList.Dispose();
 
             GraphicsDevice.Dispose();
-
-            Window.Dispose();
 
             Disposed = true;
         }
