@@ -23,7 +23,7 @@ public class ViewerDisplay : IDisposable
 
     private Pipeline MainPipeline;
 
-    private readonly DeviceBuffer TestVertexBuffer;
+    private readonly QuadVertexBuffer<Vertex> QuadBuffer;
 
     private readonly ConstantBuffer<VertexConstantBuffer> TestConstantBuffer;
 
@@ -90,35 +90,36 @@ public class ViewerDisplay : IDisposable
 
         GraphicsDevice.UpdateTexture(TestTexture, MemoryMarshal.CreateSpan(ref brick.MaterialTexture.Span.DangerousGetReference(), (int)brick.MaterialTexture.Length), 0, 0, 0, (uint)brick.MaterialTexture.Width, (uint)brick.MaterialTexture.Height, 1, 0, 0);
 
+       
 
-        Vertex[] quadVertices = new Vertex[]
-        {
-            new Vertex() { Position = 1000f * new Vector3(-0.5f, -0.5f, 0f), UV = new Vector2(0f, 0f) }, // Bottom-left vertex
-            new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
-            new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
+        //Vertex[] quadVertices = new Vertex[]
+        //{
+        //    new Vertex() { Position = 1000f * new Vector3(-0.5f, -0.5f, 0f), UV = new Vector2(0f, 0f) }, // Bottom-left vertex
+        //    new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
+        //    new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
 
-            new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
-            new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
-            new Vertex() { Position = 1000f * new Vector3(0.5f, 0.5f, 0f), UV = new Vector2(1f, 1f) }    // Top-right vertex
-        };
+        //    new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
+        //    new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
+        //    new Vertex() { Position = 1000f * new Vector3(0.5f, 0.5f, 0f), UV = new Vector2(1f, 1f) }    // Top-right vertex
+        //};
 
-        TestVertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
-        {
-            SizeInBytes = (uint)(Unsafe.SizeOf<Vertex>() * quadVertices.Length),
-            Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic,
-        });
+        //TestVertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
+        //{
+        //    SizeInBytes = (uint)(Unsafe.SizeOf<Vertex>() * quadVertices.Length),
+        //    Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic,
+        //});
 
-        unsafe
-        {
-            MappedResource mapped = GraphicsDevice.Map(TestVertexBuffer, MapMode.Write);
+        //unsafe
+        //{
+        //    MappedResource mapped = GraphicsDevice.Map(TestVertexBuffer, MapMode.Write);
 
-            fixed (void* vertexPointer = &quadVertices[0])
-            {
-                Unsafe.CopyBlock((void*)mapped.Data, vertexPointer, (uint)(Unsafe.SizeOf<Vertex>() * quadVertices.Length));
-            }
+        //    fixed (void* vertexPointer = &quadVertices[0])
+        //    {
+        //        Unsafe.CopyBlock((void*)mapped.Data, vertexPointer, (uint)(Unsafe.SizeOf<Vertex>() * quadVertices.Length));
+        //    }
 
-            GraphicsDevice.Unmap(TestVertexBuffer);
-        }
+        //    GraphicsDevice.Unmap(TestVertexBuffer);
+        //}
 
         TestConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
 
@@ -127,6 +128,12 @@ public class ViewerDisplay : IDisposable
         TestConstantBuffer.Update();
 
         TestResourceSet = CreateTestResourceSet(resourceLayout.Single());
+
+        QuadBuffer = new QuadVertexBuffer<Vertex>(GraphicsDevice, new Vector2(TestTexture.Width, TestTexture.Height), (pos, uv) => new Vertex()
+        {
+            Position = new Vector3(pos, 0f),
+            UV = uv
+        }, TestResourceSet);
 
         Window.Center();
 
@@ -158,11 +165,7 @@ public class ViewerDisplay : IDisposable
 
         MainCommandList.SetPipeline(MainPipeline);
 
-        MainCommandList.SetGraphicsResourceSet(0, TestResourceSet);
-
-        MainCommandList.SetVertexBuffer(0, TestVertexBuffer);
-
-        MainCommandList.Draw(6);
+        QuadBuffer.Draw(MainCommandList);
 
         MainCommandList.End();
 
