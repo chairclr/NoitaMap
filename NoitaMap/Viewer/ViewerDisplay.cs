@@ -127,7 +127,7 @@ public class ViewerDisplay : IDisposable
 
         TestConstantBuffer.Update();
 
-        TestResourceSet = CreateTestResourceSet(resourceLayout.Single());
+        TestResourceSet = CreateResourceSet(TestTexture, resourceLayout.Single());
 
         QuadBuffer = new QuadVertexBuffer<Vertex>(GraphicsDevice, new Vector2(TestTexture.Width, TestTexture.Height), (pos, uv) => new Vertex()
         {
@@ -202,11 +202,11 @@ public class ViewerDisplay : IDisposable
         });
     }
 
-    private ResourceSet CreateTestResourceSet(ResourceLayoutDescription resourceLayout)
+    private ResourceSet CreateResourceSet(Texture texture, ResourceLayoutDescription resourceLayout)
     {
         return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
         {
-            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(TestTexture), GraphicsDevice.PointSampler, TestConstantBuffer.DeviceBuffer },
+            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(texture), GraphicsDevice.PointSampler, TestConstantBuffer.DeviceBuffer },
             Layout = GraphicsDevice.ResourceFactory.CreateResourceLayout(resourceLayout)
         });
     }
