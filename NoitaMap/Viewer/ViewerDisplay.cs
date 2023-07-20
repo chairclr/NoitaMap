@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Collections.Concurrent;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using NoitaMap.Graphics;
@@ -8,6 +9,7 @@ using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
 using Veldrid.SPIRV;
+using Vortice.Direct3D11;
 
 namespace NoitaMap.Viewer;
 
@@ -15,7 +17,7 @@ public class ViewerDisplay : IDisposable
 {
     private readonly IWindow Window;
 
-    private readonly GraphicsDevice GraphicsDevice;
+    public readonly GraphicsDevice GraphicsDevice;
 
     private readonly CommandList MainCommandList;
 
@@ -23,17 +25,17 @@ public class ViewerDisplay : IDisposable
 
     private Pipeline MainPipeline;
 
-    private readonly QuadVertexBuffer<Vertex> QuadBuffer;
+    private readonly ChunkContainer ChunkContainer;
 
-    private readonly ConstantBuffer<VertexConstantBuffer> TestConstantBuffer;
-
-    private ResourceSet TestResourceSet;
+    public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
     private readonly StagingResourcePool StagingResourcePool;
 
-    private readonly Texture TestTexture;
+    public readonly MaterialProvider MaterialProvider;
 
-    private readonly MaterialProvider MaterialProvider;
+    private ResourceLayoutDescription ResourceLayout;
+
+    public string WorldPath;
 
     private bool Disposed;
 
@@ -63,77 +65,25 @@ public class ViewerDisplay : IDisposable
 
         StagingResourcePool = new StagingResourcePool(GraphicsDevice);
 
+        string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
+
+        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00\\world");
+
         (Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
+
+        ResourceLayout = resourceLayout.First();
 
         MainPipeline = CreatePipeline(shaders, vertexElements, resourceLayout);
 
         MaterialProvider = new MaterialProvider();
 
-        Material brick = MaterialProvider.GetMaterial("brick");
+        ConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
 
-        TextureDescription desc = new TextureDescription()
-        {
-            Type = TextureType.Texture2D,
-            Format = PixelFormat.R8_G8_B8_A8_UNorm,
-            Width = (uint)brick.MaterialTexture.Width,
-            Height = (uint)brick.MaterialTexture.Height,
-            Usage = TextureUsage.Sampled,
-            MipLevels = 1,
+        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
 
-            // Nececessary
-            Depth = 1,
-            ArrayLayers = 1,
-            SampleCount = TextureSampleCount.Count1,
-        };
+        ConstantBuffer.Update();
 
-        TestTexture = GraphicsDevice.ResourceFactory.CreateTexture(desc);
-
-        GraphicsDevice.UpdateTexture(TestTexture, MemoryMarshal.CreateSpan(ref brick.MaterialTexture.Span.DangerousGetReference(), (int)brick.MaterialTexture.Length), 0, 0, 0, (uint)brick.MaterialTexture.Width, (uint)brick.MaterialTexture.Height, 1, 0, 0);
-
-       
-
-        //Vertex[] quadVertices = new Vertex[]
-        //{
-        //    new Vertex() { Position = 1000f * new Vector3(-0.5f, -0.5f, 0f), UV = new Vector2(0f, 0f) }, // Bottom-left vertex
-        //    new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
-        //    new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
-
-        //    new Vertex() { Position = 1000f * new Vector3(-0.5f, 0.5f, 0f), UV = new Vector2(0f, 1f) },  // Top-left vertex
-        //    new Vertex() { Position = 1000f * new Vector3(0.5f, -0.5f, 0f), UV = new Vector2(1f, 0f) },  // Bottom-right vertex
-        //    new Vertex() { Position = 1000f * new Vector3(0.5f, 0.5f, 0f), UV = new Vector2(1f, 1f) }    // Top-right vertex
-        //};
-
-        //TestVertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
-        //{
-        //    SizeInBytes = (uint)(Unsafe.SizeOf<Vertex>() * quadVertices.Length),
-        //    Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic,
-        //});
-
-        //unsafe
-        //{
-        //    MappedResource mapped = GraphicsDevice.Map(TestVertexBuffer, MapMode.Write);
-
-        //    fixed (void* vertexPointer = &quadVertices[0])
-        //    {
-        //        Unsafe.CopyBlock((void*)mapped.Data, vertexPointer, (uint)(Unsafe.SizeOf<Vertex>() * quadVertices.Length));
-        //    }
-
-        //    GraphicsDevice.Unmap(TestVertexBuffer);
-        //}
-
-        TestConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
-
-        TestConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
-
-        TestConstantBuffer.Update();
-
-        TestResourceSet = CreateResourceSet(TestTexture, resourceLayout.Single());
-
-        QuadBuffer = new QuadVertexBuffer<Vertex>(GraphicsDevice, new Vector2(TestTexture.Width, TestTexture.Height), (pos, uv) => new Vertex()
-        {
-            Position = new Vector3(pos, 0f),
-            UV = uv
-        }, TestResourceSet);
+        ChunkContainer = new ChunkContainer(this);
 
         Window.Center();
 
@@ -144,6 +94,16 @@ public class ViewerDisplay : IDisposable
 
     public void Start()
     {
+        Task.Run(() =>
+        {
+            string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
+
+            Parallel.ForEach(chunkPaths, chunkPath =>
+            {
+                ChunkContainer.LoadChunk(chunkPath);
+            });
+        });
+
         Window.Run();
     }
 
@@ -153,9 +113,9 @@ public class ViewerDisplay : IDisposable
     {
         r += 0.001f;
 
-        TestConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f) * Matrix4x4.CreateRotationZ(r);
+        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
 
-        TestConstantBuffer.Update();
+        ConstantBuffer.Update();
 
         MainCommandList.Begin();
 
@@ -165,7 +125,7 @@ public class ViewerDisplay : IDisposable
 
         MainCommandList.SetPipeline(MainPipeline);
 
-        QuadBuffer.Draw(MainCommandList);
+        ChunkContainer.Draw(MainCommandList);
 
         MainCommandList.End();
 
@@ -202,12 +162,12 @@ public class ViewerDisplay : IDisposable
         });
     }
 
-    private ResourceSet CreateResourceSet(Texture texture, ResourceLayoutDescription resourceLayout)
+    public ResourceSet CreateResourceSet(Texture texture)
     {
         return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
         {
-            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(texture), GraphicsDevice.PointSampler, TestConstantBuffer.DeviceBuffer },
-            Layout = GraphicsDevice.ResourceFactory.CreateResourceLayout(resourceLayout)
+            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(texture), GraphicsDevice.PointSampler, ConstantBuffer.DeviceBuffer },
+            Layout = GraphicsDevice.ResourceFactory.CreateResourceLayout(ResourceLayout)
         });
     }
 
@@ -241,15 +201,18 @@ public class ViewerDisplay : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private struct Vertex
-    {
-        public Vector3 Position;
+    
 
-        public Vector2 UV;
-    }
-
-    private struct VertexConstantBuffer
+    public struct VertexConstantBuffer
     {
         public Matrix4x4 ViewProjection;
+        public Matrix4x4 World;
     }
+}
+
+public struct Vertex
+{
+    public Vector3 Position;
+
+    public Vector2 UV;
 }

@@ -43,6 +43,9 @@ public static class ShaderLoader
 
         Shader vs = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
         {
+#if DEBUG
+            Debug = true,
+#endif
             ShaderBytes = vertexShaderBytes,
             Stage = ShaderStages.Vertex,
             EntryPoint = "main"
@@ -50,6 +53,9 @@ public static class ShaderLoader
 
         Shader ps = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
         {
+#if DEBUG
+            Debug = true,
+#endif
             ShaderBytes = pixelShaderBytes,
             Stage = ShaderStages.Fragment,
             EntryPoint = "main"

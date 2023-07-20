@@ -5,6 +5,14 @@ namespace NoitaMap.Map;
 
 public class Material
 {
+    public const int MaterialWidth = 252;
+
+    public const int MaterialHeight = 252;
+
+    public const int MaterialWidthM1 = 251;
+
+    public const int MaterialHeightM1 = 251;
+
     public readonly string Name;
 
     public readonly Memory2D<Rgba32> MaterialTexture;
