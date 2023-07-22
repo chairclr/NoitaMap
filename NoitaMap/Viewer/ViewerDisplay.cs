@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using Silk.NET.Input;
@@ -36,6 +37,7 @@ public class ViewerDisplay : IDisposable
 
     public ViewerDisplay()
     {
+
         WindowOptions windowOptions = new WindowOptions()
         {
             API = GraphicsAPI.None,
@@ -51,6 +53,7 @@ public class ViewerDisplay : IDisposable
 #endif
             SyncToVerticalBlank = true,
             HasMainSwapchain = true,
+            
         };
 
         VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
@@ -69,7 +72,7 @@ public class ViewerDisplay : IDisposable
 
         ResourceLayout = resourceLayout.First();
 
-        MainPipeline = CreatePipeline(shaders, vertexElements, resourceLayout);
+            MainPipeline = CreatePipeline(shaders, vertexElements, resourceLayout);
 
         MaterialProvider = new MaterialProvider();
 
@@ -178,6 +181,8 @@ public class ViewerDisplay : IDisposable
 
         ConstantBuffer.Update();
 
+        ChunkContainer.Update();
+
         MainCommandList.Begin();
 
         MainCommandList.SetFramebuffer(MainFrameBuffer);
@@ -217,7 +222,15 @@ public class ViewerDisplay : IDisposable
             ShaderSet = new ShaderSetDescription()
             {
                 Shaders = shaders,
-                VertexLayouts = new VertexLayoutDescription[] { new VertexLayoutDescription(vertexElements) }
+                VertexLayouts = new VertexLayoutDescription[] 
+                { 
+                    new VertexLayoutDescription(vertexElements[..2]),
+                    new VertexLayoutDescription(vertexElements[2..]) with
+                        {
+                            InstanceStepRate = 6
+                        },
+
+                }
             },
             ResourceLayouts = resourceLayout.Select(x => GraphicsDevice.ResourceFactory.CreateResourceLayout(x)).ToArray()
         });
@@ -265,8 +278,6 @@ public class ViewerDisplay : IDisposable
     public struct VertexConstantBuffer
     {
         public Matrix4x4 ViewProjection; // 64 bytes
-
-        public Matrix4x4 World; // 128 bytes
     }
 }
 
@@ -275,4 +286,13 @@ public struct Vertex
     public Vector3 Position;
 
     public Vector2 UV;
+}
+
+public struct VertexInstance
+{
+    public Matrix4x4 Transform;
+
+    public Vector2 TexturePosition;
+
+    public Vector2 TextureSize;
 }

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using SharpGen.Runtime;
 using Veldrid;
 using Veldrid.SPIRV;
 
@@ -29,19 +30,26 @@ public static class ShaderLoader
 
             VertexFragmentCompilationResult result = SpirvCompilation.CompileVertexFragment(vertexShaderBytes, pixelShaderBytes, compileTarget, new CrossCompileOptions()
             {
-                InvertVertexOutputY = true
+                InvertVertexOutputY = true,
+                NormalizeResourceNames = true,
             });
 
-            pixelShaderBytes = Encoding.UTF8.GetBytes(result.FragmentShader);
             vertexShaderBytes = Encoding.UTF8.GetBytes(result.VertexShader);
+            pixelShaderBytes = Encoding.UTF8.GetBytes(result.FragmentShader);
 
             vertexElementDescriptions = result.Reflection.VertexElements;
             resourceLayoutDescriptions = result.Reflection.ResourceLayouts;
         }
         else
         {
-            // TODO: Deal with it later
-            throw new NotImplementedException();
+            VertexFragmentCompilationResult result = SpirvCompilation.CompileVertexFragment(vertexShaderBytes, pixelShaderBytes, CrossCompileTarget.HLSL, new CrossCompileOptions()
+            {
+                InvertVertexOutputY = true,
+                NormalizeResourceNames = true,
+            });
+
+            vertexElementDescriptions = result.Reflection.VertexElements;
+            resourceLayoutDescriptions = result.Reflection.ResourceLayouts;
         }
 
         Shader vs = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()

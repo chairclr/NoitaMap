@@ -16,15 +16,19 @@ public class Chunk
 
     public Vector2 Position;
 
+    public PhysicsObject[]? PhysicsObjects;
+
     private readonly ViewerDisplay ViewerDisplay;
 
     private readonly MaterialProvider MaterialProvider;
 
-    public QuadVertexBuffer<Vertex>? Buffer;
+    //public QuadVertexBuffer<Vertex>? Buffer;
+
+    public Rgba32[,]? WorkingTextureData;
 
     public Matrix4x4 PrecalculatedWorldMatrix = Matrix4x4.Identity;
 
-    public bool Ready = false;
+    public bool ReadyToBeAddedToAtlas = false;
 
     public Chunk(ViewerDisplay viewerDisplay, Vector2 position, MaterialProvider materialProvider)
     {
@@ -50,7 +54,7 @@ public class Chunk
         int chunkX = (int)Position.X;
         int chunkY = (int)Position.Y;
 
-        Rgba32[,] textureData = new Rgba32[ChunkWidth, ChunkHeight];
+        WorkingTextureData = new Rgba32[ChunkWidth, ChunkHeight];
 
         int customColorIndex = 0;
         for (int x = 0; x < ChunkWidth; x++)
@@ -62,7 +66,7 @@ public class Chunk
 
                 if (customColor)
                 {
-                    textureData[x, y] = customColors[customColorIndex];
+                    WorkingTextureData[x, y] = customColors[customColorIndex];
                     // explicit > implicit
                     customColorIndex++;
                 }
@@ -72,7 +76,7 @@ public class Chunk
 
                     if (mat.Name == "_")
                     {
-                        textureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
+                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
                     }
                     else
                     {
@@ -82,47 +86,47 @@ public class Chunk
                         int colorX = ((wx & Material.MaterialWidthM1) + Material.MaterialWidthM1) & Material.MaterialWidthM1;
                         int colorY = ((wy & Material.MaterialHeightM1) + Material.MaterialHeightM1) & Material.MaterialHeightM1;
 
-                        textureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
+                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
                     }
                 }
             }
         }
 
-        Texture texture = ViewerDisplay.GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
-        {
-            Type = TextureType.Texture2D,
-            Format = PixelFormat.R8_G8_B8_A8_UNorm,
-            Width = ChunkWidth,
-            Height = ChunkHeight,
-            Usage = TextureUsage.Sampled,
-            MipLevels = 1,
+        //Texture texture = ViewerDisplay.GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
+        //{
+        //    Type = TextureType.Texture2D,
+        //    Format = PixelFormat.R8_G8_B8_A8_UNorm,
+        //    Width = ChunkWidth,
+        //    Height = ChunkHeight,
+        //    Usage = TextureUsage.Sampled,
+        //    MipLevels = 1,
 
-            // Nececessary
-            Depth = 1,
-            ArrayLayers = 1,
-            SampleCount = TextureSampleCount.Count1,
-        });
+        //    // Nececessary
+        //    Depth = 1,
+        //    ArrayLayers = 1,
+        //    SampleCount = TextureSampleCount.Count1,
+        //});
 
-        ViewerDisplay.GraphicsDevice.UpdateTexture(texture, MemoryMarshal.CreateSpan(ref textureData[0, 0], ChunkWidth * ChunkHeight), 0, 0, 0, ChunkWidth, ChunkHeight, 1, 0, 0);
+        //ViewerDisplay.GraphicsDevice.UpdateTexture(texture, MemoryMarshal.CreateSpan(ref textureData[0, 0], ChunkWidth * ChunkHeight), 0, 0, 0, ChunkWidth, ChunkHeight, 1, 0, 0);
 
-        Buffer = new QuadVertexBuffer<Vertex>(ViewerDisplay.GraphicsDevice, new Vector2(ChunkWidth, ChunkHeight), (pos, uv) => new Vertex()
-        {
-            Position = new Vector3(pos, 0f),
-            UV = uv
-        }, ViewerDisplay.CreateResourceSet(texture));
+        //Buffer = new QuadVertexBuffer<Vertex>(ViewerDisplay.GraphicsDevice, new Vector2(ChunkWidth, ChunkHeight), (pos, uv) => new Vertex()
+        //{
+        //    Position = new Vector3(pos, 0f),
+        //    UV = uv
+        //}, ViewerDisplay.CreateResourceSet(texture));
 
         PrecalculatedWorldMatrix = Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
 
-        Ready = true;
+        ReadyToBeAddedToAtlas = true;
 
-        //// Physics objects
+        // Physics objects
         //int physicsObjectCount = reader.ReadBEInt32();
 
         //PhysicsObjects = new PhysicsObject[physicsObjectCount];
 
         //for (int i = 0; i < physicsObjectCount; i++)
         //{
-        //    PhysicsObjects[i] = new PhysicsObject();
+        //    PhysicsObjects[i] = new PhysicsObject(ViewerDisplay);
 
         //    PhysicsObjects[i].Deserialize(reader);
         //}

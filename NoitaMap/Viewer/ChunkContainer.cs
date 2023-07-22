@@ -18,7 +18,11 @@ public class ChunkContainer
 
     private readonly Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
 
-    private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
+    private readonly ChunkAtlasBuffer ChunkAtlas;
+
+    //private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
+
+    //private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
@@ -29,6 +33,8 @@ public class ChunkContainer
         ConstantBuffer = ViewerDisplay.ConstantBuffer;
 
         MaterialProvider = ViewerDisplay.MaterialProvider;
+
+        ChunkAtlas = new ChunkAtlasBuffer(ViewerDisplay);
     }
 
     public void LoadChunk(string chunkFilePath)
@@ -57,27 +63,37 @@ public class ChunkContainer
 
         decompressedData = null;
 
-        FinishedChunks.Enqueue(chunk);
+        ChunkAtlas.AddChunk(chunk);
+    }
+
+    public void Update()
+    {
+        ChunkAtlas.Update();
     }
 
     public void Draw(CommandList commandList)
     {
-        while (FinishedChunks.TryDequeue(out Chunk? chunk))
-        {
-            Chunks.Add(chunk.Position, chunk);
-        }
+        ChunkAtlas.Draw(commandList);
 
-        foreach (Chunk chunk in Chunks.Values)
-        {
-            if (chunk.Ready)
-            {
-                ConstantBuffer.Data.World = chunk.PrecalculatedWorldMatrix;
+        //foreach (Chunk chunk in Chunks.Values)
+        //{
+        //    if (chunk.Ready)
+        //    {
+        //        ConstantBuffer.Data.World = chunk.PrecalculatedWorldMatrix;
 
-                ConstantBuffer.Update(commandList);
+        //        ConstantBuffer.Update(commandList);
 
-                chunk.Buffer!.Draw(commandList);
-            }
-        }
+        //        chunk.Buffer!.Draw(commandList);
+        //    }
+        //}
+
+        //foreach (PhysicsObject physicsObject in PhysicsObjects)
+        //{
+        //    if (physicsObject.Ready)
+        //    {
+        //        physicsObject.Buffer!.Draw(commandList);
+        //    }
+        //}
     }
 
     private static Vector2 GetChunkPositionFromPath(string filePath)

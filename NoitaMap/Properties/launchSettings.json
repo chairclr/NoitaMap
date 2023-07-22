@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NoitaMap": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
