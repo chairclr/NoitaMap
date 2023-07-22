@@ -27,7 +27,7 @@
     <Folder Include="Assets\Shaders\Compiled\" />
   </ItemGroup>
 
-  <UsingTask TaskName="CompileShaderTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <UsingTask TaskName="CompileShaderTask" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <ShaderFile ParameterType="System.String" Required="true" />
       <ShaderProfile ParameterType="System.String" Required="true" />

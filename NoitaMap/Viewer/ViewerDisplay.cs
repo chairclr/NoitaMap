@@ -103,6 +103,7 @@ public class ViewerDisplay : IDisposable
 
             string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
 
+
             // Split up all of the paths into a collection of (at most) 16 paths for each thread to process
             // This is so that each thread can process 16 chunks at once, rather than having too many threads
             string[][] threadedChunkPaths = new string[(int)MathF.Ceiling((float)chunkPaths.Length / (float)ChunksPerThread)][];
