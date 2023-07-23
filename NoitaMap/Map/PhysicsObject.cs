@@ -1,9 +1,5 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
-using NoitaMap.Graphics;
 using NoitaMap.Viewer;
-using Veldrid;
-using Vortice.Mathematics;
 
 namespace NoitaMap.Map;
 

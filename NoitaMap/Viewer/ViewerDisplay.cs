@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using Silk.NET.Input;
@@ -37,7 +36,6 @@ public class ViewerDisplay : IDisposable
 
     public ViewerDisplay()
     {
-
         WindowOptions windowOptions = new WindowOptions()
         {
             API = GraphicsAPI.None,
@@ -53,7 +51,7 @@ public class ViewerDisplay : IDisposable
 #endif
             SyncToVerticalBlank = true,
             HasMainSwapchain = true,
-            
+
         };
 
         VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
@@ -72,7 +70,7 @@ public class ViewerDisplay : IDisposable
 
         ResourceLayout = resourceLayout.First();
 
-            MainPipeline = CreatePipeline(shaders, vertexElements, resourceLayout);
+        MainPipeline = CreatePipeline(shaders, vertexElements, resourceLayout);
 
         MaterialProvider = new MaterialProvider();
 
@@ -223,8 +221,8 @@ public class ViewerDisplay : IDisposable
             ShaderSet = new ShaderSetDescription()
             {
                 Shaders = shaders,
-                VertexLayouts = new VertexLayoutDescription[] 
-                { 
+                VertexLayouts = new VertexLayoutDescription[]
+                {
                     new VertexLayoutDescription(vertexElements[..2]),
                     new VertexLayoutDescription(vertexElements[2..]) with
                         {
@@ -261,6 +259,14 @@ public class ViewerDisplay : IDisposable
         if (!Disposed)
         {
             Window.Dispose();
+
+            MainFrameBuffer.Dispose();
+
+            ConstantBuffer.Dispose();
+
+            MainPipeline.Dispose();
+
+            ChunkContainer.Dispose();
 
             MainCommandList.Dispose();
 

@@ -2,9 +2,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using NoitaMap.Graphics;
 using NoitaMap.Viewer;
-using Veldrid;
 
 namespace NoitaMap.Map;
 

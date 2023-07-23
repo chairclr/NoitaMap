@@ -3,16 +3,17 @@ struct VS_INPUT
     float3 position : POSITION;
     float2 uv : TEXCOORD0;
     
-    // Instance data
+    // --- Instance data --- ///
     
-    // matrix4x4
-    float4 worldMatrix_0 : INSTMAT0;
-    float4 worldMatrix_1 : INSTMAT1;
-    float4 worldMatrix_2 : INSTMAT2;
-    float4 worldMatrix_3 : INSTMAT3;
+    // See VertexShader.hlsl for more information on why we do this
+    float4 worldMatrix_0 : INSTWMAT0;
+    float4 worldMatrix_1 : INSTWMAT1;
+    float4 worldMatrix_2 : INSTWMAT2;
+    float4 worldMatrix_3 : INSTWMAT3;
     
-    float2 texPos : INSTYEAH0;
-    float2 texWidth : INSTYEAH1;
+    // Texture information for calculating texture atlas uv for instanced data
+    float2 texPos : INSTTEXPOS0;
+    float2 texSize : INSTTEXSIZE1;
 };
 
 struct PS_INPUT

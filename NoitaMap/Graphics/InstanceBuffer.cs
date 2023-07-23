@@ -1,17 +1,21 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
 using Veldrid;
 
 namespace NoitaMap.Graphics;
 
-public abstract class InstanceBuffer
+public abstract class InstanceBuffer : IDisposable
 {
     protected readonly GraphicsDevice GraphicsDevice;
 
     protected readonly CommandList CopyCommandList;
 
     public DeviceBuffer? Buffer { get; protected set; }
+
+    public abstract IList Instances { get; }
+
+    private bool Disposed;
 
     public abstract void UpdateInstanceBuffer();
 
@@ -21,6 +25,24 @@ public abstract class InstanceBuffer
 
         CopyCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
     }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            CopyCommandList.Dispose();
+
+            Buffer?.Dispose();
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 }
 
 public class InstanceBuffer<T> : InstanceBuffer
@@ -28,7 +50,7 @@ public class InstanceBuffer<T> : InstanceBuffer
 {
     private int Capacity = 1024;
 
-    public readonly List<T> Instances = new List<T>(1024);
+    public override List<T> Instances { get; } = new List<T>(1024);
 
     public InstanceBuffer(GraphicsDevice graphicsDevice)
         : base(graphicsDevice)

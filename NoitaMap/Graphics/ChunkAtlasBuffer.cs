@@ -4,11 +4,10 @@ using System.Runtime.InteropServices;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
 using Veldrid;
-using Vulkan.Xlib;
 
 namespace NoitaMap.Graphics;
 
-public class ChunkAtlasBuffer
+public class ChunkAtlasBuffer : IDisposable
 {
     private const int SingleAtlasSize = 8192;
 
@@ -34,6 +33,8 @@ public class ChunkAtlasBuffer
     private int CurrentX;
 
     private int CurrentY;
+
+    private bool Disposed;
 
     public ChunkAtlasBuffer(ViewerDisplay viewerDisplay)
     {
@@ -71,6 +72,8 @@ public class ChunkAtlasBuffer
         {
             ProcessChunk(chunk);
 
+            chunk.WorkingTextureData = null;
+
             lock (TransformBuffer)
             {
                 TransformBuffer.UpdateInstanceBuffer();
@@ -90,6 +93,8 @@ public class ChunkAtlasBuffer
         {
             ProcessChunk(chunk);
 
+            chunk.WorkingTextureData = null;
+
             needsUpdate = true;
         }
 
@@ -97,11 +102,6 @@ public class ChunkAtlasBuffer
         {
             TransformBuffer.UpdateInstanceBuffer();
         }
-    }
-
-    public ResourceSet TestGetResourceSet()
-    {
-        return ResourceAtlases.First();
     }
 
     private void ProcessChunk(Chunk chunk)
@@ -188,5 +188,28 @@ public class ChunkAtlasBuffer
 
             DrawBuffer.Draw(commandList, instanceCount * 6, i * instanceCount);
         }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            foreach (ResourceSet res in ResourceAtlases)
+            {
+                res.Dispose();
+            }
+
+            TransformBuffer.Dispose();
+
+            DrawBuffer.Dispose();
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

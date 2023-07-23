@@ -1,13 +1,10 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
-using NoitaMap.Viewer;
 using Veldrid;
 
 namespace NoitaMap.Graphics;
 
-public unsafe class QuadVertexBuffer<TVert>
+public unsafe class QuadVertexBuffer<TVert> : IDisposable
     where TVert : unmanaged
 {
     private readonly GraphicsDevice GraphicsDevice;
@@ -17,6 +14,8 @@ public unsafe class QuadVertexBuffer<TVert>
     public List<InstanceBuffer> InstanceBuffers = new List<InstanceBuffer>();
 
     public bool Ready { get; private set; } = false;
+
+    private bool Disposed;
 
     public QuadVertexBuffer(GraphicsDevice graphicsDevice, Func<Vector2, Vector2, TVert> constructVert, params InstanceBuffer[] instanceBuffers)
     {
@@ -53,5 +52,26 @@ public unsafe class QuadVertexBuffer<TVert>
         }
 
         commandList.Draw(6, (uint)length, 0, (uint)offset);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            VertexBuffer.Dispose();
+
+            foreach (InstanceBuffer instanceBuffer in InstanceBuffers)
+            {
+                instanceBuffer.Dispose();
+            }
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

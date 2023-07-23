@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
@@ -8,9 +7,9 @@ using static NoitaMap.Viewer.ViewerDisplay;
 
 namespace NoitaMap.Viewer;
 
-public class ChunkContainer
+public partial class ChunkContainer : IDisposable
 {
-    private static readonly Regex ChunkPositionRegex = new Regex("world_(?<x>-?\\d+)_(?<y>-?\\d+)\\.png_petri", RegexOptions.Compiled);
+    private static readonly Regex ChunkPositionRegex = GenerateWorldRegex();
 
     public readonly ViewerDisplay ViewerDisplay;
 
@@ -25,6 +24,8 @@ public class ChunkContainer
     //private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
+
+    private bool Disposed;
 
     public ChunkContainer(ViewerDisplay viewerDisplay)
     {
@@ -74,26 +75,6 @@ public class ChunkContainer
     public void Draw(CommandList commandList)
     {
         ChunkAtlas.Draw(commandList);
-
-        //foreach (Chunk chunk in Chunks.Values)
-        //{
-        //    if (chunk.Ready)
-        //    {
-        //        ConstantBuffer.Data.World = chunk.PrecalculatedWorldMatrix;
-
-        //        ConstantBuffer.Update(commandList);
-
-        //        chunk.Buffer!.Draw(commandList);
-        //    }
-        //}
-
-        //foreach (PhysicsObject physicsObject in PhysicsObjects)
-        //{
-        //    if (physicsObject.Ready)
-        //    {
-        //        physicsObject.Buffer!.Draw(commandList);
-        //    }
-        //}
     }
 
     private static Vector2 GetChunkPositionFromPath(string filePath)
@@ -104,4 +85,25 @@ public class ChunkContainer
 
         return new Vector2(int.Parse(match.Groups["x"].Value), int.Parse(match.Groups["y"].Value));
     }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            ConstantBuffer.Dispose();
+
+            ChunkAtlas.Dispose();
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    [GeneratedRegex("world_(?<x>-?\\d+)_(?<y>-?\\d+)\\.png_petri", RegexOptions.Compiled)]
+    private static partial Regex GenerateWorldRegex();
 }

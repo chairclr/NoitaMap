@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using SharpGen.Runtime;
 using Veldrid;
 using Veldrid.SPIRV;
 
