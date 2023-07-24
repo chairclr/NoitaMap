@@ -7,13 +7,9 @@ using Veldrid;
 
 namespace NoitaMap.Graphics;
 
-public class ChunkAtlasBuffer : IDisposable
+public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 {
     private const int SingleAtlasSize = 8192;
-
-    private readonly ViewerDisplay ViewerDisplay;
-
-    private readonly GraphicsDevice GraphicsDevice;
 
     private readonly List<Chunk> Chunks = new List<Chunk>();
 
@@ -22,43 +18,23 @@ public class ChunkAtlasBuffer : IDisposable
     /// </summary>
     private readonly ConcurrentQueue<Chunk> ThreadedChunkQueue = new ConcurrentQueue<Chunk>();
 
-    private readonly QuadVertexBuffer<Vertex> DrawBuffer;
-
-    private readonly InstanceBuffer<VertexInstance> TransformBuffer;
-
-    private readonly List<ResourceSet> ResourceAtlases = new List<ResourceSet>();
-
-    private Texture? CurrentAtlasTexture;
-
     private int CurrentX;
 
     private int CurrentY;
 
-    private bool Disposed;
+    protected override List<int> InstancesPerAtlas { get; } = new List<int>();
 
     public ChunkAtlasBuffer(ViewerDisplay viewerDisplay)
+        : base(viewerDisplay)
     {
-        ViewerDisplay = viewerDisplay;
-
-        GraphicsDevice = viewerDisplay.GraphicsDevice;
-
-        TransformBuffer = new InstanceBuffer<VertexInstance>(GraphicsDevice);
-
-        DrawBuffer = new QuadVertexBuffer<Vertex>(GraphicsDevice, (pos, uv) =>
-        {
-            return new Vertex()
-            {
-                Position = new Vector3(pos * 512f, 0f),
-                UV = uv
-            };
-        }, TransformBuffer);
-
-        CurrentAtlasTexture = CreateNewAtlas();
-
-        ResourceAtlases.Add(ViewerDisplay.CreateResourceSet(CurrentAtlasTexture));
-
         CurrentX = 0;
         CurrentY = 0;
+
+        CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
+
+        AddAtlas(CurrentAtlasTexture);
+
+        InstancesPerAtlas.Add(0);
     }
 
     public void AddChunk(Chunk chunk)
@@ -130,9 +106,11 @@ public class ChunkAtlasBuffer : IDisposable
                 CurrentX = 0;
                 CurrentY = 0;
 
-                CurrentAtlasTexture = CreateNewAtlas();
+                CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
 
-                ResourceAtlases.Add(ViewerDisplay.CreateResourceSet(CurrentAtlasTexture));
+                AddAtlas(CurrentAtlasTexture);
+
+                InstancesPerAtlas.Add(0);
             }
 
             currentX = CurrentX;
@@ -141,6 +119,8 @@ public class ChunkAtlasBuffer : IDisposable
             CurrentX += Chunk.ChunkWidth;
 
             Chunks.Add(chunk);
+
+            InstancesPerAtlas[^1]++;
         }
 
         Vector2 pos = new Vector2(currentX, currentY) / new Vector2(SingleAtlasSize);
@@ -157,59 +137,5 @@ public class ChunkAtlasBuffer : IDisposable
                 TextureSize = size,
             });
         }
-    }
-
-    private Texture CreateNewAtlas()
-    {
-        return GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
-        {
-            Type = TextureType.Texture2D,
-            Format = PixelFormat.R8_G8_B8_A8_UNorm,
-            Width = SingleAtlasSize,
-            Height = SingleAtlasSize,
-            Usage = TextureUsage.Sampled,
-            MipLevels = 1,
-
-            // Nececessary
-            Depth = 1,
-            ArrayLayers = 1,
-            SampleCount = TextureSampleCount.Count1
-        });
-    }
-
-    public void Draw(CommandList commandList)
-    {
-        int instanceCount = Math.Min(256, Chunks.Count);
-
-        for (int i = 0; i < ResourceAtlases.Count; i++)
-        {
-            ResourceSet resourceSet = ResourceAtlases[i];
-            commandList.SetGraphicsResourceSet(0, resourceSet);
-
-            DrawBuffer.Draw(commandList, instanceCount * 6, i * instanceCount);
-        }
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!Disposed)
-        {
-            foreach (ResourceSet res in ResourceAtlases)
-            {
-                res.Dispose();
-            }
-
-            TransformBuffer.Dispose();
-
-            DrawBuffer.Dispose();
-
-            Disposed = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }
