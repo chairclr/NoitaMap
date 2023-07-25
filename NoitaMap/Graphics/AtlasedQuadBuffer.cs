@@ -34,7 +34,7 @@ public abstract class AtlasedQuadBuffer : IDisposable
         {
             return new Vertex()
             {
-                Position = new Vector3(pos * 512f, 0f),
+                Position = new Vector3(pos, 0f),
                 UV = uv
             };
         }, TransformBuffer);

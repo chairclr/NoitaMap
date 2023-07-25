@@ -88,9 +88,20 @@ public class Chunk
             }
         }
 
-        PrecalculatedWorldMatrix = Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
+        PrecalculatedWorldMatrix = Matrix4x4.CreateScale(512f, 512f, 1f) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
 
         ReadyToBeAddedToAtlas = true;
+
+        int physicsObjectCount = reader.ReadBEInt32();
+
+        PhysicsObjects = new PhysicsObject[physicsObjectCount];
+
+        for (int i = 0; i < physicsObjectCount; i++)
+        {
+            PhysicsObjects[i] = new PhysicsObject();
+
+            PhysicsObjects[i].Deserialize(reader);
+        }
     }
 
     private string[] ReadMaterialNames(BinaryReader reader)

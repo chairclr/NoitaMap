@@ -25,6 +25,8 @@ public partial class ChunkContainer : IDisposable
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
+    private readonly PhysicsObjectAtlasBuffer PhysicsObjectAtlas;
+
     private bool Disposed;
 
     public ChunkContainer(ViewerDisplay viewerDisplay)
@@ -36,6 +38,8 @@ public partial class ChunkContainer : IDisposable
         MaterialProvider = ViewerDisplay.MaterialProvider;
 
         ChunkAtlas = new ChunkAtlasBuffer(ViewerDisplay);
+
+        PhysicsObjectAtlas = new PhysicsObjectAtlasBuffer(ViewerDisplay);
     }
 
     public void LoadChunk(string chunkFilePath)
@@ -65,6 +69,8 @@ public partial class ChunkContainer : IDisposable
         decompressedData = null;
 
         ChunkAtlas.AddChunk(chunk);
+
+        PhysicsObjectAtlas.AddPhysicsObjects(chunk.PhysicsObjects!);
     }
 
     public void Update()
@@ -75,6 +81,8 @@ public partial class ChunkContainer : IDisposable
     public void Draw(CommandList commandList)
     {
         ChunkAtlas.Draw(commandList);
+
+        PhysicsObjectAtlas.Draw(commandList);
     }
 
     private static Vector2 GetChunkPositionFromPath(string filePath)
