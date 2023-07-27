@@ -54,7 +54,7 @@ public class PhysicsObject
             }
         }
 
-        PrecalculatedWorldMatrix = Matrix4x4.CreateScale(Width, Height, 1f) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
+        PrecalculatedWorldMatrix = Matrix4x4.CreateScale(Width, Height, 1f) * (Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f)));
 
         ReadyToBeAddedToAtlas = true;
     }

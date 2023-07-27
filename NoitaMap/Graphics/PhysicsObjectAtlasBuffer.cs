@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using NoitaMap.Map;
@@ -39,7 +40,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
     {
         bool backendSupportsMultithreading = GraphicsDevice.BackendType is GraphicsBackend.Direct3D11 or GraphicsBackend.Vulkan or GraphicsBackend.Metal;
 
-        if (!backendSupportsMultithreading)
+        if (backendSupportsMultithreading)
         {
             foreach (PhysicsObject physicsObject in physicsObjects)
             {
@@ -74,7 +75,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
         }
     }
 
-    private void Update()
+    public void Update()
     {
         bool needsUpdate = false;
 
@@ -95,16 +96,16 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
     private void ProcessPhysicsObject(PhysicsObject physicsObject)
     {
-        if (!physicsObject.ReadyToBeAddedToAtlas)
-        {
-            throw new InvalidOperationException("Physics object not ready to be added to atlas");
-        }
-
         Vector2 pos;
         Vector2 size = new Vector2(physicsObject.Width, physicsObject.Height) / SingleAtlasSize;
 
         lock (PhysicsObjects)
         {
+            if (!physicsObject.ReadyToBeAddedToAtlas)
+            {
+                throw new InvalidOperationException("Physics object not ready to be added to atlas");
+            }
+
             pos = AddTextureToAtlas(physicsObject.Width, physicsObject.Height, physicsObject.TextureHash, physicsObject.WorkingTextureData!);
 
             PhysicsObjects.Add(physicsObject);
@@ -125,62 +126,59 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
     {
         Rectangle rect;
 
-        lock (MappedAtlasRegions)
+        if (MappedAtlasRegions.TryGetValue(textureHash, out Vector2 mappedStart))
         {
-            if (MappedAtlasRegions.TryGetValue(textureHash, out Vector2 mappedStart))
-            {
-                return mappedStart;
-            }
-
-            if (width > SingleAtlasSize || height > SingleAtlasSize)
-            {
-                throw new Exception("Texture larger than atlas");
-            }
-
-            if (CurrentAtlasX + width >= SingleAtlasSize)
-            {
-                CurrentAtlasX = 0;
-
-                CurrentAtlasY += height;
-            }
-
-            if (CurrentAtlasY >= SingleAtlasSize)
-            {
-                throw new Exception("Creating new atlas");
-            }
-
-            rect = new Rectangle(CurrentAtlasX, CurrentAtlasY, width, height);
-
-            CurrentAtlasX += width;
-
-            while (true)
-            {
-                if (CachedAtlasRegions.Any(x => rect.IntersectsWith(x)))
-                {
-                    CurrentAtlasY++;
-
-                    rect.Y = CurrentAtlasY;
-
-                    if (CurrentAtlasY >= SingleAtlasSize)
-                    {
-                        throw new Exception("Creating new atlas");
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            CachedAtlasRegions.Add(rect);
-
-            MappedAtlasRegions.Add(textureHash, new Vector2(rect.X, rect.Y));
-
-            InstancesPerAtlas[^1]++;
+            return mappedStart;
         }
+
+        if (width > SingleAtlasSize || height > SingleAtlasSize)
+        {
+            throw new Exception("Texture larger than atlas");
+        }
+
+        if (CurrentAtlasX + width >= SingleAtlasSize)
+        {
+            CurrentAtlasX = 0;
+
+            CurrentAtlasY += height;
+        }
+
+        if (CurrentAtlasY >= SingleAtlasSize)
+        {
+            throw new Exception("Creating new atlas");
+        }
+
+        rect = new Rectangle(CurrentAtlasX, CurrentAtlasY, width, height);
+
+        CurrentAtlasX += width;
+
+        while (true)
+        {
+            if (CachedAtlasRegions.Any(x => rect.IntersectsWith(x)))
+            {
+                CurrentAtlasY++;
+
+                rect.Y = CurrentAtlasY;
+
+                if (CurrentAtlasY >= SingleAtlasSize)
+                {
+                    throw new Exception("Creating new atlas");
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        CachedAtlasRegions.Add(rect);
+
+        MappedAtlasRegions.Add(textureHash, new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
+
+        InstancesPerAtlas[^1]++;
 
         GraphicsDevice.UpdateTexture(CurrentAtlasTexture, MemoryMarshal.CreateSpan(ref texture[0, 0], width * height), (uint)rect.X, (uint)rect.Y, 0, (uint)width, (uint)height, 1, 0, 0);
 
-        return new Vector2(rect.X, rect.Y) / SingleAtlasSize;
+        return new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize);
     }
 }

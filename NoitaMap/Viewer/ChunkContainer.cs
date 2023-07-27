@@ -76,6 +76,8 @@ public partial class ChunkContainer : IDisposable
     public void Update()
     {
         ChunkAtlas.Update();
+
+        PhysicsObjectAtlas.Update();
     }
 
     public void Draw(CommandList commandList)
