@@ -16,7 +16,7 @@ public abstract class AtlasedQuadBuffer : IDisposable
 
     protected readonly InstanceBuffer<VertexInstance> TransformBuffer;
 
-    protected Texture? CurrentAtlasTexture;
+    protected Texture CurrentAtlasTexture = null!;
 
     protected abstract IList<int> InstancesPerAtlas { get; }
 
@@ -42,6 +42,8 @@ public abstract class AtlasedQuadBuffer : IDisposable
 
     public void Draw(CommandList commandList)
     {
+        int instacesDrawn = 0;
+
         for (int i = 0; i < ResourceAtlases.Count; i++)
         {
             int instanceCount = InstancesPerAtlas[i];
@@ -49,7 +51,9 @@ public abstract class AtlasedQuadBuffer : IDisposable
             ResourceSet resourceSet = ResourceAtlases[i];
             commandList.SetGraphicsResourceSet(0, resourceSet);
 
-            DrawBuffer.Draw(commandList, instanceCount * 6, i * instanceCount);
+            DrawBuffer.Draw(commandList, instanceCount * 6, instacesDrawn);
+
+            instacesDrawn += instanceCount;
         }
     }
 

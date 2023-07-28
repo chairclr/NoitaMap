@@ -64,7 +64,7 @@ public class ViewerDisplay : IDisposable
 
         string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
 
-        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00\\world");
+        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\Backups\\preng+\\save00\\world");
 
         (Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
 
@@ -138,6 +138,13 @@ public class ViewerDisplay : IDisposable
 
     private Vector2 ViewOffset = Vector2.Zero;
 
+    public Matrix4x4 View =>
+            Matrix4x4.CreateTranslation(new Vector3(-ViewOffset, 0f)) *
+            Matrix4x4.CreateScale(new Vector3(ViewScale, 1f));
+
+    public Matrix4x4 Projection =>
+        Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
+
     private void Update()
     {
         InputSystem.Update();
@@ -173,9 +180,8 @@ public class ViewerDisplay : IDisposable
     private void Render()
     {
         ConstantBuffer.Data.ViewProjection =
-            Matrix4x4.CreateTranslation(new Vector3(-ViewOffset, 0f)) *
-            Matrix4x4.CreateScale(new Vector3(ViewScale, 1f)) *
-            Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f) *
+            View *
+            Projection *
             Matrix4x4.CreateTranslation(-1f, -1f, 0f);
 
         ConstantBuffer.Update();

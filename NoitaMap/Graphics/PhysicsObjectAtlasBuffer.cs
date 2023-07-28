@@ -67,10 +67,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
             if (needsUpdate)
             {
-                lock (TransformBuffer)
-                {
-                    TransformBuffer.UpdateInstanceBuffer();
-                }
+                TransformBuffer.UpdateInstanceBuffer();
             }
         }
     }
@@ -109,10 +106,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
             pos = AddTextureToAtlas(physicsObject.Width, physicsObject.Height, physicsObject.TextureHash, physicsObject.WorkingTextureData!);
 
             PhysicsObjects.Add(physicsObject);
-        }
 
-        lock (TransformBuffer)
-        {
             TransformBuffer.AddInstance(new VertexInstance()
             {
                 Transform = physicsObject.PrecalculatedWorldMatrix,
@@ -126,9 +120,9 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
     {
         Rectangle rect;
 
-        if (MappedAtlasRegions.TryGetValue(textureHash, out Vector2 mappedStart))
+        if (MappedAtlasRegions.TryGetValue(textureHash, out Vector2 pos))
         {
-            return mappedStart;
+            return pos;
         }
 
         if (width > SingleAtlasSize || height > SingleAtlasSize)
@@ -143,9 +137,18 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
             CurrentAtlasY += height;
         }
 
-        if (CurrentAtlasY >= SingleAtlasSize)
+        if ((CurrentAtlasY + height) >= SingleAtlasSize)
         {
-            throw new Exception("Creating new atlas");
+            CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
+
+            AddAtlas(CurrentAtlasTexture);
+
+            InstancesPerAtlas.Add(0);
+
+            CurrentAtlasX = 0;
+            CurrentAtlasY = 0;
+
+            CachedAtlasRegions.Clear();
         }
 
         rect = new Rectangle(CurrentAtlasX, CurrentAtlasY, width, height);
@@ -160,9 +163,22 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
                 rect.Y = CurrentAtlasY;
 
-                if (CurrentAtlasY >= SingleAtlasSize)
+                if ((CurrentAtlasY + height) >= SingleAtlasSize)
                 {
-                    throw new Exception("Creating new atlas");
+                    CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
+
+                    AddAtlas(CurrentAtlasTexture);
+
+                    InstancesPerAtlas.Add(0);
+
+                    CurrentAtlasX = 0;
+                    CurrentAtlasY = 0;
+
+                    CachedAtlasRegions.Clear();
+
+                    MappedAtlasRegions.Clear();
+
+                    break;
                 }
             }
             else
@@ -173,7 +189,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
         CachedAtlasRegions.Add(rect);
 
-        MappedAtlasRegions.Add(textureHash, new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
+        MappedAtlasRegions.Add(textureHash,new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
 
         InstancesPerAtlas[^1]++;
 

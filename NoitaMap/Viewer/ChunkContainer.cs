@@ -1,8 +1,10 @@
-﻿using System.Numerics;
+﻿using System.Collections.Concurrent;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using Veldrid;
+using Vortice.Direct3D;
 using static NoitaMap.Viewer.ViewerDisplay;
 
 namespace NoitaMap.Viewer;
@@ -19,7 +21,7 @@ public partial class ChunkContainer : IDisposable
 
     private readonly ChunkAtlasBuffer ChunkAtlas;
 
-    //private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
+    private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
 
     //private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
 
@@ -70,6 +72,8 @@ public partial class ChunkContainer : IDisposable
 
         ChunkAtlas.AddChunk(chunk);
 
+        FinishedChunks.Enqueue(chunk);
+
         PhysicsObjectAtlas.AddPhysicsObjects(chunk.PhysicsObjects!);
     }
 
@@ -78,10 +82,16 @@ public partial class ChunkContainer : IDisposable
         ChunkAtlas.Update();
 
         PhysicsObjectAtlas.Update();
+
+        while (FinishedChunks.TryDequeue(out Chunk? chunk))
+        {
+            Chunks.Add(chunk.Position, chunk);
+        }
     }
 
     public void Draw(CommandList commandList)
     {
+        if (!InputSystem.MiddleMouseDown)
         ChunkAtlas.Draw(commandList);
 
         PhysicsObjectAtlas.Draw(commandList);

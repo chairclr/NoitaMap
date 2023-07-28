@@ -17,14 +17,14 @@ public abstract class InstanceBuffer : IDisposable
 
     private bool Disposed;
 
-    public abstract void UpdateInstanceBuffer();
-
     public InstanceBuffer(GraphicsDevice graphicsDevice)
     {
         GraphicsDevice = graphicsDevice;
 
         CopyCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
     }
+
+    public abstract void UpdateInstanceBuffer();
 
     protected virtual void Dispose(bool disposing)
     {
@@ -48,60 +48,68 @@ public abstract class InstanceBuffer : IDisposable
 public class InstanceBuffer<T> : InstanceBuffer
     where T : unmanaged
 {
-    private int Capacity = 1024;
+    private int DeviceBufferCapacity;
 
     public override List<T> Instances { get; } = new List<T>(1024);
 
     public InstanceBuffer(GraphicsDevice graphicsDevice)
         : base(graphicsDevice)
     {
+        DeviceBufferCapacity = Instances.Capacity;
+
         Buffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
         {
-            SizeInBytes = (uint)(Unsafe.SizeOf<T>() * Capacity),
+            SizeInBytes = (uint)(Unsafe.SizeOf<T>() * DeviceBufferCapacity),
             Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic
         });
     }
 
     public void AddInstance(T instanceData)
     {
-        Instances.Add(instanceData);
-
-        if (Instances.Count >= Capacity)
+        lock (Instances)
         {
-            Capacity *= 2;
+            Instances.Add(instanceData);
 
-            DeviceBuffer newBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
+            if (Instances.Capacity > DeviceBufferCapacity)
             {
-                SizeInBytes = (uint)(Unsafe.SizeOf<T>() * Capacity),
-                Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic
-            });
+                DeviceBufferCapacity = Instances.Capacity;
 
-            CopyCommandList.Begin();
+                DeviceBuffer newBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
+                {
+                    SizeInBytes = (uint)(Unsafe.SizeOf<T>() * DeviceBufferCapacity),
+                    Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic
+                });
 
-            // -1 because we just added an element
-            CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, (uint)((Instances.Count - 1) * Unsafe.SizeOf<T>()));
+                CopyCommandList.Begin();
 
-            CopyCommandList.End();
+                // -1 because we just added an element
+                CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
 
-            GraphicsDevice.SubmitCommands(CopyCommandList);
+                CopyCommandList.End();
 
-            Buffer?.Dispose();
+                GraphicsDevice.SubmitCommands(CopyCommandList);
 
-            Buffer = newBuffer;
+                Buffer?.Dispose();
+
+                Buffer = newBuffer;
+            }
         }
     }
 
     public unsafe override void UpdateInstanceBuffer()
     {
-        MappedResource resource = GraphicsDevice.Map(Buffer, MapMode.Write);
-
-        Span<T> span = CollectionsMarshal.AsSpan(Instances);
-
-        fixed (void* instancePointer = &span[0])
+        lock (Instances)
         {
-            Unsafe.CopyBlock((void*)resource.Data, instancePointer, (uint)(Instances.Count * Unsafe.SizeOf<T>()));
-        }
+            MappedResource resource = GraphicsDevice.Map(Buffer, MapMode.Write);
 
-        GraphicsDevice.Unmap(Buffer);
+            Span<T> span = CollectionsMarshal.AsSpan(Instances);
+
+            fixed (void* instancePointer = &span[0])
+            {
+                Unsafe.CopyBlock((void*)resource.Data, instancePointer, (uint)(Instances.Count * Unsafe.SizeOf<T>()));
+            }
+
+            GraphicsDevice.Unmap(Buffer);
+        }
     }
 }

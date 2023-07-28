@@ -26,6 +26,8 @@ public class Chunk
 
     public bool ReadyToBeAddedToAtlas = false;
 
+    public bool ReadyToBeAddedToAtlasAsAir = false;
+
     public Chunk(ViewerDisplay viewerDisplay, Vector2 position, MaterialProvider materialProvider)
     {
         ViewerDisplay = viewerDisplay;
@@ -52,6 +54,8 @@ public class Chunk
 
         WorkingTextureData = new Rgba32[ChunkWidth, ChunkHeight];
 
+        bool wasAnyNotAir = false;
+
         int customColorIndex = 0;
         for (int x = 0; x < ChunkWidth; x++)
         {
@@ -65,9 +69,21 @@ public class Chunk
                     WorkingTextureData[x, y] = customColors[customColorIndex];
                     // explicit > implicit
                     customColorIndex++;
+
+                    wasAnyNotAir = true;
                 }
                 else
                 {
+                    if (material != 0)
+                    {
+                        wasAnyNotAir = true;
+                    }
+
+                    if (material == 0)
+                    {
+                        continue;
+                    }
+
                     Material mat = materials[material];
 
                     if (mat.Name == "_")
@@ -88,9 +104,17 @@ public class Chunk
             }
         }
 
-        PrecalculatedWorldMatrix = Matrix4x4.CreateScale(512f, 512f, 1f) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
+        // All air optimization
+        if (!wasAnyNotAir)
+        {
+            ReadyToBeAddedToAtlasAsAir = true;
+        }
+        else
+        {
+            PrecalculatedWorldMatrix = Matrix4x4.CreateScale(512f, 512f, 1f) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
 
-        ReadyToBeAddedToAtlas = true;
+            ReadyToBeAddedToAtlas = true;
+        }
 
         int physicsObjectCount = reader.ReadBEInt32();
 
