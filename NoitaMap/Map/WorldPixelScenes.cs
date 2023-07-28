@@ -1,11 +1,32 @@
-﻿using System.Buffers;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using System.Text;
-using NoitaMap.Viewer;
+﻿using NoitaMap.Viewer;
 
 namespace NoitaMap.Map;
+
+// String format:
+// int length
+// byte[length] text
+
+// PixelScene format:
+// int x, int y
+// string background_filename
+// string colors_filename
+// string material_filename
+// bool skip_biome_checks
+// bool skip_edge_textures
+// int unknown (should be 50?)
+// string just_load_an_entity
+// int unknown (should be 0?)
+// byte unknown
+// bool isThereExtraUnknown
+// if (isThereExtraUnknown)
+//     ulong extraUnknown (probably for puzzles/entity for that pixel scene?)
+
+// Pixel scenes file structure (mBufferedPixelScenes[]?):
+// int version (should be 3)
+// short unknown
+// short unknown
+// int length
+// PixelScene[length] scenes
 
 public class WorldPixelScenes
 {
@@ -24,102 +45,45 @@ public class WorldPixelScenes
         {
             using BinaryReader reader = new BinaryReader(ms);
 
-            int burger = reader.ReadBEInt32();
+            int version = reader.ReadBEInt32();
 
-            if (burger != 3)
+            if (version != 3)
             {
-                throw new Exception($"Burger wasn't 3 (it was {burger})");
+                throw new Exception($"Burger wasn't 3 (it was {version})");
             }
 
-            //reader.ReadBytes(12);
+            short unknown1 = reader.ReadBEInt16();
+            short unknown2 = reader.ReadBEInt16();
+            int length = reader.ReadBEInt32();
 
-            //int biomeFileLength = reader.ReadBEInt32();
+            PixelScene[] pixelScenes = new PixelScene[length];
 
-            //(string ObjectPath, string VisualPath)[] biomeFileNames = new (string, string VisualPath)[biomeFileLength];
+            for (int i = 0; i < pixelScenes.Length; i++)
+            {
+                pixelScenes[i] = new PixelScene();
 
-            //bool nextWithoutExtra = false;
+                Console.WriteLine($"Stream Position: {reader.BaseStream.Position:X}");
 
-            //for (int i = 0; i < biomeFileLength; i++)
-            //{
-            //    {
-            //        int size = reader.ReadBEInt32();
+                pixelScenes[i].Deserialize(reader);
 
-            //        if (size > 100)
-            //            Debugger.Break();
+                Console.WriteLine($"{i}: {pixelScenes[i].X}, {pixelScenes[i].Y}, {pixelScenes[i].BackgroundFilename}, {pixelScenes[i].ColorsFilename}, {pixelScenes[i].MaterialFilename}, {pixelScenes[i].SkipBiomeChecks}, {pixelScenes[i].SkipEdgeTextures}, {pixelScenes[i].JustLoadAnEntity}");
+                Console.WriteLine();
+            }
 
-            //        byte[] stringBuffer = ArrayPool<byte>.Shared.Rent(size);
+            int length2 = reader.ReadBEInt32();
+            PixelScene[] pixelScenes2 = new PixelScene[length2];
 
-            //        reader.Read(stringBuffer.AsSpan()[..size]);
+            for (int i = 0; i < pixelScenes2.Length; i++)
+            {
+                pixelScenes2[i] = new PixelScene();
 
-            //        biomeFileNames[i].ObjectPath = Encoding.UTF8.GetString(stringBuffer.AsSpan()[..size]);
+                Console.WriteLine($"Stream Position: {reader.BaseStream.Position:X}");
 
-            //        ArrayPool<byte>.Shared.Return(stringBuffer);
-            //    }
+                pixelScenes2[i].Deserialize(reader);
 
-            //    if (!nextWithoutExtra)
-            //    {
-            //        int extra = reader.ReadBEInt32();
-            //    }
-
-            //    {
-            //        int size = reader.ReadBEInt32();
-
-            //        if (size > 100)
-            //        {
-            //            Debugger.Break();
-            //        }
-
-            //        byte[] stringBuffer = ArrayPool<byte>.Shared.Rent(size);
-
-            //        reader.Read(stringBuffer.AsSpan()[..size]);
-
-            //        biomeFileNames[i].VisualPath = Encoding.UTF8.GetString(stringBuffer.AsSpan()[..size]);
-
-            //        ArrayPool<byte>.Shared.Return(stringBuffer);
-            //    }
-
-            //    Console.WriteLine($"Read:\tObject: {biomeFileNames[i].ObjectPath}\tVisual: {biomeFileNames[i].VisualPath}");
-
-            //    int after0 = reader.ReadBEInt32();
-            //    Console.WriteLine($"A0: {after0}");
-
-            //    int after1 = reader.ReadBEInt32();
-            //    Console.WriteLine($"A1: {after1}");
-
-            //    int after2 = reader.ReadBEInt32();
-            //    Console.WriteLine($"A2: {after2}");
-
-            //    int after3 = reader.ReadBEInt32();
-            //    Console.WriteLine($"A3: {after3}");
-
-            //    ushort hmm = reader.ReadUInt16();
-
-            //    if (hmm == ushort.MaxValue)
-            //    {
-            //        nextWithoutExtra = true;
-            //    }
-            //    else
-            //    {
-            //        nextWithoutExtra = false;
-            //    }
-
-            //    Console.WriteLine($"nextWithoutExtra: {nextWithoutExtra}");
-
-            //    short after4 = reader.ReadBEInt16();
-            //    Console.WriteLine($"A4: {after4}");
-
-            //    short after5 = reader.ReadBEInt16();
-            //    Console.WriteLine($"A5: {after5}");
-
-            //    short after6 = reader.ReadBEInt16();
-            //    Console.WriteLine($"A6: {after6}");
-
-            //    //for (int j = 0; j < 6; j++)
-            //    //{
-            //    //    int after = reader.ReadBEInt32();
-            //    //    Console.WriteLine($"A{j}: {after}");
-            //    //}
-            //}
+                Console.WriteLine($"{i}: {pixelScenes2[i].X}, {pixelScenes2[i].Y}, {pixelScenes2[i].BackgroundFilename}, {pixelScenes2[i].ColorsFilename}, {pixelScenes2[i].MaterialFilename}, {pixelScenes2[i].SkipBiomeChecks}, {pixelScenes2[i].SkipEdgeTextures}, {pixelScenes2[i].JustLoadAnEntity}");
+                Console.WriteLine();
+            }
         }
 
         decompressedData = null;

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 
 namespace NoitaMap.Compression;
@@ -38,6 +39,19 @@ public partial class FastLZ
         return fastlz_decompress(ref input.DangerousGetReference(), input.Length, ref output.DangerousGetReference(), output.Length);
     }
 
+    public static Span<byte> Compress(int level, Span<byte> input)
+    {
+        // +10% just in case
+        Span<byte> outputBuffer = new byte[input.Length + (int)((float)input.Length * 0.1f)];
+
+        int length = fastlz_compress_level(level, ref input.DangerousGetReference(), input.Length, ref outputBuffer.DangerousGetReference());
+
+        return outputBuffer[..length];
+    }
+
     [LibraryImport("fastlz")]
     private static partial int fastlz_decompress(ref byte input, int inputLength, ref byte output, int outputLength);
+
+    [LibraryImport("fastlz")]
+    private static partial int fastlz_compress_level(int level, ref byte input, int inputLength, ref byte output);
 }

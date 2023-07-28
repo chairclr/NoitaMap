@@ -129,16 +129,7 @@ public class Chunk
 
         for (int i = 0; i < materialNameCount; i++)
         {
-            int size = reader.ReadBEInt32();
-
-            // rent a buffer here for fast :thumbs_up:
-            byte[] stringBuffer = ArrayPool<byte>.Shared.Rent(size);
-
-            reader.Read(stringBuffer.AsSpan()[..size]);
-
-            materialNames[i] = Encoding.UTF8.GetString(stringBuffer.AsSpan()[..size]);
-
-            ArrayPool<byte>.Shared.Return(stringBuffer);
+            materialNames[i] = reader.ReadNoitaString()!;
         }
 
         return materialNames;
