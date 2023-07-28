@@ -4,6 +4,20 @@ namespace NoitaMap;
 
 public static class BinaryReaderBigEndianExtensions
 {
+    public static short ReadBEInt16(this BinaryReader reader)
+    {
+        Span<byte> buffer = stackalloc byte[2];
+        reader.Read(buffer);
+        return BinaryPrimitives.ReadInt16BigEndian(buffer);
+    }
+
+    public static ushort ReadBEUInt16(this BinaryReader reader)
+    {
+        Span<byte> buffer = stackalloc byte[2];
+        reader.Read(buffer);
+        return BinaryPrimitives.ReadUInt16BigEndian(buffer);
+    }
+
     public static int ReadBEInt32(this BinaryReader reader)
     {
         Span<byte> buffer = stackalloc byte[4];

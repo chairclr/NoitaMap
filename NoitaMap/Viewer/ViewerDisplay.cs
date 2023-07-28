@@ -22,13 +22,15 @@ public class ViewerDisplay : IDisposable
 
     private readonly Pipeline MainPipeline;
 
-    private readonly ChunkContainer ChunkContainer;
+    public readonly MaterialProvider MaterialProvider;
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
-    public readonly MaterialProvider MaterialProvider;
-
     private ResourceLayoutDescription ResourceLayout;
+
+    private readonly ChunkContainer ChunkContainer;
+
+    private readonly WorldPixelScenes WorldPixelScenes;
 
     public string WorldPath;
 
@@ -82,6 +84,8 @@ public class ViewerDisplay : IDisposable
 
         ChunkContainer = new ChunkContainer(this);
 
+        WorldPixelScenes = new WorldPixelScenes(this);
+
         Window.Center();
 
         InputSystem.SetInputContext(Window.CreateInput());
@@ -97,7 +101,6 @@ public class ViewerDisplay : IDisposable
     {
         Task.Run(() =>
         {
-
             string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
 
             int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)(Environment.ProcessorCount - 2));
@@ -127,6 +130,16 @@ public class ViewerDisplay : IDisposable
                     ChunkContainer.LoadChunk(chunkPaths[i]);
                 }
             });
+        });
+
+        Task.Run(() =>
+        {
+            string path = Path.Combine(WorldPath, "world_pixel_scenes.bin");
+
+            if (File.Exists(path))
+            {
+                WorldPixelScenes.Load(path);
+            }
         });
 
         Window.Run();
