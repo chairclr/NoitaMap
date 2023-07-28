@@ -90,6 +90,8 @@ public partial class ChunkContainer : IDisposable
 
     public void Draw(CommandList commandList)
     {
+        ChunkAtlas.Draw(commandList);
+
         PhysicsObjectAtlas.Draw(commandList);
     }
 
