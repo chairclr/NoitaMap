@@ -2,7 +2,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using NoitaMap.Viewer;
 
 namespace NoitaMap.Map;
 

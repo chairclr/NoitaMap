@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using Veldrid;
-using Vortice.Direct3D;
 using static NoitaMap.Viewer.ViewerDisplay;
 
 namespace NoitaMap.Viewer;
@@ -91,9 +90,6 @@ public partial class ChunkContainer : IDisposable
 
     public void Draw(CommandList commandList)
     {
-        if (!InputSystem.MiddleMouseDown)
-        ChunkAtlas.Draw(commandList);
-
         PhysicsObjectAtlas.Draw(commandList);
     }
 

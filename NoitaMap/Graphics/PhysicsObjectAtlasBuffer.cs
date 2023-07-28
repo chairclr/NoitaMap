@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using NoitaMap.Map;
@@ -191,7 +190,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
         CachedAtlasRegions.Add(rect);
 
-        MappedAtlasRegions.Add(textureHash,new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
+        MappedAtlasRegions.Add(textureHash, new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
 
         GraphicsDevice.UpdateTexture(CurrentAtlasTexture, MemoryMarshal.CreateSpan(ref texture[0, 0], width * height), (uint)rect.X, (uint)rect.Y, 0, (uint)width, (uint)height, 1, 0, 0);
 
