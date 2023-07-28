@@ -113,6 +113,8 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
                 TexturePosition = pos,
                 TextureSize = size
             });
+
+            InstancesPerAtlas[^1]++;
         }
     }
 
@@ -190,8 +192,6 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
         CachedAtlasRegions.Add(rect);
 
         MappedAtlasRegions.Add(textureHash,new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
-
-        InstancesPerAtlas[^1]++;
 
         GraphicsDevice.UpdateTexture(CurrentAtlasTexture, MemoryMarshal.CreateSpan(ref texture[0, 0], width * height), (uint)rect.X, (uint)rect.Y, 0, (uint)width, (uint)height, 1, 0, 0);
 

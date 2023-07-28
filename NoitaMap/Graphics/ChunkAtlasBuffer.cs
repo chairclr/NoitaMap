@@ -27,8 +27,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
     public ChunkAtlasBuffer(ViewerDisplay viewerDisplay)
         : base(viewerDisplay)
     {
-        // First chunk is reserved for air
-        CurrentX = 512;
+        CurrentX = 0;
         CurrentY = 0;
 
         CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
@@ -114,7 +113,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
             if (CurrentY >= SingleAtlasSize)
             {
-                CurrentX = 512;
+                CurrentX = 0;
                 CurrentY = 0;
 
                 CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
@@ -131,8 +130,6 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
             Chunks.Add(chunk);
 
-            InstancesPerAtlas[^1]++;
-
             atlasTexture = CurrentAtlasTexture!;
         }
 
@@ -147,5 +144,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             TexturePosition = pos,
             TextureSize = size,
         });
+
+        Interlocked.Increment(ref CollectionsMarshal.AsSpan(InstancesPerAtlas)[^1]);
     }
 }

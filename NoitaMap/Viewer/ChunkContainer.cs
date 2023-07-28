@@ -48,7 +48,7 @@ public partial class ChunkContainer : IDisposable
     {
         Vector2 chunkPosition = GetChunkPositionFromPath(chunkFilePath);
 
-        Chunk chunk = new Chunk(ViewerDisplay, chunkPosition, MaterialProvider!);
+        Chunk chunk = new Chunk(chunkPosition);
 
         byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(chunkFilePath);
 
@@ -65,7 +65,7 @@ public partial class ChunkContainer : IDisposable
                 throw new InvalidDataException($"Chunk header was not correct. Version = {version} Width = {width} Height = {height}");
             }
 
-            chunk.Deserialize(reader);
+            chunk.Deserialize(reader, MaterialProvider);
         }
 
         decompressedData = null;

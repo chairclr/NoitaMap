@@ -16,10 +16,6 @@ public class Chunk
 
     public PhysicsObject[]? PhysicsObjects;
 
-    private readonly ViewerDisplay ViewerDisplay;
-
-    private readonly MaterialProvider MaterialProvider;
-
     public Rgba32[,]? WorkingTextureData;
 
     public Matrix4x4 PrecalculatedWorldMatrix = Matrix4x4.Identity;
@@ -28,16 +24,12 @@ public class Chunk
 
     public bool ReadyToBeAddedToAtlasAsAir = false;
 
-    public Chunk(ViewerDisplay viewerDisplay, Vector2 position, MaterialProvider materialProvider)
+    public Chunk(Vector2 position)
     {
-        ViewerDisplay = viewerDisplay;
-
         Position = position;
-
-        MaterialProvider = materialProvider;
     }
 
-    public void Deserialize(BinaryReader reader)
+    public void Deserialize(BinaryReader reader, MaterialProvider materialProvider)
     {
         byte[,] cellTable = new byte[ChunkWidth, ChunkHeight];
 
@@ -45,9 +37,9 @@ public class Chunk
 
         string[] materialNames = ReadMaterialNames(reader);
 
-        Material[] materials = MaterialProvider.CreateMaterialMap(materialNames);
+        Material[] materials = materialProvider.CreateMaterialMap(materialNames);
 
-        Rgba32[] customColors = ReadCustomColors(reader);
+        Rgba32[] customColors = ReadCustomColors(reader, out _);
 
         int chunkX = (int)Position.X;
         int chunkY = (int)Position.Y;
@@ -104,6 +96,8 @@ public class Chunk
             }
         }
 
+        ArrayPool<Rgba32>.Shared.Return(customColors);
+
         // All air optimization
         if (!wasAnyNotAir)
         {
@@ -151,11 +145,11 @@ public class Chunk
         return materialNames;
     }
 
-    private Rgba32[] ReadCustomColors(BinaryReader reader)
+    private Rgba32[] ReadCustomColors(BinaryReader reader, out int materialWorldColorCount)
     {
-        int materialWorldColorCount = reader.ReadBEInt32();
+        materialWorldColorCount = reader.ReadBEInt32();
 
-        Rgba32[] materialWorldColors = new Rgba32[materialWorldColorCount];
+        Rgba32[] materialWorldColors = ArrayPool<Rgba32>.Shared.Rent(materialWorldColorCount);
 
         for (int i = 0; i < materialWorldColorCount; i++)
         {
