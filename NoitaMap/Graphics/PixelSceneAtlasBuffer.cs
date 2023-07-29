@@ -4,6 +4,7 @@ using NoitaMap.Map;
 using NoitaMap.Viewer;
 using SixLabors.ImageSharp.Formats;
 using Veldrid;
+using Rectangle = SixLabors.ImageSharp.Rectangle;
 
 namespace NoitaMap.Graphics;
 

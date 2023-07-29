@@ -1,5 +1,7 @@
 ﻿using System.Data;
+using System.Diagnostics;
 using System.Numerics;
+using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using Silk.NET.Input;
@@ -31,6 +33,8 @@ public class ViewerDisplay : IDisposable
     private readonly ChunkContainer ChunkContainer;
 
     private readonly WorldPixelScenes WorldPixelScenes;
+
+    private readonly ImGuiRenderer ImGuiRenderer;
 
     public string WorldPath;
 
@@ -85,6 +89,16 @@ public class ViewerDisplay : IDisposable
         ChunkContainer = new ChunkContainer(this);
 
         WorldPixelScenes = new WorldPixelScenes(this);
+
+        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
+
+        ImGui.EndFrame();
+
+        FontAssets.LoadAndAddfont();
+
+        ImGuiRenderer.RecreateFontDeviceTexture(GraphicsDevice);
+
+        ImGui.NewFrame();
 
         Window.Center();
 
@@ -158,8 +172,16 @@ public class ViewerDisplay : IDisposable
     public Matrix4x4 Projection =>
         Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
 
+    public Stopwatch DeltaTimeWatch = Stopwatch.StartNew();
+
     private void Update()
     {
+        DeltaTimeWatch.Stop();
+
+        float deltaTime = (float)DeltaTimeWatch.Elapsed.TotalSeconds;
+
+        DeltaTimeWatch.Restart();
+
         InputSystem.Update();
 
         Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
@@ -187,6 +209,8 @@ public class ViewerDisplay : IDisposable
         ChunkContainer.Update();
 
         WorldPixelScenes.Update();
+
+        ImGuiRenderer.Update(deltaTime, InputSystem.GetInputSnapshot());
     }
 
     private Vector2 ScalePosition(Vector2 position)
@@ -214,6 +238,16 @@ public class ViewerDisplay : IDisposable
         WorldPixelScenes.Draw(MainCommandList);
 
         ChunkContainer.Draw(MainCommandList);
+
+        ImGui.Begin("Cool Window");
+
+        ImGui.Text("Heyyy");
+
+        ImGui.End();
+
+        ImGui.GetBackgroundDrawList().AddCircle(new Vector2(100, 200), 64f, Color.Red.ToPixel<Rgba32>().PackedValue);
+
+        ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
 
         MainCommandList.End();
 
@@ -273,6 +307,8 @@ public class ViewerDisplay : IDisposable
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
+        ImGuiRenderer.WindowResized(size.X,  size.Y);
+
         // We call render to be more responsive when resizing.. or something like that
         Render();
     }
@@ -282,6 +318,8 @@ public class ViewerDisplay : IDisposable
         if (!Disposed)
         {
             Window.Dispose();
+
+            ImGuiRenderer.Dispose();
 
             MainFrameBuffer.Dispose();
 
