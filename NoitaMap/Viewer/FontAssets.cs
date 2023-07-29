@@ -10,61 +10,65 @@ namespace NoitaMap.Viewer;
 
 public unsafe class FontAssets
 {
-    public static void LoadAndAddfont()
+    public static void AddImGuiFont()
     {
         ImGuiIOPtr io = ImGui.GetIO();
 
+        // Clear the default font that Veldrid.ImGui adds
         io.Fonts.Clear();
 
-        ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+        FontData fontData = LoadFontData();
 
-        Configuration config = Configuration.Default;
+        using Image<Rgba32> image = LoadFontImage();
 
-        config.PreferContiguousImageBuffers = true;
+        OverwriteImGuiFont(io, fontData, image);
 
+        SetFontParameters(io, image);
+    }
+
+    private static FontData LoadFontData()
+    {
         XmlSerializer serializer = new XmlSerializer(typeof(FontData));
         using StringReader reader = new StringReader(File.ReadAllText("Assets/Fonts/font_pixel.xml"));
+        return (FontData)serializer.Deserialize(reader)!;
+    }
 
-        FontData fontData = (FontData)serializer.Deserialize(reader)!;
+    private static Image<Rgba32> LoadFontImage()
+    {
+        Configuration config = Configuration.Default;
+        config.PreferContiguousImageBuffers = true;
 
-        using Image<Rgba32> image = Image.Load<Rgba32>(new DecoderOptions() { Configuration = config }, $"Assets/Fonts/font_pixel.png");
+        return Image.Load<Rgba32>(new DecoderOptions() { Configuration = config }, $"Assets/Fonts/font_pixel.png");
+    }
 
-        image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> fontMemory);
-
+    private static void OverwriteImGuiFont(ImGuiIOPtr io, FontData fontData, Image<Rgba32> image)
+    {
+        ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
         fontConfig.FontData = 0;
-
         fontConfig.FontDataSize = 0;
-
         fontConfig.SizePixels = fontData.LineHeight;
 
         ImFontPtr font = io.Fonts.AddFont(fontConfig);
 
-        void* ptr = ImGuiNative.igMemAlloc((uint)(fontMemory.Length * Unsafe.SizeOf<Rgba32>()));
+        image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> imageMemory);
 
-        Unsafe.CopyBlock(ptr, Unsafe.AsPointer(ref fontMemory.Span.DangerousGetReference()), (uint)(fontMemory.Length * Unsafe.SizeOf<Rgba32>()));
-
+        // Overwrite font atlas texture
+        void* ptr = ImGuiNative.igMemAlloc((uint)(imageMemory.Length * Unsafe.SizeOf<Rgba32>()));
+        Unsafe.CopyBlock(ptr, Unsafe.AsPointer(ref imageMemory.Span.DangerousGetReference()), (uint)(imageMemory.Length * Unsafe.SizeOf<Rgba32>()));
         io.Fonts.NativePtr->TexPixelsRGBA32 = (uint*)ptr;
-
         io.Fonts.TexWidth = image.Width;
-
         io.Fonts.TexHeight = image.Height;
 
+        // Set font things because AddFont fails because font data is null
         font.NativePtr->ContainerAtlas = io.Fonts.NativePtr;
-
         font.NativePtr->ConfigData = fontConfig.NativePtr;
-
         font.FontSize = fontData.LineHeight;
-
-        font.FallbackAdvanceX = fontData.QuadChar.First().Width;
+        font.FallbackAdvanceX = fontData.QuadChar[0].Width;
 
         QuadChar ellipsis = fontData.QuadChar[^2];
-
         font.EllipsisChar = (ushort)ellipsis.Id;
-
         font.EllipsisCharCount = 1;
-
         font.EllipsisCharStep = (ushort)ellipsis.Width;
-
         font.EllipsisWidth = (ushort)ellipsis.Width;
 
         float iw = image.Width;
@@ -72,21 +76,32 @@ public unsafe class FontAssets
 
         foreach (QuadChar quad in fontData.QuadChar)
         {
-            font.AddGlyph(fontConfig, (ushort)quad.Id, quad.OffsetX - 1f, quad.OffsetY - 1f, quad.RectW - 1f, quad.RectH - 1f, (float)quad.RectX / iw, (float)quad.RectY / ih, (float)(quad.RectX + quad.RectW) / iw, (float)(quad.RectY + quad.RectH) / ih, quad.Width);
+            font.AddGlyph(fontConfig, (ushort)quad.Id, quad.OffsetX - 1f, quad.OffsetY - 1f, quad.RectW - 1f, quad.RectH - 1f,
+                (float)quad.RectX / iw, (float)quad.RectY / ih, (float)(quad.RectX + quad.RectW) / iw, (float)(quad.RectY + quad.RectH) / ih, quad.Width);
         }
+    }
 
-        io.NativePtr->FontDefault = font.NativePtr;
+    private static void SetFontParameters(ImGuiIOPtr io, Image<Rgba32> image)
+    {
+        io.NativePtr->FontDefault = io.Fonts.Fonts[0].NativePtr;
 
         for (int i = 0; i < io.Fonts.Fonts.Size; i++)
+        {
             if (io.Fonts.Fonts[i].DirtyLookupTables)
+            {
                 io.Fonts.Fonts[i].BuildLookupTable();
+            }
+        }
 
         io.Fonts.TexReady = true;
 
+        // Set the default white pixel for ImGui to use in rendering
         io.Fonts.TexUvWhitePixel = new Vector2(0.5017f, 0f);
 
+        // 2x the font size for more readability
         io.FontGlobalScale = 2f;
 
+        // Scale everything else up
         ImGui.GetStyle().ScaleAllSizes(2f);
     }
 }

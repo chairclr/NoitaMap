@@ -92,9 +92,10 @@ public class ViewerDisplay : IDisposable
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
+        // End frame because it starts a frame, which locks my font texture atlas
         ImGui.EndFrame();
 
-        FontAssets.LoadAndAddfont();
+        FontAssets.AddImGuiFont();
 
         ImGuiRenderer.RecreateFontDeviceTexture(GraphicsDevice);
 
