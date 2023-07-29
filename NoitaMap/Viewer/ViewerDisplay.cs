@@ -66,7 +66,7 @@ public class ViewerDisplay : IDisposable
 
         string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
 
-        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\Backups\\preng+\\save00\\world");
+        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00\\world");
 
         (Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
 
