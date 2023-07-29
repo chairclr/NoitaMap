@@ -23,14 +23,15 @@ namespace NoitaMap.Map;
 
 // Pixel scenes file structure (mBufferedPixelScenes[]?):
 // int version (should be 3)
-// short unknown
-// short unknown
+// int unknown
 // int length
 // PixelScene[length] scenes
 
 public class WorldPixelScenes
 {
     private ViewerDisplay ViewerDisplay;
+
+    private List<PixelScene> PixelScenes = new List<PixelScene>(); 
 
     public WorldPixelScenes(ViewerDisplay viewerDisplay)
     {
@@ -56,33 +57,26 @@ public class WorldPixelScenes
             short unknown2 = reader.ReadBEInt16();
             int length = reader.ReadBEInt32();
 
-            PixelScene[] pixelScenes = new PixelScene[length];
+            PixelScenes.EnsureCapacity(length);
 
-            for (int i = 0; i < pixelScenes.Length; i++)
+            for (int i = 0; i < length; i++)
             {
-                pixelScenes[i] = new PixelScene();
+                PixelScene pixelScene = new PixelScene();
 
-                Console.WriteLine($"Stream Position: {reader.BaseStream.Position:X}");
+                pixelScene.Deserialize(reader);
 
-                pixelScenes[i].Deserialize(reader);
-
-                Console.WriteLine($"{i}: {pixelScenes[i].X}, {pixelScenes[i].Y}, {pixelScenes[i].BackgroundFilename}, {pixelScenes[i].ColorsFilename}, {pixelScenes[i].MaterialFilename}, {pixelScenes[i].SkipBiomeChecks}, {pixelScenes[i].SkipEdgeTextures}, {pixelScenes[i].JustLoadAnEntity}");
-                Console.WriteLine();
+                PixelScenes.Add(pixelScene);
             }
 
             int length2 = reader.ReadBEInt32();
-            PixelScene[] pixelScenes2 = new PixelScene[length2];
 
-            for (int i = 0; i < pixelScenes2.Length; i++)
+            for (int i = 0; i < length2; i++)
             {
-                pixelScenes2[i] = new PixelScene();
+                PixelScene pixelScene = new PixelScene();
 
-                Console.WriteLine($"Stream Position: {reader.BaseStream.Position:X}");
+                pixelScene.Deserialize(reader);
 
-                pixelScenes2[i].Deserialize(reader);
-
-                Console.WriteLine($"{i}: {pixelScenes2[i].X}, {pixelScenes2[i].Y}, {pixelScenes2[i].BackgroundFilename}, {pixelScenes2[i].ColorsFilename}, {pixelScenes2[i].MaterialFilename}, {pixelScenes2[i].SkipBiomeChecks}, {pixelScenes2[i].SkipEdgeTextures}, {pixelScenes2[i].JustLoadAnEntity}");
-                Console.WriteLine();
+                PixelScenes.Add(pixelScene);
             }
         }
 

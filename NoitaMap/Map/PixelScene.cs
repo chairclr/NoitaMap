@@ -1,4 +1,6 @@
-﻿namespace NoitaMap.Map;
+﻿using System.Diagnostics;
+
+namespace NoitaMap.Map;
 
 public class PixelScene
 {
@@ -16,13 +18,19 @@ public class PixelScene
 
     public bool SkipEdgeTextures;
 
-    public int Unknown1;
+    public int BackgroundZIndexProbably;
 
     public string? JustLoadAnEntity;
 
-    public int Unknown2;
+    public bool Unknown2;
+    
+    public bool Unknown3;
 
-    public byte Unknown3;
+    public bool Unknown4;
+
+    public bool Unknown5;
+
+    public byte Unknown6;
 
     public bool IsThereExtraUnknown;
 
@@ -49,13 +57,19 @@ public class PixelScene
 
         SkipEdgeTextures = reader.ReadBoolean();
 
-        Unknown1 = reader.ReadBEInt32();
+        BackgroundZIndexProbably = reader.ReadBEInt32();
 
         JustLoadAnEntity = reader.ReadNoitaString();
 
-        Unknown2 = reader.ReadBEInt32();
+        Unknown2 = reader.ReadBoolean();
 
-        Unknown3 = reader.ReadByte();
+        Unknown3 = reader.ReadBoolean();
+
+        Unknown4 = reader.ReadBoolean();
+
+        Unknown5 = reader.ReadBoolean();
+
+        Unknown6 = reader.ReadByte();
 
         IsThereExtraUnknown = reader.ReadBoolean();
 
