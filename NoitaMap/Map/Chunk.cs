@@ -1,7 +1,6 @@
 ﻿using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace NoitaMap.Map;
 

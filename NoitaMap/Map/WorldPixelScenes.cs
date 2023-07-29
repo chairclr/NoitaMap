@@ -1,4 +1,6 @@
-﻿using NoitaMap.Viewer;
+﻿using NoitaMap.Graphics;
+using NoitaMap.Viewer;
+using Veldrid;
 
 namespace NoitaMap.Map;
 
@@ -31,11 +33,13 @@ public class WorldPixelScenes
 {
     private ViewerDisplay ViewerDisplay;
 
-    private List<PixelScene> PixelScenes = new List<PixelScene>(); 
+    private PixelSceneAtlasBuffer PixelScenes;
 
     public WorldPixelScenes(ViewerDisplay viewerDisplay)
     {
         ViewerDisplay = viewerDisplay;
+
+        PixelScenes = new PixelSceneAtlasBuffer(ViewerDisplay);
     }
 
     public void Load(string path)
@@ -57,15 +61,13 @@ public class WorldPixelScenes
             short unknown2 = reader.ReadBEInt16();
             int length = reader.ReadBEInt32();
 
-            PixelScenes.EnsureCapacity(length);
-
             for (int i = 0; i < length; i++)
             {
                 PixelScene pixelScene = new PixelScene();
 
                 pixelScene.Deserialize(reader);
 
-                PixelScenes.Add(pixelScene);
+                PixelScenes.AddPixelScene(pixelScene);
             }
 
             int length2 = reader.ReadBEInt32();
@@ -76,10 +78,20 @@ public class WorldPixelScenes
 
                 pixelScene.Deserialize(reader);
 
-                PixelScenes.Add(pixelScene);
+                PixelScenes.AddPixelScene(pixelScene);
             }
         }
 
         decompressedData = null;
+    }
+
+    public void Update()
+    {
+        PixelScenes.Update();
+    }
+
+    public void Draw(CommandList commandList)
+    {
+        PixelScenes.Draw(commandList);
     }
 }

@@ -22,8 +22,6 @@ public partial class ChunkContainer : IDisposable
 
     private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
 
-    //private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
-
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
     private readonly PhysicsObjectAtlasBuffer PhysicsObjectAtlas;

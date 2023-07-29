@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace NoitaMap.Map;
+﻿namespace NoitaMap.Map;
 
 public class PixelScene
 {
@@ -23,7 +21,7 @@ public class PixelScene
     public string? JustLoadAnEntity;
 
     public bool Unknown2;
-    
+
     public bool Unknown3;
 
     public bool Unknown4;
@@ -35,6 +33,8 @@ public class PixelScene
     public bool IsThereExtraUnknown;
 
     public ulong ExtraUnknown;
+
+    public string? AtlasTexturePath => MaterialFilename;
 
     public PixelScene()
     {

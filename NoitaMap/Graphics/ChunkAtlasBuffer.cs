@@ -116,11 +116,11 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
                 CurrentX = 0;
                 CurrentY = 0;
 
+                InstancesPerAtlas.Add(0);
+
                 CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
 
                 AddAtlas(CurrentAtlasTexture);
-
-                InstancesPerAtlas.Add(0);
             }
 
             currentX = CurrentX;

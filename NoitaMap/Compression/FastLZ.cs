@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 
 namespace NoitaMap.Compression;

@@ -39,7 +39,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
     {
         bool backendSupportsMultithreading = GraphicsDevice.BackendType is GraphicsBackend.Direct3D11 or GraphicsBackend.Vulkan or GraphicsBackend.Metal;
 
-        if (backendSupportsMultithreading)
+        if (!backendSupportsMultithreading)
         {
             foreach (PhysicsObject physicsObject in physicsObjects)
             {
@@ -140,11 +140,11 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
         if ((CurrentAtlasY + height) >= SingleAtlasSize)
         {
+            InstancesPerAtlas.Add(0);
+
             CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
 
             AddAtlas(CurrentAtlasTexture);
-
-            InstancesPerAtlas.Add(0);
 
             CurrentAtlasX = 0;
             CurrentAtlasY = 0;
