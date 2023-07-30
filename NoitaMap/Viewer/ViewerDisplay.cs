@@ -96,11 +96,6 @@ public class ViewerDisplay : IDisposable
         // End frame because it starts a frame, which locks my font texture atlas
         ImGui.EndFrame();
 
-        //unsafe
-        //{
-        //    ImGui.SetAllocatorFunctions((nint)(delegate* managed<nint, nint>)&Marshal.AllocHGlobal, (nint)(delegate* managed<nint, void>)&Marshal.FreeHGlobal);
-        //}
-
         FontAssets.AddImGuiFont();
 
         ImGuiRenderer.RecreateFontDeviceTexture(GraphicsDevice);
