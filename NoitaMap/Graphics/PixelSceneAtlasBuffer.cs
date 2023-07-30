@@ -48,6 +48,13 @@ public class PixelSceneAtlasBuffer : AtlasedQuadBuffer
             return;
         }
 
+        string path = Path.Combine("C:\\Users\\chair\\AppData\\LocalLow\\Nolla_Games_Noita", pixelScene.AtlasTexturePath);
+
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
         bool backendSupportsMultithreading = GraphicsDevice.BackendType is GraphicsBackend.Direct3D11 or GraphicsBackend.Vulkan or GraphicsBackend.Metal;
 
         if (!backendSupportsMultithreading)
@@ -116,7 +123,9 @@ public class PixelSceneAtlasBuffer : AtlasedQuadBuffer
 
         configuration.PreferContiguousImageBuffers = true;
 
-        using Image<Rgba32> image = Image.Load<Rgba32>(new DecoderOptions() { Configuration = configuration }, Path.Combine("C:\\Users\\chair\\AppData\\LocalLow\\Nolla_Games_Noita", pixelScene.AtlasTexturePath));
+        string path = Path.Combine("C:\\Users\\chair\\AppData\\LocalLow\\Nolla_Games_Noita", pixelScene.AtlasTexturePath);
+
+        using Image<Rgba32> image = Image.Load<Rgba32>(new DecoderOptions() { Configuration = configuration }, path);
 
         if (image.Width > SingleAtlasSize || image.Height > SingleAtlasSize)
         {

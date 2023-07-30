@@ -162,7 +162,11 @@ public class ViewerDisplay : IDisposable
 
             if (File.Exists(path))
             {
+                StatisticTimer timer = new StatisticTimer("Load World Pixel Scenes").Begin();
+
                 WorldPixelScenes.Load(path);
+
+                timer.End(StatisticMode.Single);
             }
         });
 
@@ -246,9 +250,7 @@ public class ViewerDisplay : IDisposable
 
         MainCommandList.SetPipeline(MainPipeline);
 
-
         WorldPixelScenes.Draw(MainCommandList);
-
 
         ChunkContainer.Draw(MainCommandList);
 
@@ -256,7 +258,7 @@ public class ViewerDisplay : IDisposable
 
         ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
 
-        Stopwatch draw = Stopwatch.StartNew();
+        StatisticTimer timer = new StatisticTimer("Main Command List").Begin();
 
         MainCommandList.End();
 
@@ -264,10 +266,12 @@ public class ViewerDisplay : IDisposable
 
         GraphicsDevice.SwapBuffers();
 
-        FrameStatistics.AddStatTime(draw, "Draw World Command List");
+        timer.End(StatisticMode.OncePerFrame);
     }
 
-    private bool DrawFrameStats = false;
+#if TIME_STATS
+    private bool ShowTimeStats = true;
+#endif
 
     private void DrawUI()
     {
@@ -278,20 +282,35 @@ public class ViewerDisplay : IDisposable
 
         ImGui.TextUnformatted($"Chunks Loaded: {LoadedChunks} / {TotalChunkCount}");
 
-        if (DrawFrameStats)
-        {
-            foreach ((string name, double time) in FrameStatistics.FrameStatTimers)
-            {
-                ImGui.TextUnformatted($"{name}: {time}");
-            }
-        }
-
-        ImGui.End();
-
+#if TIME_STATS
         if (ImGui.IsKeyPressed(ImGuiKey.F11))
         {
-            DrawFrameStats = !DrawFrameStats;
+            ShowTimeStats = !ShowTimeStats;
         }
+
+        if (ShowTimeStats)
+        {
+            ImGui.TextUnformatted($"---- Per Frame Times ----");
+            foreach ((string name, TimeSpan time) in TimeStatistics.OncePerFrameStats)
+            {
+                ImGui.TextUnformatted($"{name + ":",-5} {time.TotalSeconds:F5}s");
+            }
+
+            ImGui.TextUnformatted($"---- Summed Times ----");
+            foreach ((string name, TimeSpan time) in TimeStatistics.SummedStats)
+            {
+                ImGui.TextUnformatted($"{name + ":",-5} {time.TotalSeconds:F5}s");
+            }
+
+            ImGui.TextUnformatted($"---- Single Times ----");
+            foreach ((string name, TimeSpan time) in TimeStatistics.SingleStats)
+            {
+                ImGui.TextUnformatted($"{name + ":",-5} {time.TotalSeconds:F5}s");
+            }
+        }
+#endif
+
+        ImGui.End();
     }
 
     private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout)

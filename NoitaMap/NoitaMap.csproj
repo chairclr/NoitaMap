@@ -8,6 +8,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <!-- Don't have TIME_STATS in publish builds -->
+  <PropertyGroup Condition="'$(PublishProtocol)'==''">
+    <DefineConstants>$(DefineConstants);TIME_STATS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
     <PackageReference Include="ImGui.NET" Version="1.89.7.1" />

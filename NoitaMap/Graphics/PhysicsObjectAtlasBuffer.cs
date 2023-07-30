@@ -90,6 +90,8 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
         }
     }
 
+    private StatisticTimer AddPhysicsObjectsToAtlasTimer = new StatisticTimer("Add Physics Object Textures to Atlas");
+
     private void ProcessPhysicsObject(PhysicsObject physicsObject)
     {
         Vector2 pos;
@@ -102,7 +104,11 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
                 throw new InvalidOperationException("Physics object not ready to be added to atlas");
             }
 
+            AddPhysicsObjectsToAtlasTimer.Begin();
+
             pos = AddTextureToAtlas(physicsObject.Width, physicsObject.Height, physicsObject.TextureHash, physicsObject.WorkingTextureData!);
+
+            AddPhysicsObjectsToAtlasTimer.End(StatisticMode.Sum);
 
             PhysicsObjects.Add(physicsObject);
 
