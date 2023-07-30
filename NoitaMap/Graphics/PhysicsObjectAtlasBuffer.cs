@@ -10,7 +10,7 @@ namespace NoitaMap.Graphics;
 
 public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 {
-    private const int SingleAtlasSize = 8192;
+    private const int SingleAtlasSize = 6000;
 
     protected override IList<int> InstancesPerAtlas { get; } = new List<int>();
 
@@ -26,13 +26,25 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
     private int CurrentAtlasY = 0;
 
+    private long TotalPixels = 0;
+
+    private long UsedPixels = 0;
+
+    private long SavedPixels = 0;
+
     public PhysicsObjectAtlasBuffer(ViewerDisplay viewerDisplay) : base(viewerDisplay)
     {
         CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
 
+        TotalPixels += SingleAtlasSize * SingleAtlasSize;
+
         AddAtlas(CurrentAtlasTexture);
 
         InstancesPerAtlas.Add(0);
+
+        Statistics.Metrics.Add("Physics Object Atlas Buffer Usage", () => $"{UsedPixels} / {TotalPixels} ({(double)UsedPixels / (double)TotalPixels * 100:F2}%)");
+        Statistics.Metrics.Add("Physics Object Atlas Buffer Savings", () => $"{SavedPixels} / {TotalPixels} ({(double)SavedPixels / (double)TotalPixels * 100:F2}%)");
+        Statistics.Metrics.Add("Physics Object Atlas Buffer Count", () => $"{ResourceAtlases.Count}");
     }
 
     public void AddPhysicsObjects(PhysicsObject[] physicsObjects)
@@ -101,6 +113,8 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
     {
         if (MappedAtlasRegions.TryGetValue(textureHash, out Vector2 pos))
         {
+            SavedPixels += width * height;
+
             return pos;
         }
 
@@ -121,6 +135,8 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
             InstancesPerAtlas.Add(0);
 
             CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
+
+            TotalPixels += SingleAtlasSize * SingleAtlasSize;
 
             AddAtlas(CurrentAtlasTexture);
 
@@ -145,6 +161,8 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
                 if ((CurrentAtlasY + height) >= SingleAtlasSize)
                 {
                     CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
+
+                    TotalPixels += SingleAtlasSize * SingleAtlasSize;
 
                     AddAtlas(CurrentAtlasTexture);
 
@@ -171,6 +189,8 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
         MappedAtlasRegions.Add(textureHash, new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
 
         GraphicsDevice.UpdateTexture(CurrentAtlasTexture, MemoryMarshal.CreateSpan(ref texture[0, 0], width * height), (uint)rect.X, (uint)rect.Y, 0, (uint)width, (uint)height, 1, 0, 0);
+
+        UsedPixels += width * height;
 
         return new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize);
     }
