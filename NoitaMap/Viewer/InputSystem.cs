@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
 using ImGuiNET;
+using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Veldrid;
+using Key = Silk.NET.Input.Key;
 
 namespace NoitaMap.Viewer;
 
@@ -40,6 +42,41 @@ public static class InputSystem
                 Keyboard.KeyChar += (_, x) =>
                 {
                     InputSnapshot.InternalKeyCharPresses.Add(x);
+                };
+
+                void OnKey(Key key, bool down)
+                {
+                    switch (key)
+                    {
+                        case Key.ControlLeft:
+                        case Key.ControlRight:
+                            ImGui.GetIO().KeyCtrl = down;
+                            break;
+                        case Key.ShiftLeft:
+                        case Key.ShiftRight:
+                            ImGui.GetIO().KeyShift = down;
+                            break;
+                        case Key.AltLeft:
+                        case Key.AltRight:
+                            ImGui.GetIO().KeyAlt = down;
+                            break;
+                        default:
+                            if (Enum.TryParse(key.ToString(), true, out ImGuiKey imkey))
+                            {
+                                ImGui.GetIO().AddKeyEvent(imkey, down);
+                            }
+                            break;
+                    }
+                }
+
+                Keyboard.KeyDown += (_, x, y) =>
+                {
+                    OnKey(x, true);
+                };
+
+                Keyboard.KeyUp += (_, x, y) =>
+                {
+                    OnKey(x, false);
                 };
             }
         }

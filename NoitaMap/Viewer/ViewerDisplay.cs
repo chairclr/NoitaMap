@@ -33,6 +33,10 @@ public class ViewerDisplay : IDisposable
 
     private readonly ChunkContainer ChunkContainer;
 
+    private int TotalChunkCount = 0;
+
+    private int LoadedChunks = 0;
+
     private readonly WorldPixelScenes WorldPixelScenes;
 
     private readonly ImGuiRenderer ImGuiRenderer;
@@ -56,7 +60,7 @@ public class ViewerDisplay : IDisposable
 #if DEBUG
             Debug = true,
 #endif
-            SyncToVerticalBlank = true,
+            SyncToVerticalBlank = false,
             HasMainSwapchain = true,
 
         };
@@ -71,7 +75,7 @@ public class ViewerDisplay : IDisposable
 
         string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
 
-        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00\\world");
+        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00_big\\world");
 
         (Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
 
@@ -119,6 +123,8 @@ public class ViewerDisplay : IDisposable
         {
             string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
 
+            TotalChunkCount = chunkPaths.Length;
+
             int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)(Environment.ProcessorCount - 2));
 
             // Split up all of the paths into a collection of (at most) ChunksPerThread paths for each thread to process
@@ -144,6 +150,8 @@ public class ViewerDisplay : IDisposable
                 for (int i = 0; i < chunkPaths.Length; i++)
                 {
                     ChunkContainer.LoadChunk(chunkPaths[i]);
+
+                    LoadedChunks++;
                 }
             });
         });
@@ -184,6 +192,8 @@ public class ViewerDisplay : IDisposable
 
         DeltaTimeWatch.Restart();
 
+        ImGuiRenderer.Update(deltaTime, InputSystem.GetInputSnapshot());
+
         InputSystem.Update();
 
         Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
@@ -212,7 +222,6 @@ public class ViewerDisplay : IDisposable
 
         WorldPixelScenes.Update();
 
-        ImGuiRenderer.Update(deltaTime, InputSystem.GetInputSnapshot());
     }
 
     private Vector2 ScalePosition(Vector2 position)
@@ -237,26 +246,52 @@ public class ViewerDisplay : IDisposable
 
         MainCommandList.SetPipeline(MainPipeline);
 
+
         WorldPixelScenes.Draw(MainCommandList);
+
 
         ChunkContainer.Draw(MainCommandList);
 
-        ImGui.Begin("Cool Window");
-
-        ImGui.Text("Heyyy");
-
-        ImGui.End();
-
-        ImGui.GetForegroundDrawList().AddText(new Vector2(0, 100f), uint.MaxValue, "test text");
-        ImGui.GetForegroundDrawList().AddRect(new Vector2(100f, 100f), new Vector2(200f, 300f), 0xFF0000FF);
+        DrawUI();
 
         ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
+
+        Stopwatch draw = Stopwatch.StartNew();
 
         MainCommandList.End();
 
         GraphicsDevice.SubmitCommands(MainCommandList);
 
         GraphicsDevice.SwapBuffers();
+
+        FrameStatistics.AddStatTime(draw, "Draw World Command List");
+    }
+
+    private bool DrawFrameStats = false;
+
+    private void DrawUI()
+    {
+        ImGui.SetNextWindowPos(Vector2.Zero);
+        ImGui.Begin("##StatusWindow", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize);
+
+        ImGui.TextUnformatted($"Framerate:     {ImGui.GetIO().Framerate:F1}");
+
+        ImGui.TextUnformatted($"Chunks Loaded: {LoadedChunks} / {TotalChunkCount}");
+
+        if (DrawFrameStats)
+        {
+            foreach ((string name, double time) in FrameStatistics.FrameStatTimers)
+            {
+                ImGui.TextUnformatted($"{name}: {time}");
+            }
+        }
+
+        ImGui.End();
+
+        if (ImGui.IsKeyPressed(ImGuiKey.F11))
+        {
+            DrawFrameStats = !DrawFrameStats;
+        }
     }
 
     private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout)
