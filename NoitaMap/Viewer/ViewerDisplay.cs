@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
@@ -94,6 +95,11 @@ public class ViewerDisplay : IDisposable
 
         // End frame because it starts a frame, which locks my font texture atlas
         ImGui.EndFrame();
+
+        //unsafe
+        //{
+        //    ImGui.SetAllocatorFunctions((nint)(delegate* managed<nint, nint>)&Marshal.AllocHGlobal, (nint)(delegate* managed<nint, void>)&Marshal.FreeHGlobal);
+        //}
 
         FontAssets.AddImGuiFont();
 
@@ -240,14 +246,21 @@ public class ViewerDisplay : IDisposable
 
         ChunkContainer.Draw(MainCommandList);
 
+        ImGui.PushFont(ImGui.GetIO().FontDefault);
         ImGui.Begin("Cool Window");
 
         ImGui.Text("Heyyy");
 
         ImGui.End();
 
-        ImGui.GetBackgroundDrawList().AddCircle(new Vector2(100, 200), 64f, Color.Red.ToPixel<Rgba32>().PackedValue);
+        //unsafe
+        //{
+        //    *(Vector2*)ImGui.GetForegroundDrawList()._Data = ImGui.GetIO().Fonts.TexUvWhitePixel;
+        //}
+        ImGui.GetForegroundDrawList().AddText(new Vector2(0, 100f), uint.MaxValue, "test text");
+        ImGui.GetForegroundDrawList().AddRect(new Vector2(100f, 100f), new Vector2(200f, 300f), 0xFF0000FF);
 
+        ImGui.PopFont();
         ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
 
         MainCommandList.End();
@@ -311,6 +324,7 @@ public class ViewerDisplay : IDisposable
         ImGuiRenderer.WindowResized(size.X,  size.Y);
 
         // We call render to be more responsive when resizing.. or something like that
+        Update();
         Render();
     }
 

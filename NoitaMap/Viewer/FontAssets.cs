@@ -15,8 +15,6 @@ public unsafe class FontAssets
         ImGuiIOPtr io = ImGui.GetIO();
 
         // Clear the default font that Veldrid.ImGui adds
-        io.Fonts.Clear();
-
         FontData fontData = LoadFontData();
 
         using Image<Rgba32> image = LoadFontImage();
@@ -43,25 +41,64 @@ public unsafe class FontAssets
 
     private static void OverwriteImGuiFont(ImGuiIOPtr io, FontData fontData, Image<Rgba32> image)
     {
+        io.Fonts.Clear();
+        io.Fonts.AddFontDefault();
+        io.Fonts.Build();
+
+        io.Fonts.GetTexDataAsRGBA32(out byte* byteOriginalAtlasPixels, out int originalAtlasWidth, out int originalAtlasHeight);
+        io.Fonts.TexReady = false;
+        Rgba32* originalAtlasPixels = (Rgba32*)byteOriginalAtlasPixels;
+
         ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+        fontConfig.FontDataOwnedByAtlas = true;
         fontConfig.FontData = 0;
         fontConfig.FontDataSize = 0;
         fontConfig.SizePixels = fontData.LineHeight;
 
         ImFontPtr font = io.Fonts.AddFont(fontConfig);
 
-        image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> imageMemory);
+        
 
-        // Overwrite font atlas texture
-        void* ptr = ImGuiNative.igMemAlloc((uint)(imageMemory.Length * Unsafe.SizeOf<Rgba32>()));
-        Unsafe.CopyBlock(ptr, Unsafe.AsPointer(ref imageMemory.Span.DangerousGetReference()), (uint)(imageMemory.Length * Unsafe.SizeOf<Rgba32>()));
-        io.Fonts.NativePtr->TexPixelsRGBA32 = (uint*)ptr;
-        io.Fonts.TexWidth = image.Width;
-        io.Fonts.TexHeight = image.Height;
+        int newAtlasWidth = Math.Max(image.Width, originalAtlasWidth);
+        int newAtlasHeight = originalAtlasHeight + image.Height;
 
-        // Set font things because AddFont fails because font data is null
+        io.Fonts.TexWidth = newAtlasWidth;
+        io.Fonts.TexHeight = newAtlasHeight;
+
+        ImFontPtr defaultFont = io.Fonts.Fonts[0];
+
+        float RescaleU(float u)
+        {
+            return u * ((float)originalAtlasWidth / (float)newAtlasWidth);
+        }
+
+        float RescaleV(float v)
+        {
+            return v * ((float)originalAtlasHeight / (float)newAtlasHeight);
+        }
+
+        Vector2 RescaleUV(Vector2 uv)
+        {
+            return new Vector2(RescaleU(uv.X), RescaleV(uv.Y));
+        }
+
+        for (int i = 0; i < io.Fonts.TexUvLines.Count; i++)
+        {
+            ref Vector4 v = ref io.Fonts.TexUvLines[i];
+
+            v.X = RescaleU(v.X);
+            v.Z = RescaleU(v.Z);
+            v.Y = RescaleV(v.Y);
+            v.W = RescaleV(v.W);
+        }
+
+        io.Fonts.TexUvWhitePixel = RescaleUV(io.Fonts.TexUvWhitePixel);
+
+        io.Fonts.TexUvScale = new Vector2(1f / (float)newAtlasWidth, 1f / (float)newAtlasHeight);
+
+        font.NativePtr->ConfigData = fontConfig;
+        font.NativePtr->ConfigDataCount = 1;
         font.NativePtr->ContainerAtlas = io.Fonts.NativePtr;
-        font.NativePtr->ConfigData = fontConfig.NativePtr;
         font.FontSize = fontData.LineHeight;
         font.FallbackAdvanceX = fontData.QuadChar[0].Width;
 
@@ -71,19 +108,38 @@ public unsafe class FontAssets
         font.EllipsisCharStep = (ushort)ellipsis.Width;
         font.EllipsisWidth = (ushort)ellipsis.Width;
 
-        float iw = image.Width;
-        float ih = image.Height;
+        int offsetX = 0;
+        int offsetY = originalAtlasHeight;
 
         foreach (QuadChar quad in fontData.QuadChar)
         {
-            font.AddGlyph(fontConfig, (ushort)quad.Id, quad.OffsetX - 1f, quad.OffsetY - 1f, quad.RectW - 1f, quad.RectH - 1f,
-                (float)quad.RectX / iw, (float)quad.RectY / ih, (float)(quad.RectX + quad.RectW) / iw, (float)(quad.RectY + quad.RectH) / ih, quad.Width);
+            font.AddGlyph(fontConfig,
+                (ushort)quad.Id, quad.OffsetX - 1f, quad.OffsetY - 1f, quad.RectW - 1f, quad.RectH - 1f,
+                (float)(quad.RectX + offsetX) / (float)newAtlasWidth, (float)(quad.RectY + offsetY) / (float)newAtlasHeight, (float)(quad.RectX + offsetX + quad.RectW) / (float)newAtlasWidth, (float)(quad.RectY + offsetY + quad.RectH) / (float)newAtlasHeight,
+                quad.Width);
         }
+
+        io.NativePtr->FontDefault = font.NativePtr;
+
+        Rgba32* newAtlasPixels = (Rgba32*)ImGuiNative.igMemAlloc((uint)(newAtlasWidth * newAtlasHeight * Unsafe.SizeOf<Rgba32>()));
+        io.Fonts.NativePtr->TexPixelsRGBA32 = (uint*)newAtlasPixels;
+
+        // Copy the data from the original atlas to the new atlas
+        for (int x = 0; x < originalAtlasWidth; x++)
+        {
+            for (int y = 0; y < originalAtlasHeight; y++)
+            {
+                newAtlasPixels[x + y * newAtlasWidth] = originalAtlasPixels[x + y * originalAtlasWidth];
+            }
+        }
+
+        image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> imageMemory);
+        Unsafe.CopyBlock(newAtlasPixels + originalAtlasHeight * newAtlasWidth, Unsafe.AsPointer(ref imageMemory.Span.DangerousGetReference()), (uint)(image.Width * image.Height * Unsafe.SizeOf<Rgba32>()));
     }
 
     private static void SetFontParameters(ImGuiIOPtr io, Image<Rgba32> image)
     {
-        io.NativePtr->FontDefault = io.Fonts.Fonts[0].NativePtr;
+        //io.NativePtr->FontDefault = io.Fonts.Fonts[0].NativePtr;
 
         for (int i = 0; i < io.Fonts.Fonts.Size; i++)
         {
@@ -94,9 +150,6 @@ public unsafe class FontAssets
         }
 
         io.Fonts.TexReady = true;
-
-        // Set the default white pixel for ImGui to use in rendering
-        io.Fonts.TexUvWhitePixel = new Vector2(0.5017f, 0f);
 
         // 2x the font size for more readability
         io.FontGlobalScale = 2f;
