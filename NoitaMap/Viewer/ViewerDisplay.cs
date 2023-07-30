@@ -241,21 +241,15 @@ public class ViewerDisplay : IDisposable
 
         ChunkContainer.Draw(MainCommandList);
 
-        ImGui.PushFont(ImGui.GetIO().FontDefault);
         ImGui.Begin("Cool Window");
 
         ImGui.Text("Heyyy");
 
         ImGui.End();
 
-        //unsafe
-        //{
-        //    *(Vector2*)ImGui.GetForegroundDrawList()._Data = ImGui.GetIO().Fonts.TexUvWhitePixel;
-        //}
         ImGui.GetForegroundDrawList().AddText(new Vector2(0, 100f), uint.MaxValue, "test text");
         ImGui.GetForegroundDrawList().AddRect(new Vector2(100f, 100f), new Vector2(200f, 300f), 0xFF0000FF);
 
-        ImGui.PopFont();
         ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
 
         MainCommandList.End();
