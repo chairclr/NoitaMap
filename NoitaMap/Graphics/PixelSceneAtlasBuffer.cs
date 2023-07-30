@@ -55,18 +55,7 @@ public class PixelSceneAtlasBuffer : AtlasedQuadBuffer
             return;
         }
 
-        bool backendSupportsMultithreading = GraphicsDevice.BackendType is GraphicsBackend.Direct3D11 or GraphicsBackend.Vulkan or GraphicsBackend.Metal;
-
-        if (!backendSupportsMultithreading)
-        {
-            ThreadedPixelSceneQueue.Enqueue(pixelScene);
-        }
-        else
-        {
-            ProcessPixelScene(pixelScene);
-
-            TransformBuffer.UpdateInstanceBuffer();
-        }
+        ThreadedPixelSceneQueue.Enqueue(pixelScene);
     }
 
     public void Update()
@@ -88,21 +77,18 @@ public class PixelSceneAtlasBuffer : AtlasedQuadBuffer
 
     public void ProcessPixelScene(PixelScene pixelScene)
     {
-        lock (PixelScenes)
+        RectangleF rect = AddTextureToAtlas(pixelScene);
+
+        PixelScenes.Add(pixelScene);
+
+        TransformBuffer.AddInstance(new VertexInstance()
         {
-            RectangleF rect = AddTextureToAtlas(pixelScene);
+            Transform = Matrix4x4.CreateScale(rect.Width * SingleAtlasSize, rect.Height * SingleAtlasSize, 1f) * Matrix4x4.CreateTranslation(pixelScene.X, pixelScene.Y, 0f),
+            TexturePosition = new Vector2(rect.X, rect.Y),
+            TextureSize = new Vector2(rect.Width, rect.Height)
+        });
 
-            PixelScenes.Add(pixelScene);
-
-            TransformBuffer.AddInstance(new VertexInstance()
-            {
-                Transform = Matrix4x4.CreateScale(rect.Width * SingleAtlasSize, rect.Height * SingleAtlasSize, 1f) * Matrix4x4.CreateTranslation(pixelScene.X, pixelScene.Y, 0f),
-                TexturePosition = new Vector2(rect.X, rect.Y),
-                TextureSize = new Vector2(rect.Width, rect.Height)
-            });
-
-            InstancesPerAtlas[^1]++;
-        }
+        InstancesPerAtlas[^1]++;
     }
 
     private RectangleF AddTextureToAtlas(PixelScene pixelScene)

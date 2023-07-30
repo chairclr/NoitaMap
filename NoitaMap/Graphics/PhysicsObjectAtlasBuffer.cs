@@ -37,37 +37,14 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
     public void AddPhysicsObjects(PhysicsObject[] physicsObjects)
     {
-        bool backendSupportsMultithreading = GraphicsDevice.BackendType is GraphicsBackend.Direct3D11 or GraphicsBackend.Vulkan or GraphicsBackend.Metal;
-
-        if (!backendSupportsMultithreading)
+        foreach (PhysicsObject physicsObject in physicsObjects)
         {
-            foreach (PhysicsObject physicsObject in physicsObjects)
+            if (!physicsObject.ReadyToBeAddedToAtlas)
             {
-                ThreadedPhysicsObjectsQueue.Enqueue(physicsObject);
-            }
-        }
-        else
-        {
-            bool needsUpdate = false;
-
-            foreach (PhysicsObject physicsObject in physicsObjects)
-            {
-                if (!physicsObject.ReadyToBeAddedToAtlas)
-                {
-                    throw new InvalidOperationException("Physics object not ready to be added to atlas");
-                }
-
-                ProcessPhysicsObject(physicsObject);
-
-                physicsObject.WorkingTextureData = null;
-
-                needsUpdate = true;
+                throw new InvalidOperationException("Physics object not ready to be added to atlas");
             }
 
-            if (needsUpdate)
-            {
-                TransformBuffer.UpdateInstanceBuffer();
-            }
+            ThreadedPhysicsObjectsQueue.Enqueue(physicsObject);
         }
     }
 
@@ -97,36 +74,31 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
         Vector2 pos;
         Vector2 size = new Vector2(physicsObject.Width, physicsObject.Height) / SingleAtlasSize;
 
-        lock (PhysicsObjects)
+        if (!physicsObject.ReadyToBeAddedToAtlas)
         {
-            if (!physicsObject.ReadyToBeAddedToAtlas)
-            {
-                throw new InvalidOperationException("Physics object not ready to be added to atlas");
-            }
-
-            AddPhysicsObjectsToAtlasTimer.Begin();
-
-            pos = AddTextureToAtlas(physicsObject.Width, physicsObject.Height, physicsObject.TextureHash, physicsObject.WorkingTextureData!);
-
-            AddPhysicsObjectsToAtlasTimer.End(StatisticMode.Sum);
-
-            PhysicsObjects.Add(physicsObject);
-
-            TransformBuffer.AddInstance(new VertexInstance()
-            {
-                Transform = physicsObject.PrecalculatedWorldMatrix,
-                TexturePosition = pos,
-                TextureSize = size
-            });
-
-            InstancesPerAtlas[^1]++;
+            throw new InvalidOperationException("Physics object not ready to be added to atlas");
         }
+
+        AddPhysicsObjectsToAtlasTimer.Begin();
+
+        pos = AddTextureToAtlas(physicsObject.Width, physicsObject.Height, physicsObject.TextureHash, physicsObject.WorkingTextureData!);
+
+        AddPhysicsObjectsToAtlasTimer.End(StatisticMode.Sum);
+
+        PhysicsObjects.Add(physicsObject);
+
+        TransformBuffer.AddInstance(new VertexInstance()
+        {
+            Transform = physicsObject.PrecalculatedWorldMatrix,
+            TexturePosition = pos,
+            TextureSize = size
+        });
+
+        InstancesPerAtlas[^1]++;
     }
 
     private Vector2 AddTextureToAtlas(int width, int height, int textureHash, Rgba32[,] texture)
     {
-        Rectangle rect;
-
         if (MappedAtlasRegions.TryGetValue(textureHash, out Vector2 pos))
         {
             return pos;
@@ -158,7 +130,7 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
             CachedAtlasRegions.Clear();
         }
 
-        rect = new Rectangle(CurrentAtlasX, CurrentAtlasY, width, height);
+        Rectangle rect = new Rectangle(CurrentAtlasX, CurrentAtlasY, width, height);
 
         CurrentAtlasX += width;
 

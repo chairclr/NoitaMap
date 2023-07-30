@@ -13,9 +13,6 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
     private readonly List<Chunk> Chunks = new List<Chunk>();
 
-    /// <summary>
-    /// Chunk queue for bad graphics APIs that don't support multi-threaded texture creation and updates
-    /// </summary>
     private readonly ConcurrentQueue<Chunk> ThreadedChunkQueue = new ConcurrentQueue<Chunk>();
 
     private int CurrentX;
@@ -44,7 +41,6 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             chunk.ReadyToBeAddedToAtlasAsAir = false;
 
             chunk.WorkingTextureData = null;
-
             return;
         }
 
@@ -53,20 +49,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             throw new InvalidOperationException("Chunk not ready to be added to atlas");
         }
 
-        bool backendSupportsMultithreading = GraphicsDevice.BackendType is GraphicsBackend.Direct3D11 or GraphicsBackend.Vulkan or GraphicsBackend.Metal;
-
-        if (backendSupportsMultithreading)
-        {
-            ProcessChunk(chunk);
-
-            chunk.WorkingTextureData = null;
-
-            TransformBuffer.UpdateInstanceBuffer();
-        }
-        else
-        {
-            ThreadedChunkQueue.Enqueue(chunk);
-        }
+        ThreadedChunkQueue.Enqueue(chunk);
     }
 
     public void Update()
@@ -97,59 +80,46 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             throw new InvalidOperationException("Chunk not ready to be processed");
         }
 
-        AddChunkToAtlasTimer.Begin();
-
         chunk.ReadyToBeAddedToAtlas = false;
 
-        int currentX;
-        int currentY;
+        AddChunkToAtlasTimer.Begin();
 
-        Texture atlasTexture;
-
-        lock (Chunks)
+        if (CurrentX >= SingleAtlasSize)
         {
-            if (CurrentX >= SingleAtlasSize)
-            {
-                CurrentX = 0;
+            CurrentX = 0;
 
-                CurrentY += Chunk.ChunkHeight;
-            }
-
-            if (CurrentY >= SingleAtlasSize)
-            {
-                CurrentX = 0;
-                CurrentY = 0;
-
-                InstancesPerAtlas.Add(0);
-
-                CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
-
-                AddAtlas(CurrentAtlasTexture);
-            }
-
-            currentX = CurrentX;
-            currentY = CurrentY;
-
-            Vector2 pos = new Vector2(currentX, currentY) / new Vector2(SingleAtlasSize);
-            Vector2 size = new Vector2(0.0625f);
-
-            TransformBuffer.AddInstance(new VertexInstance()
-            {
-                Transform = chunk.PrecalculatedWorldMatrix,
-                TexturePosition = pos,
-                TextureSize = size,
-            });
-
-            CurrentX += Chunk.ChunkWidth;
-
-            Chunks.Add(chunk);
-
-            atlasTexture = CurrentAtlasTexture!;
+            CurrentY += Chunk.ChunkHeight;
         }
 
-        GraphicsDevice.UpdateTexture(atlasTexture, MemoryMarshal.CreateSpan(ref chunk.WorkingTextureData![0, 0], Chunk.ChunkWidth * Chunk.ChunkHeight), (uint)currentX, (uint)currentY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
+        if (CurrentY >= SingleAtlasSize)
+        {
+            CurrentX = 0;
+            CurrentY = 0;
 
-        Interlocked.Increment(ref CollectionsMarshal.AsSpan(InstancesPerAtlas)[^1]);
+            InstancesPerAtlas.Add(0);
+
+            CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
+
+            AddAtlas(CurrentAtlasTexture);
+        }
+
+        Vector2 pos = new Vector2(CurrentX, CurrentY) / new Vector2(SingleAtlasSize);
+        Vector2 size = new Vector2(0.0625f);
+
+        TransformBuffer.AddInstance(new VertexInstance()
+        {
+            Transform = chunk.PrecalculatedWorldMatrix,
+            TexturePosition = pos,
+            TextureSize = size,
+        });
+
+        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, MemoryMarshal.CreateSpan(ref chunk.WorkingTextureData![0, 0], Chunk.ChunkWidth * Chunk.ChunkHeight), (uint)CurrentX, (uint)CurrentY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
+
+        CurrentX += Chunk.ChunkWidth;
+
+        Chunks.Add(chunk);
+
+        InstancesPerAtlas[^1]++;
 
         AddChunkToAtlasTimer.End(StatisticMode.Sum);
     }

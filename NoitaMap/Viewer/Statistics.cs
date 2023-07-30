@@ -1,15 +1,16 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace NoitaMap.Viewer;
 
-public class TimeStatistics
+public class Statistics
 {
-    public static readonly Dictionary<string, TimeSpan> OncePerFrameStats = new Dictionary<string, TimeSpan>();
+    public static readonly Dictionary<string, TimeSpan> OncePerFrameTimeStats = new Dictionary<string, TimeSpan>();
 
-    public static readonly Dictionary<string, TimeSpan> SummedStats = new Dictionary<string, TimeSpan>();
+    public static readonly Dictionary<string, TimeSpan> SummedTimeStats = new Dictionary<string, TimeSpan>();
 
-    public static readonly Dictionary<string, TimeSpan> SingleStats = new Dictionary<string, TimeSpan>();
+    public static readonly Dictionary<string, TimeSpan> SingleTimeStats = new Dictionary<string, TimeSpan>();
+
+    public static readonly Dictionary<string, double> Metrics = new Dictionary<string, double>();
 }
 
 public class StatisticTimer
@@ -47,29 +48,29 @@ public class StatisticTimer
         {
             case StatisticMode.OncePerFrame:
                 {
-                    lock (TimeStatistics.OncePerFrameStats)
+                    lock (Statistics.OncePerFrameTimeStats)
                     {
-                        if (!TimeStatistics.OncePerFrameStats.TryAdd(Name, sw.Elapsed))
+                        if (!Statistics.OncePerFrameTimeStats.TryAdd(Name, sw.Elapsed))
                         {
-                            TimeStatistics.OncePerFrameStats[Name] = sw.Elapsed;
+                            Statistics.OncePerFrameTimeStats[Name] = sw.Elapsed;
                         }
                     }
                 }
                 break;
             case StatisticMode.Sum:
                 {
-                    lock (TimeStatistics.SummedStats)
+                    lock (Statistics.SummedTimeStats)
                     {
-                        if (!TimeStatistics.SummedStats.TryAdd(Name, sw.Elapsed))
+                        if (!Statistics.SummedTimeStats.TryAdd(Name, sw.Elapsed))
                         {
-                            TimeStatistics.SummedStats[Name] += sw.Elapsed;
+                            Statistics.SummedTimeStats[Name] += sw.Elapsed;
                         }
                     }
                 }
                 break;
             case StatisticMode.Single:
                 {
-                    TimeStatistics.SingleStats.Add(Name, sw.Elapsed);
+                    Statistics.SingleTimeStats.Add(Name, sw.Elapsed);
                 }
                 break;
         }

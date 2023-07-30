@@ -269,9 +269,7 @@ public class ViewerDisplay : IDisposable
         timer.End(StatisticMode.OncePerFrame);
     }
 
-#if TIME_STATS
-    private bool ShowTimeStats = true;
-#endif
+    private bool ShowMetrics = true;
 
     private void DrawUI()
     {
@@ -282,33 +280,39 @@ public class ViewerDisplay : IDisposable
 
         ImGui.TextUnformatted($"Chunks Loaded: {LoadedChunks} / {TotalChunkCount}");
 
-#if TIME_STATS
         if (ImGui.IsKeyPressed(ImGuiKey.F11))
         {
-            ShowTimeStats = !ShowTimeStats;
+            ShowMetrics = !ShowMetrics;
         }
 
-        if (ShowTimeStats)
+        if (ShowMetrics)
         {
-            ImGui.TextUnformatted($"---- Per Frame Times ----");
-            foreach ((string name, TimeSpan time) in TimeStatistics.OncePerFrameStats)
+            ImGui.TextUnformatted($"---- Metrics ----");
+            foreach ((string name, double metric) in Statistics.Metrics)
             {
-                ImGui.TextUnformatted($"{name + ":",-5} {time.TotalSeconds:F5}s");
+                ImGui.TextUnformatted($"{name + ":",-20} {metric}");
+            }
+
+#if TIME_STATS
+            ImGui.TextUnformatted($"---- Per Frame Times ----");
+            foreach ((string name, TimeSpan time) in Statistics.OncePerFrameTimeStats)
+            {
+                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
             }
 
             ImGui.TextUnformatted($"---- Summed Times ----");
-            foreach ((string name, TimeSpan time) in TimeStatistics.SummedStats)
+            foreach ((string name, TimeSpan time) in Statistics.SummedTimeStats)
             {
-                ImGui.TextUnformatted($"{name + ":",-5} {time.TotalSeconds:F5}s");
+                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
             }
 
             ImGui.TextUnformatted($"---- Single Times ----");
-            foreach ((string name, TimeSpan time) in TimeStatistics.SingleStats)
+            foreach ((string name, TimeSpan time) in Statistics.SingleTimeStats)
             {
-                ImGui.TextUnformatted($"{name + ":",-5} {time.TotalSeconds:F5}s");
+                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
             }
-        }
 #endif
+        }
 
         ImGui.End();
     }
