@@ -288,9 +288,9 @@ public class ViewerDisplay : IDisposable
         if (ShowMetrics)
         {
             ImGui.TextUnformatted($"---- Metrics ----");
-            foreach ((string name, double metric) in Statistics.Metrics)
+            foreach ((string name, Func<string> format) in Statistics.Metrics)
             {
-                ImGui.TextUnformatted($"{name + ":",-20} {metric}");
+                ImGui.TextUnformatted($"{name + ":",-20} {format()}");
             }
 
 #if TIME_STATS

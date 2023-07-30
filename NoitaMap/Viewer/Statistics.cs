@@ -10,7 +10,7 @@ public class Statistics
 
     public static readonly Dictionary<string, TimeSpan> SingleTimeStats = new Dictionary<string, TimeSpan>();
 
-    public static readonly Dictionary<string, double> Metrics = new Dictionary<string, double>();
+    public static readonly Dictionary<string, Func<string>> Metrics = new Dictionary<string, Func<string>>();
 }
 
 public class StatisticTimer
