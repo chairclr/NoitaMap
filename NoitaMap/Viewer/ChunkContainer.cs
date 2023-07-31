@@ -40,17 +40,19 @@ public partial class ChunkContainer : IDisposable
         PhysicsObjectAtlas = new PhysicsObjectAtlasBuffer(ViewerDisplay);
     }
 
-    private StatisticTimer LoadChunkTimer = new StatisticTimer("Load Chunk");
-
     public void LoadChunk(string chunkFilePath)
     {
         Vector2 chunkPosition = GetChunkPositionFromPath(chunkFilePath);
 
         Chunk chunk = new Chunk(chunkPosition);
 
-        LoadChunkTimer.Begin();
+        StatisticTimer decompressChunkTimer = new StatisticTimer("Decompress Chunk").Begin();
 
         byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(chunkFilePath);
+
+        decompressChunkTimer.End(StatisticMode.Sum);
+
+        StatisticTimer loadChunkTimer = new StatisticTimer("Load Chunk").Begin();
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
         {
@@ -68,7 +70,7 @@ public partial class ChunkContainer : IDisposable
             chunk.Deserialize(reader, MaterialProvider);
         }
 
-        LoadChunkTimer.End(StatisticMode.Sum);
+        loadChunkTimer.End(StatisticMode.Sum);
 
         decompressedData = null;
 

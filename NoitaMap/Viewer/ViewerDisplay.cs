@@ -1,5 +1,4 @@
-﻿using System.Data;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
@@ -24,11 +23,19 @@ public class ViewerDisplay : IDisposable
 
     private readonly Pipeline MainPipeline;
 
+    private readonly ResourceLayout VertexResourceLayout;
+
+    private readonly ResourceLayout PixelSamplerResourceLayout;
+
+    private readonly ResourceLayout PixelTextureResourceLayout;
+
+    private readonly ResourceSet VertexResourceSet;
+
+    private readonly ResourceSet PixelSamplerResourceSet;
+
     public readonly MaterialProvider MaterialProvider;
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
-
-    private ResourceLayoutDescription ResourceLayout;
 
     private readonly ChunkContainer ChunkContainer;
 
@@ -76,11 +83,33 @@ public class ViewerDisplay : IDisposable
 
         WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00\\world");
 
-        (Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
+        (Shader[] shaders, VertexElementDescription[] vertexElements) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
 
-        ResourceLayout = resourceLayout.First();
+        VertexResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
+        {
+            Elements = new ResourceLayoutElementDescription[]
+            {
+                new ResourceLayoutElementDescription("VertexShaderBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex)
+            }
+        });
 
-        MainPipeline = CreatePipeline(shaders, vertexElements, resourceLayout);
+        PixelSamplerResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
+        {
+            Elements = new ResourceLayoutElementDescription[]
+            {
+                new ResourceLayoutElementDescription("PointSamplerView", ResourceKind.Sampler, ShaderStages.Fragment)
+            }
+        });
+
+        PixelTextureResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
+        {
+            Elements = new ResourceLayoutElementDescription[]
+            {
+                new ResourceLayoutElementDescription("MainTextureView", ResourceKind.TextureReadOnly, ShaderStages.Fragment)
+            }
+        });
+
+        MainPipeline = CreatePipeline(shaders, vertexElements);
 
         MaterialProvider = new MaterialProvider();
 
@@ -89,6 +118,10 @@ public class ViewerDisplay : IDisposable
         ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
 
         ConstantBuffer.Update();
+
+        VertexResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(VertexResourceLayout, ConstantBuffer.DeviceBuffer));
+
+        PixelSamplerResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(PixelSamplerResourceLayout, GraphicsDevice.PointSampler));
 
         ChunkContainer = new ChunkContainer(this);
 
@@ -249,6 +282,10 @@ public class ViewerDisplay : IDisposable
 
         MainCommandList.SetPipeline(MainPipeline);
 
+        MainCommandList.SetGraphicsResourceSet(0, VertexResourceSet);
+
+        MainCommandList.SetGraphicsResourceSet(1, PixelSamplerResourceSet);
+
         WorldPixelScenes.Draw(MainCommandList);
 
         ChunkContainer.Draw(MainCommandList);
@@ -341,7 +378,7 @@ public class ViewerDisplay : IDisposable
         }
     }
 
-    private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout)
+    private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements)
     {
         return GraphicsDevice.ResourceFactory.CreateGraphicsPipeline(new GraphicsPipelineDescription()
         {
@@ -373,16 +410,16 @@ public class ViewerDisplay : IDisposable
 
                 }
             },
-            ResourceLayouts = resourceLayout.Select(x => GraphicsDevice.ResourceFactory.CreateResourceLayout(x)).ToArray()
+            ResourceLayouts = new ResourceLayout[] { VertexResourceLayout, PixelSamplerResourceLayout, PixelTextureResourceLayout }
         });
     }
 
-    public ResourceSet CreateResourceSet(Texture texture)
+    public ResourceSet CreateTextureBinding(Texture texture)
     {
         return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
         {
-            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(texture), GraphicsDevice.PointSampler, ConstantBuffer.DeviceBuffer },
-            Layout = GraphicsDevice.ResourceFactory.CreateResourceLayout(ResourceLayout)
+            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(texture) },
+            Layout = PixelTextureResourceLayout
         });
     }
 

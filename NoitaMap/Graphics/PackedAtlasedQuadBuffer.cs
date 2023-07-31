@@ -43,13 +43,15 @@ public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
 
         CachedAtlasRegions.Add(rect);
 
+        int atlas = ResourceAtlases.Count - 1;
+
         int index = 0;
-        for (int i = 0; i <= ResourceAtlases.Count - 1; i++)
+        for (int i = 0; i <= atlas; i++)
         {
             index += InstancesPerAtlas[i];
         }
 
-        ResourcePosition position = new ResourcePosition(new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize), new Vector2(width, height) / new Vector2(SingleAtlasSize), ResourceAtlases.Count - 1, index);
+        ResourcePosition position = new ResourcePosition(new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize), new Vector2(width, height) / new Vector2(SingleAtlasSize), atlas, index);
 
         MappedAtlasRegions.Add(hash, position);
 
@@ -86,6 +88,8 @@ public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
 
         IEnumerable<Rectangle> intersecting = CachedAtlasRegions.Where(rect.IntersectsWith);
 
+        CurrentAtlasX += width;
+
         if (!intersecting.Any())
         {
             return rect;
@@ -93,7 +97,9 @@ public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
 
         int maxY = intersecting.Max(x => x.Y + x.Height);
 
-        if (maxY + height > SingleAtlasSize)
+        CurrentAtlasY += maxY - rect.Y;
+
+        if (CurrentAtlasY + height > SingleAtlasSize)
         {
             CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
 
@@ -105,13 +111,11 @@ public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
             CurrentAtlasY = 0;
 
             CachedAtlasRegions.Clear();
-        }
-        else
-        {
-            rect.Y = maxY;
+
+            return new Rectangle(0, 0, width, height);
         }
 
-        CurrentAtlasX += width;
+        rect.Y = CurrentAtlasY;
 
         return rect;
     }

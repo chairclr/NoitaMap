@@ -6,7 +6,7 @@ namespace NoitaMap.Graphics;
 
 public static class ShaderLoader
 {
-    public static (Shader[], VertexElementDescription[], ResourceLayoutDescription[]) Load(GraphicsDevice graphicsDevice, string pixelShader, string vertexShader)
+    public static (Shader[], VertexElementDescription[]) Load(GraphicsDevice graphicsDevice, string pixelShader, string vertexShader)
     {
         string shaderPath = Path.Combine(File.Exists(typeof(ShaderLoader).Assembly.Location) ? Path.GetDirectoryName(typeof(ShaderLoader).Assembly.Location)! : Environment.CurrentDirectory, "Assets", "Shaders", "Compiled");
 
@@ -14,7 +14,6 @@ public static class ShaderLoader
         byte[] pixelShaderBytes = File.ReadAllBytes(Path.Combine(shaderPath, $"{pixelShader}.spirv"));
 
         VertexElementDescription[] vertexElementDescriptions;
-        ResourceLayoutDescription[] resourceLayoutDescriptions;
 
         if (graphicsDevice.BackendType != GraphicsBackend.Vulkan)
         {
@@ -37,7 +36,6 @@ public static class ShaderLoader
             pixelShaderBytes = Encoding.UTF8.GetBytes(result.FragmentShader);
 
             vertexElementDescriptions = result.Reflection.VertexElements;
-            resourceLayoutDescriptions = result.Reflection.ResourceLayouts;
         }
         else
         {
@@ -48,7 +46,6 @@ public static class ShaderLoader
             });
 
             vertexElementDescriptions = result.Reflection.VertexElements;
-            resourceLayoutDescriptions = result.Reflection.ResourceLayouts;
         }
 
         Shader vs = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
@@ -71,6 +68,6 @@ public static class ShaderLoader
             EntryPoint = "main"
         });
 
-        return (new Shader[] { vs, ps }, vertexElementDescriptions, resourceLayoutDescriptions);
+        return (new Shader[] { vs, ps }, vertexElementDescriptions);
     }
 }

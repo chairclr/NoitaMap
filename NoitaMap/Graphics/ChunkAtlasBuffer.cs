@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
 using Veldrid;
@@ -113,7 +112,9 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             TextureSize = size,
         });
 
-        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, MemoryMarshal.CreateSpan(ref chunk.WorkingTextureData![0, 0], Chunk.ChunkWidth * Chunk.ChunkHeight), (uint)CurrentX, (uint)CurrentY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
+        chunk.WorkingTextureData!.Value.Span.TryGetSpan(out Span<Rgba32> flatSpan);
+
+        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, flatSpan, (uint)CurrentX, (uint)CurrentY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
 
         CurrentX += Chunk.ChunkWidth;
 

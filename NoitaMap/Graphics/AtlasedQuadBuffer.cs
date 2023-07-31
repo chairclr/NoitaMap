@@ -51,7 +51,7 @@ public abstract class AtlasedQuadBuffer : IDisposable
             int instanceCount = InstancesPerAtlas[i];
 
             ResourceSet resourceSet = ResourceAtlases[i];
-            commandList.SetGraphicsResourceSet(0, resourceSet);
+            commandList.SetGraphicsResourceSet(2, resourceSet);
 
             DrawBuffer.Draw(commandList, instanceCount * 6, instacesDrawn);
 
@@ -61,7 +61,7 @@ public abstract class AtlasedQuadBuffer : IDisposable
 
     protected void AddAtlas(Texture atlasTexture)
     {
-        ResourceAtlases.Add(ViewerDisplay.CreateResourceSet(atlasTexture));
+        ResourceAtlases.Add(ViewerDisplay.CreateTextureBinding(atlasTexture));
 
         Textures.Add(atlasTexture);
     }
