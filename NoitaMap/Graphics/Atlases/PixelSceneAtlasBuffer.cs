@@ -4,7 +4,7 @@ using NoitaMap.Map;
 using NoitaMap.Viewer;
 using SixLabors.ImageSharp.Formats;
 
-namespace NoitaMap.Graphics;
+namespace NoitaMap.Graphics.Atlases;
 
 public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
 {

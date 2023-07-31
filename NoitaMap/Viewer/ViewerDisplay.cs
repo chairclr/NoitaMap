@@ -67,8 +67,7 @@ public class ViewerDisplay : IDisposable
             Debug = true,
 #endif
             SyncToVerticalBlank = true,
-            HasMainSwapchain = true,
-
+            HasMainSwapchain = true
         };
 
         VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);

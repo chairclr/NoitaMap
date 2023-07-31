@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using NoitaMap.Viewer;
 
-namespace NoitaMap.Graphics;
+namespace NoitaMap.Graphics.Atlases;
 
 public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
 {
@@ -70,7 +70,7 @@ public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
             CurrentAtlasY += height;
         }
 
-        if ((CurrentAtlasY + height) >= SingleAtlasSize)
+        if (CurrentAtlasY + height >= SingleAtlasSize)
         {
             InstancesPerAtlas.Add(0);
 

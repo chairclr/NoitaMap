@@ -4,7 +4,7 @@ using NoitaMap.Map;
 using NoitaMap.Viewer;
 using Veldrid;
 
-namespace NoitaMap.Graphics;
+namespace NoitaMap.Graphics.Atlases;
 
 public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 {

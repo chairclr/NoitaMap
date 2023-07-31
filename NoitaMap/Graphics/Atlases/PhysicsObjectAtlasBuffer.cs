@@ -3,7 +3,7 @@ using CommunityToolkit.HighPerformance;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
 
-namespace NoitaMap.Graphics;
+namespace NoitaMap.Graphics.Atlases;
 
 public class PhysicsObjectAtlasBuffer : PackedAtlasedQuadBuffer
 {

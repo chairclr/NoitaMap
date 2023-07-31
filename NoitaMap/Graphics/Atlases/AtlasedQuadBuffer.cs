@@ -2,7 +2,7 @@
 using NoitaMap.Viewer;
 using Veldrid;
 
-namespace NoitaMap.Graphics;
+namespace NoitaMap.Graphics.Atlases;
 
 public abstract class AtlasedQuadBuffer : IDisposable
 {
