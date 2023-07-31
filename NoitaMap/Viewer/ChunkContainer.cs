@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using Veldrid;
-using static NoitaMap.Viewer.ViewerDisplay;
 
 namespace NoitaMap.Viewer;
 

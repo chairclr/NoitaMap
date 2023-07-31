@@ -57,7 +57,7 @@ public unsafe class FontAssets
 
         ImFontPtr font = io.Fonts.AddFont(fontConfig);
 
-        
+
 
         int newAtlasWidth = Math.Max(image.Width, originalAtlasWidth);
         int newAtlasHeight = originalAtlasHeight + image.Height;

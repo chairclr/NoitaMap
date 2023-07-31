@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
@@ -265,7 +264,7 @@ public class ViewerDisplay : IDisposable
         GraphicsDevice.SubmitCommands(MainCommandList);
 
         timer.End(StatisticMode.OncePerFrame);
-        
+
         GraphicsDevice.SwapBuffers();
     }
 
@@ -393,7 +392,7 @@ public class ViewerDisplay : IDisposable
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
-        ImGuiRenderer.WindowResized(size.X,  size.Y);
+        ImGuiRenderer.WindowResized(size.X, size.Y);
 
         // We call render to be more responsive when resizing.. or something like that
         Update();
@@ -429,25 +428,4 @@ public class ViewerDisplay : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-
-    public struct VertexConstantBuffer
-    {
-        public Matrix4x4 ViewProjection; // 64 bytes
-    }
-}
-
-public struct Vertex
-{
-    public Vector3 Position;
-
-    public Vector2 UV;
-}
-
-public struct VertexInstance
-{
-    public Matrix4x4 Transform;
-
-    public Vector2 TexturePosition;
-
-    public Vector2 TextureSize;
 }

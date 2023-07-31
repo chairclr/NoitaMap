@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using ImGuiNET;
-using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Veldrid;
 using Key = Silk.NET.Input.Key;
@@ -130,13 +129,13 @@ public static class InputSystem
 
     public static bool RightMousePressed => !ImGui.GetIO().WantCaptureMouse && (CurrentMouseState.RightDown && !LastMouseState.RightDown);
 
-    public static bool MiddleMousePressed => !ImGui.GetIO().WantCaptureMouse &&(CurrentMouseState.MiddleDown && !LastMouseState.MiddleDown);
+    public static bool MiddleMousePressed => !ImGui.GetIO().WantCaptureMouse && (CurrentMouseState.MiddleDown && !LastMouseState.MiddleDown);
 
     public static bool LeftMouseReleased => !ImGui.GetIO().WantCaptureMouse && (!CurrentMouseState.LeftDown && LastMouseState.LeftDown);
 
-    public static bool RightMouseReleased => !ImGui.GetIO().WantCaptureMouse &&(!CurrentMouseState.RightDown && LastMouseState.RightDown);
+    public static bool RightMouseReleased => !ImGui.GetIO().WantCaptureMouse && (!CurrentMouseState.RightDown && LastMouseState.RightDown);
 
-    public static bool MiddleMouseReleased => !ImGui.GetIO().WantCaptureMouse &&(!CurrentMouseState.MiddleDown && LastMouseState.MiddleDown);
+    public static bool MiddleMouseReleased => !ImGui.GetIO().WantCaptureMouse && (!CurrentMouseState.MiddleDown && LastMouseState.MiddleDown);
 
     public static Vector2 MousePosition => CurrentMouseState.Position;
 

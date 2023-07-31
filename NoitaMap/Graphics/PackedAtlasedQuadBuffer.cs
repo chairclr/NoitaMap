@@ -54,7 +54,7 @@ public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
         MappedAtlasRegions.Add(hash, position);
 
         GraphicsDevice.UpdateTexture(CurrentAtlasTexture, texture, (uint)rect.X, (uint)rect.Y, 0, (uint)width, (uint)height, 1, 0, 0);
-        
+
 
         return position;
     }
