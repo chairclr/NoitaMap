@@ -70,29 +70,44 @@ public class InstanceBuffer<T> : InstanceBuffer
         {
             Instances.Add(instanceData);
 
-            if (Instances.Capacity > DeviceBufferCapacity)
+            CheckCapacity();
+        }
+    }
+
+    public void InsertInstance(int index, T instanceData)
+    {
+        lock (Instances)
+        {
+            Instances.Insert(index, instanceData);
+
+            CheckCapacity();
+        }
+    }
+
+    private void CheckCapacity()
+    {
+        if (Instances.Capacity > DeviceBufferCapacity)
+        {
+            DeviceBufferCapacity = Instances.Capacity;
+
+            DeviceBuffer newBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
             {
-                DeviceBufferCapacity = Instances.Capacity;
+                SizeInBytes = (uint)(Unsafe.SizeOf<T>() * DeviceBufferCapacity),
+                Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic
+            });
 
-                DeviceBuffer newBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
-                {
-                    SizeInBytes = (uint)(Unsafe.SizeOf<T>() * DeviceBufferCapacity),
-                    Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic
-                });
+            CopyCommandList.Begin();
 
-                CopyCommandList.Begin();
+            // -1 because we just added an element
+            CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
 
-                // -1 because we just added an element
-                CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
+            CopyCommandList.End();
 
-                CopyCommandList.End();
+            GraphicsDevice.SubmitCommands(CopyCommandList);
 
-                GraphicsDevice.SubmitCommands(CopyCommandList);
+            Buffer?.Dispose();
 
-                Buffer?.Dispose();
-
-                Buffer = newBuffer;
-            }
+            Buffer = newBuffer;
         }
     }
 

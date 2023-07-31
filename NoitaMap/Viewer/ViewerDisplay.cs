@@ -60,7 +60,7 @@ public class ViewerDisplay : IDisposable
 #if DEBUG
             Debug = true,
 #endif
-            SyncToVerticalBlank = false,
+            SyncToVerticalBlank = true,
             HasMainSwapchain = true,
 
         };
@@ -75,7 +75,7 @@ public class ViewerDisplay : IDisposable
 
         string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
 
-        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00_big\\world");
+        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00\\world");
 
         (Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
 
@@ -264,9 +264,9 @@ public class ViewerDisplay : IDisposable
 
         GraphicsDevice.SubmitCommands(MainCommandList);
 
-        GraphicsDevice.SwapBuffers();
-
         timer.End(StatisticMode.OncePerFrame);
+        
+        GraphicsDevice.SwapBuffers();
     }
 
     private bool ShowMetrics = true;

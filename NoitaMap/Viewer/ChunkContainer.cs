@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
@@ -43,7 +42,6 @@ public partial class ChunkContainer : IDisposable
     }
 
     private StatisticTimer LoadChunkTimer = new StatisticTimer("Load Chunk");
-
 
     public void LoadChunk(string chunkFilePath)
     {

@@ -1,50 +1,19 @@
 ﻿using System.Collections.Concurrent;
-using System.Numerics;
-using System.Runtime.InteropServices;
+using CommunityToolkit.HighPerformance;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
-using Veldrid;
-using Rectangle = System.Drawing.Rectangle;
 
 namespace NoitaMap.Graphics;
 
-public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
+public class PhysicsObjectAtlasBuffer : PackedAtlasedQuadBuffer
 {
-    private const int SingleAtlasSize = 6000;
-
-    protected override IList<int> InstancesPerAtlas { get; } = new List<int>();
-
     private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
 
     private readonly ConcurrentQueue<PhysicsObject> ThreadedPhysicsObjectsQueue = new ConcurrentQueue<PhysicsObject>();
 
-    private readonly Dictionary<int, Vector2> MappedAtlasRegions = new Dictionary<int, Vector2>();
-
-    private readonly List<Rectangle> CachedAtlasRegions = new List<Rectangle>();
-
-    private int CurrentAtlasX = 0;
-
-    private int CurrentAtlasY = 0;
-
-    private long TotalPixels = 0;
-
-    private long UsedPixels = 0;
-
-    private long SavedPixels = 0;
-
     public PhysicsObjectAtlasBuffer(ViewerDisplay viewerDisplay) : base(viewerDisplay)
     {
-        CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
 
-        TotalPixels += SingleAtlasSize * SingleAtlasSize;
-
-        AddAtlas(CurrentAtlasTexture);
-
-        InstancesPerAtlas.Add(0);
-
-        Statistics.Metrics.Add("Physics Object Atlas Buffer Usage", () => $"{UsedPixels} / {TotalPixels} ({(double)UsedPixels / (double)TotalPixels * 100:F2}%)");
-        Statistics.Metrics.Add("Physics Object Atlas Buffer Savings", () => $"{SavedPixels} / {TotalPixels} ({(double)SavedPixels / (double)TotalPixels * 100:F2}%)");
-        Statistics.Metrics.Add("Physics Object Atlas Buffer Count", () => $"{ResourceAtlases.Count}");
     }
 
     public void AddPhysicsObjects(PhysicsObject[] physicsObjects)
@@ -83,9 +52,6 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
     private void ProcessPhysicsObject(PhysicsObject physicsObject)
     {
-        Vector2 pos;
-        Vector2 size = new Vector2(physicsObject.Width, physicsObject.Height) / SingleAtlasSize;
-
         if (!physicsObject.ReadyToBeAddedToAtlas)
         {
             throw new InvalidOperationException("Physics object not ready to be added to atlas");
@@ -93,105 +59,19 @@ public class PhysicsObjectAtlasBuffer : AtlasedQuadBuffer
 
         AddPhysicsObjectsToAtlasTimer.Begin();
 
-        pos = AddTextureToAtlas(physicsObject.Width, physicsObject.Height, physicsObject.TextureHash, physicsObject.WorkingTextureData!);
+        ResourcePosition resourcePosition = AddTextureToAtlas(physicsObject.Width, physicsObject.Height, physicsObject.TextureHash, physicsObject.WorkingTextureData!.AsSpan());
 
         AddPhysicsObjectsToAtlasTimer.End(StatisticMode.Sum);
 
         PhysicsObjects.Add(physicsObject);
 
-        TransformBuffer.AddInstance(new VertexInstance()
+        TransformBuffer.InsertInstance(resourcePosition.InstanceIndex, new VertexInstance()
         {
             Transform = physicsObject.PrecalculatedWorldMatrix,
-            TexturePosition = pos,
-            TextureSize = size
+            TexturePosition = resourcePosition.UV,
+            TextureSize = resourcePosition.UVSize
         });
 
-        InstancesPerAtlas[^1]++;
-    }
-
-    private Vector2 AddTextureToAtlas(int width, int height, int textureHash, Rgba32[,] texture)
-    {
-        if (MappedAtlasRegions.TryGetValue(textureHash, out Vector2 pos))
-        {
-            SavedPixels += width * height;
-
-            return pos;
-        }
-
-        if (width > SingleAtlasSize || height > SingleAtlasSize)
-        {
-            throw new Exception("Texture larger than atlas");
-        }
-
-        if (CurrentAtlasX + width >= SingleAtlasSize)
-        {
-            CurrentAtlasX = 0;
-
-            CurrentAtlasY += height;
-        }
-
-        if ((CurrentAtlasY + height) >= SingleAtlasSize)
-        {
-            InstancesPerAtlas.Add(0);
-
-            CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
-
-            TotalPixels += SingleAtlasSize * SingleAtlasSize;
-
-            AddAtlas(CurrentAtlasTexture);
-
-            CurrentAtlasX = 0;
-            CurrentAtlasY = 0;
-
-            CachedAtlasRegions.Clear();
-        }
-
-        Rectangle rect = new Rectangle(CurrentAtlasX, CurrentAtlasY, width, height);
-
-        CurrentAtlasX += width;
-
-        while (true)
-        {
-            if (CachedAtlasRegions.Any(x => rect.IntersectsWith(x)))
-            {
-                CurrentAtlasY++;
-
-                rect.Y = CurrentAtlasY;
-
-                if ((CurrentAtlasY + height) >= SingleAtlasSize)
-                {
-                    CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
-
-                    TotalPixels += SingleAtlasSize * SingleAtlasSize;
-
-                    AddAtlas(CurrentAtlasTexture);
-
-                    InstancesPerAtlas.Add(0);
-
-                    CurrentAtlasX = 0;
-                    CurrentAtlasY = 0;
-
-                    CachedAtlasRegions.Clear();
-
-                    MappedAtlasRegions.Clear();
-
-                    break;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        CachedAtlasRegions.Add(rect);
-
-        MappedAtlasRegions.Add(textureHash, new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize));
-
-        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, MemoryMarshal.CreateSpan(ref texture[0, 0], width * height), (uint)rect.X, (uint)rect.Y, 0, (uint)width, (uint)height, 1, 0, 0);
-
-        UsedPixels += width * height;
-
-        return new Vector2(rect.X, rect.Y) / new Vector2(SingleAtlasSize);
+        InstancesPerAtlas[resourcePosition.AtlasIndex]++;
     }
 }
