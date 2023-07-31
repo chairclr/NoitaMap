@@ -271,6 +271,8 @@ public class ViewerDisplay : IDisposable
 
     private bool ShowMetrics = true;
 
+    private bool ShowDebugger = false;
+
     private void DrawUI()
     {
         ImGui.SetNextWindowPos(Vector2.Zero);
@@ -280,7 +282,7 @@ public class ViewerDisplay : IDisposable
 
         ImGui.TextUnformatted($"Chunks Loaded: {LoadedChunks} / {TotalChunkCount}");
 
-        if (ImGui.IsKeyPressed(ImGuiKey.F11))
+        if (ImGui.IsKeyPressed(ImGuiKey.F11, false))
         {
             ShowMetrics = !ShowMetrics;
         }
@@ -315,6 +317,29 @@ public class ViewerDisplay : IDisposable
         }
 
         ImGui.End();
+
+        if (ImGui.IsKeyPressed(ImGuiKey.F12, false))
+        {
+            ShowDebugger = !ShowDebugger;
+        }
+
+        if (ShowDebugger)
+        {
+            if (ImGui.BeginTabBar("MainBar"))
+            {
+                if (ImGui.BeginTabItem("Physics Object Atlases"))
+                {
+                    foreach (Texture tex in ChunkContainer.PhysicsObjectAtlas.Textures)
+                    {
+                        ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(GraphicsDevice.ResourceFactory, tex), new Vector2(tex.Width, tex.Height));
+                    }
+
+                    ImGui.EndTabBar();
+                }
+
+                ImGui.EndTabBar();
+            }
+        }
     }
 
     private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements, ResourceLayoutDescription[] resourceLayout)

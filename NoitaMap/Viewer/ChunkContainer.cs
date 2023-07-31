@@ -18,13 +18,13 @@ public partial class ChunkContainer : IDisposable
 
     private readonly Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
 
-    private readonly ChunkAtlasBuffer ChunkAtlas;
+    public readonly ChunkAtlasBuffer ChunkAtlas;
 
     private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
 
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
-    private readonly PhysicsObjectAtlasBuffer PhysicsObjectAtlas;
+    public readonly PhysicsObjectAtlasBuffer PhysicsObjectAtlas;
 
     private bool Disposed;
 

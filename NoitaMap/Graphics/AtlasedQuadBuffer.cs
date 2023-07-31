@@ -12,6 +12,8 @@ public abstract class AtlasedQuadBuffer : IDisposable
 
     protected readonly List<ResourceSet> ResourceAtlases = new List<ResourceSet>();
 
+    public readonly List<Texture> Textures = new List<Texture>();
+
     private readonly QuadVertexBuffer<Vertex> DrawBuffer;
 
     protected readonly InstanceBuffer<VertexInstance> TransformBuffer;
@@ -60,6 +62,8 @@ public abstract class AtlasedQuadBuffer : IDisposable
     protected void AddAtlas(Texture atlasTexture)
     {
         ResourceAtlases.Add(ViewerDisplay.CreateResourceSet(atlasTexture));
+
+        Textures.Add(atlasTexture);
     }
 
     protected Texture CreateNewAtlas(int width, int height)
