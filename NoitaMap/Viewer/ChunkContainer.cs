@@ -47,13 +47,9 @@ public partial class ChunkContainer : IDisposable
 
         Chunk chunk = new Chunk(chunkPosition);
 
-        StatisticTimer decompressChunkTimer = new StatisticTimer("Decompress Chunk").Begin();
+        StatisticTimer loadChunkTimer = new StatisticTimer("Load Chunk").Begin();
 
         byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(chunkFilePath);
-
-        decompressChunkTimer.End(StatisticMode.Sum);
-
-        StatisticTimer loadChunkTimer = new StatisticTimer("Load Chunk").Begin();
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
         {

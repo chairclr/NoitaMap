@@ -6,7 +6,9 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        using ViewerDisplay viewer = new ViewerDisplay();
+        PathService pathService = new PathService(args);
+
+        using ViewerDisplay viewer = new ViewerDisplay(pathService);
         viewer.Start();
     }
 }

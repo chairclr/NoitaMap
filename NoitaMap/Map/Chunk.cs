@@ -1,7 +1,6 @@
 ﻿using System.Buffers;
 using System.Numerics;
-using CommunityToolkit.HighPerformance;
-using NoitaMap.Viewer;
+using System.Runtime.InteropServices;
 
 namespace NoitaMap.Map;
 
@@ -15,7 +14,7 @@ public class Chunk
 
     public PhysicsObject[]? PhysicsObjects;
 
-    public Memory2D<Rgba32>? WorkingTextureData;
+    public Rgba32[,]? WorkingTextureData;
 
     public Matrix4x4 PrecalculatedWorldMatrix = Matrix4x4.Identity;
 
@@ -30,13 +29,9 @@ public class Chunk
 
     public void Deserialize(BinaryReader reader, MaterialProvider materialProvider)
     {
-        byte[] rentedCellTable = ArrayPool<byte>.Shared.Rent(ChunkWidth * ChunkHeight);
+        byte[,] cellTable = new byte[ChunkWidth, ChunkHeight];
 
-        Span2D<byte> cellTable = rentedCellTable.AsSpan().AsSpan2D(ChunkWidth, ChunkHeight);
-
-        cellTable.TryGetSpan(out Span<byte> flatCellTable);
-
-        reader.Read(flatCellTable);
+        reader.Read(MemoryMarshal.CreateSpan(ref cellTable[0, 0], ChunkWidth * ChunkHeight));
 
         string[] materialNames = ReadMaterialNames(reader);
 
@@ -47,9 +42,7 @@ public class Chunk
         int chunkX = (int)Position.X;
         int chunkY = (int)Position.Y;
 
-        WorkingTextureData = new Memory2D<Rgba32>(new Rgba32[ChunkHeight * ChunkWidth], ChunkHeight, ChunkWidth);
-
-        Span2D<Rgba32> textureData = WorkingTextureData.Value.Span;
+        WorkingTextureData = new Rgba32[ChunkWidth, ChunkHeight];
 
         bool wasAnyNotAir = false;
 
@@ -63,7 +56,7 @@ public class Chunk
 
                 if (customColor)
                 {
-                    textureData[x, y] = customColors[customColorIndex];
+                    WorkingTextureData[x, y] = customColors[customColorIndex];
                     // explicit > implicit
                     customColorIndex++;
 
@@ -85,7 +78,7 @@ public class Chunk
 
                     if (mat.Name == "_")
                     {
-                        textureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
+                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
                     }
                     else
                     {
@@ -95,13 +88,11 @@ public class Chunk
                         int colorX = ((wx & Material.MaterialWidthM1) + Material.MaterialWidthM1) & Material.MaterialWidthM1;
                         int colorY = ((wy & Material.MaterialHeightM1) + Material.MaterialHeightM1) & Material.MaterialHeightM1;
 
-                        textureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
+                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
                     }
                 }
             }
         }
-
-        ArrayPool<byte>.Shared.Return(rentedCellTable);
 
         ArrayPool<Rgba32>.Shared.Return(customColors);
 
@@ -117,8 +108,6 @@ public class Chunk
             ReadyToBeAddedToAtlas = true;
         }
 
-        StatisticTimer timer = new StatisticTimer("Load Physics Objects").Begin();
-
         int physicsObjectCount = reader.ReadBEInt32();
 
         PhysicsObjects = new PhysicsObject[physicsObjectCount];
@@ -129,8 +118,6 @@ public class Chunk
 
             PhysicsObjects[i].Deserialize(reader);
         }
-
-        timer.End(StatisticMode.Sum);
     }
 
     private string[] ReadMaterialNames(BinaryReader reader)

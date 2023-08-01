@@ -17,6 +17,8 @@ public class ViewerDisplay : IDisposable
 
     public readonly GraphicsDevice GraphicsDevice;
 
+    public readonly PathService PathService;
+
     private readonly CommandList MainCommandList;
 
     private Framebuffer MainFrameBuffer;
@@ -47,12 +49,12 @@ public class ViewerDisplay : IDisposable
 
     private readonly ImGuiRenderer ImGuiRenderer;
 
-    public string WorldPath;
-
     private bool Disposed;
 
-    public ViewerDisplay()
+    public ViewerDisplay(PathService pathService)
     {
+        PathService = pathService;
+
         WindowOptions windowOptions = new WindowOptions()
         {
             API = GraphicsAPI.None,
@@ -77,10 +79,6 @@ public class ViewerDisplay : IDisposable
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
-
-        string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
-
-        WorldPath = Path.Combine(localLowPath, "Nolla_Games_Noita\\save00\\world");
 
         (Shader[] shaders, VertexElementDescription[] vertexElements) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
 
@@ -152,7 +150,7 @@ public class ViewerDisplay : IDisposable
     {
         Task.Run(() =>
         {
-            string[] chunkPaths = Directory.EnumerateFiles(WorldPath, "world_*_*.png_petri").ToArray();
+            string[] chunkPaths = Directory.EnumerateFiles(PathService.WorldPath, "world_*_*.png_petri").ToArray();
 
             TotalChunkCount = chunkPaths.Length;
 
@@ -185,11 +183,12 @@ public class ViewerDisplay : IDisposable
                     LoadedChunks++;
                 }
             });
+
         });
 
         Task.Run(() =>
         {
-            string path = Path.Combine(WorldPath, "world_pixel_scenes.bin");
+            string path = Path.Combine(PathService.WorldPath, "world_pixel_scenes.bin");
 
             if (File.Exists(path))
             {
@@ -256,7 +255,6 @@ public class ViewerDisplay : IDisposable
         ChunkContainer.Update();
 
         WorldPixelScenes.Update();
-
     }
 
     private Vector2 ScalePosition(Vector2 position)

@@ -8,6 +8,8 @@ namespace NoitaMap.Graphics.Atlases;
 
 public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
 {
+    private readonly PathService PathService;
+
     private readonly List<PixelScene> PixelScenes = new List<PixelScene>();
 
     private readonly ConcurrentQueue<PixelScene> ThreadedPixelSceneQueue = new ConcurrentQueue<PixelScene>();
@@ -15,7 +17,7 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
     public PixelSceneAtlasBuffer(ViewerDisplay viewerDisplay)
         : base(viewerDisplay)
     {
-
+        PathService = viewerDisplay.PathService;
     }
 
     public void AddPixelScene(PixelScene pixelScene)
@@ -25,12 +27,17 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
             return;
         }
 
-        if (!pixelScene.AtlasTexturePath.StartsWith($"data/biome_impl"))
+        if (PathService.DataPath is null)
         {
             return;
         }
 
-        string path = Path.Combine("C:\\Users\\chair\\AppData\\LocalLow\\Nolla_Games_Noita", pixelScene.AtlasTexturePath);
+        string? path = null;
+
+        if (pixelScene.AtlasTexturePath.StartsWith("data/"))
+        {
+            path = Path.Combine(PathService.DataPath, pixelScene.AtlasTexturePath.Remove(0, 5));
+        }
 
         if (!File.Exists(path))
         {
@@ -64,14 +71,18 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
             throw new Exception("pixelScene.AtlasTexturePath was null when it shouldn't have been");
         }
 
-        // TODO: Don't do this.
-        string path = Path.Combine("C:\\Users\\chair\\AppData\\LocalLow\\Nolla_Games_Noita", pixelScene.AtlasTexturePath!);
+        string? path = null;
 
-        using Image<Rgba32> image = LoadPixelSceneImage(path);
+        if (pixelScene.AtlasTexturePath.StartsWith("data/"))
+        {
+            path = Path.Combine(PathService.DataPath!, pixelScene.AtlasTexturePath.Remove(0, 5));
+        }
+
+        using Image<Rgba32> image = LoadPixelSceneImage(path!);
 
         image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory);
 
-        ResourcePosition resourcePosition = AddTextureToAtlas(image.Width, image.Height, path.GetHashCode(), memory.Span);
+        ResourcePosition resourcePosition = AddTextureToAtlas(image.Width, image.Height, path!.GetHashCode(), memory.Span);
 
         PixelScenes.Add(pixelScene);
 

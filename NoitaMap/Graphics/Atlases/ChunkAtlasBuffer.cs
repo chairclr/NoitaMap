@@ -1,14 +1,18 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics;
+using CommunityToolkit.HighPerformance;
+using NoitaMap.Graphics.Atlases;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
 using Veldrid;
 
-namespace NoitaMap.Graphics.Atlases;
+namespace NoitaMap.Graphics;
 
 public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 {
     private const int SingleAtlasSize = 8192;
+
+    private const int MaxBatchSize = 32;
 
     private readonly List<Chunk> Chunks = new List<Chunk>();
 
@@ -40,6 +44,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             chunk.ReadyToBeAddedToAtlasAsAir = false;
 
             chunk.WorkingTextureData = null;
+
             return;
         }
 
@@ -55,13 +60,18 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
     {
         bool needsUpdate = false;
 
-        while (ThreadedChunkQueue.TryDequeue(out Chunk? chunk))
+        int i = 0;
+
+        // i < MaxBatchSize check before we dequeue because we don't want to discard the result
+        while (i < MaxBatchSize && ThreadedChunkQueue.TryDequeue(out Chunk? chunk))
         {
             ProcessChunk(chunk);
 
             chunk.WorkingTextureData = null;
 
             needsUpdate = true;
+
+            i++;
         }
 
         if (needsUpdate)
@@ -112,9 +122,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             TextureSize = size,
         });
 
-        chunk.WorkingTextureData!.Value.Span.TryGetSpan(out Span<Rgba32> flatSpan);
-
-        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, flatSpan, (uint)CurrentX, (uint)CurrentY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
+        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, chunk.WorkingTextureData.AsSpan(), (uint)CurrentX, (uint)CurrentY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
 
         CurrentX += Chunk.ChunkWidth;
 
