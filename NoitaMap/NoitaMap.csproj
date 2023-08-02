@@ -63,10 +63,10 @@
           Directory.CreateDirectory(shaderCompilationDir);
 
           if (linux) // dxc can't find its libraries otherwise
-              Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", Path.Combine(projectDirectory, "dxc"));
+              Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", Path.Combine(projectDirectory, "dxc", "linux"));
 
           Process process = new Process();
-          process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", windows ? "dxc.exe" : "dxc");
+          process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", windows ? "win" : "linux", windows ? "dxc.exe" : "dxc");
           process.StartInfo.Arguments = string.Format("-spirv -fvk-s-shift 1 0 -fvk-b-shift 2 0 -T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderCompilationPathNoExtension);
           process.StartInfo.CreateNoWindow = true;
           process.StartInfo.UseShellExecute = false;
