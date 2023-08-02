@@ -25,10 +25,15 @@
     <PackageReference Include="Veldrid.RenderDoc" Version="1.0.1" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
   </ItemGroup>
+  
+  <Target Name="CompileShaders" BeforeTargets="BeforeBuild">
+    <CompileShaderTask ShaderFile="VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
+    <CompileShaderTask ShaderFile="PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
 
-  <ItemGroup>
-    <None Include="$(ProjectDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
+    <ItemGroup>
+      <None Include="$(ProjectDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <Folder Include="Assets\Shaders\Compiled\" />
@@ -44,17 +49,29 @@
       <Using Namespace="System" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Diagnostics" />
+      <Using Namespace="System.Runtime.InteropServices" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
+          bool windows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+          bool linux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+          if ((!windows && !linux) || !Environment.Is64BitOperatingSystem)
+              return Success; // just skips the task
+
           Log.LogMessage(MessageImportance.High, "Compiling Shader " + ShaderFile);
-        
+
           string projectDirectory = Path.GetDirectoryName(BuildEngine.ProjectFileOfTaskNode);
-          
+
           string shaderSourcePathNoExtension = Path.Combine(projectDirectory, "Assets", "Shaders", "Source", ShaderFile);
-          string shaderCompilationPathNoExtension = Path.Combine(projectDirectory, "Assets", "Shaders", "Compiled", ShaderFile);
-          
+          string shaderCompilationDir = Path.Combine(projectDirectory, "Assets", "Shaders", "Compiled");
+          string shaderCompilationPathNoExtension = Path.Combine(shaderCompilationDir, ShaderFile);
+
+          Directory.CreateDirectory(shaderCompilationDir);
+
+          if (linux) // dxc can't find its libraries otherwise
+              Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", Path.Combine(projectDirectory, "dxc", "linux"));
+
           Process process = new Process();
-          process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", "dxc.exe");
+          process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", windows ? "win" : "linux", windows ? "dxc.exe" : "dxc");
           process.StartInfo.Arguments = string.Format("-spirv -fvk-s-shift 1 0 -fvk-b-shift 2 0 -T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderCompilationPathNoExtension);
           process.StartInfo.CreateNoWindow = true;
           process.StartInfo.UseShellExecute = false;
@@ -62,14 +79,14 @@
           process.StartInfo.RedirectStandardError = true;
           process.Start();
           process.WaitForExit();
-          
+
           string standardOutput = process.StandardOutput.ReadToEnd();
-          
+
           if (!string.IsNullOrWhiteSpace(standardOutput))
           {
               Log.LogMessage(MessageImportance.High, standardOutput);
           }
-          
+
           if (process.ExitCode != 0)
           {
               string message = "Failed to compile shader \"" + ShaderFile + ".hlsl\"";
@@ -81,10 +98,5 @@
       </Code>
     </Task>
   </UsingTask>
-
-  <Target Name="CompileShaders" BeforeTargets="PreBuildEvent">
-    <CompileShaderTask ShaderFile="VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
-    <CompileShaderTask ShaderFile="PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
-  </Target>
 
 </Project>
