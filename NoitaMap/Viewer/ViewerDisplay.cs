@@ -3,6 +3,7 @@ using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
+using NoitaMap.Map.Entities;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -46,6 +47,8 @@ public class ViewerDisplay : IDisposable
     private int LoadedChunks = 0;
 
     private readonly WorldPixelScenes WorldPixelScenes;
+
+    private readonly EntityLoadTest Entities;
 
     private readonly ImGuiRenderer ImGuiRenderer;
 
@@ -124,6 +127,8 @@ public class ViewerDisplay : IDisposable
 
         WorldPixelScenes = new WorldPixelScenes(this);
 
+        Entities = new EntityLoadTest();
+
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
         // End frame because it starts a frame, which locks my font texture atlas
@@ -197,6 +202,24 @@ public class ViewerDisplay : IDisposable
                 WorldPixelScenes.Load(path);
 
                 timer.End(StatisticMode.Single);
+            }
+        });
+
+        Task.Run(() =>
+        {
+            string[] entityPaths = Directory.EnumerateFiles(PathService.WorldPath, "entities_*.bin").ToArray();
+
+            foreach (string path in entityPaths)
+            {
+                try
+                {
+                    Entities.Load(path);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error decoding entity at path \"{path}\":");
+                    Console.WriteLine(ex.ToString());
+                }
             }
         });
 
