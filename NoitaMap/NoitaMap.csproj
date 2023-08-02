@@ -25,10 +25,15 @@
     <PackageReference Include="Veldrid.RenderDoc" Version="1.0.1" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
   </ItemGroup>
+  
+  <Target Name="CompileShaders" BeforeTargets="BeforeBuild">
+    <CompileShaderTask ShaderFile="VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
+    <CompileShaderTask ShaderFile="PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
 
-  <ItemGroup>
-    <None Include="$(ProjectDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
+    <ItemGroup>
+      <None Include="$(ProjectDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <Folder Include="Assets\Shaders\Compiled\" />
@@ -93,10 +98,5 @@
       </Code>
     </Task>
   </UsingTask>
-
-  <Target Name="CompileShaders" BeforeTargets="PreBuildEvent">
-    <CompileShaderTask ShaderFile="VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
-    <CompileShaderTask ShaderFile="PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
-  </Target>
 
 </Project>
