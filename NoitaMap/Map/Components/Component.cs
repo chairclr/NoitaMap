@@ -15,7 +15,6 @@ public abstract class Component
 
     public virtual void Deserialize(BinaryReader reader)
     {
-        Console.WriteLine($"{reader.BaseStream.Position}: Component: {ComponentName}");
         byte otherByte = reader.ReadByte();
 
         Enabled = reader.ReadBoolean();

@@ -59,8 +59,6 @@ public class Entity
 
         for (int i = 0; i < componentCount; i++)
         {
-            Console.WriteLine($"Reading Component Name: {reader.BaseStream.Position}");
-
             string componentName = reader.ReadNoitaString()!;
 
             Type? type = assembly.GetType($"NoitaMap.Map.Components.{componentName}");

@@ -33,8 +33,6 @@ public class DummyComponent : Component
                 type = "<>LensValue";
             }
 
-            Console.WriteLine($"{reader.BaseStream.Position}: {type} {name}");
-
             switch (type)
             {
                 case "class PixelSprite *":
