@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
+using NoitaMap.Graphics.Atlases;
 using NoitaMap.Map.Components;
 using NoitaMap.Viewer;
+using Veldrid;
 
 namespace NoitaMap.Map.Entities;
 
@@ -39,9 +41,11 @@ public class EntityContainer
 
     private readonly List<Entity> Entities = new List<Entity>();
 
-    public EntityContainer()
-    {
+    private readonly PixelSpriteAtlasBuffer PixelSpriteAtlas;
 
+    public EntityContainer(ViewerDisplay viewerDisplay)
+    {
+        PixelSpriteAtlas = new PixelSpriteAtlasBuffer(viewerDisplay);
     }
 
     public void LoadEntities(string path)
@@ -73,6 +77,14 @@ public class EntityContainer
 
                 entity.Deserialize(reader);
 
+                foreach (Component component in entity.Components)
+                {
+                    if (component is PixelSpriteComponent pixelSprite)
+                    {
+                        PixelSpriteAtlas.AddPixelSprite(pixelSprite);
+                    }
+                }
+
                 ThreadedEntityQueue.Enqueue(entity);
 
                 // + 4 bytes for funny
@@ -93,5 +105,12 @@ public class EntityContainer
 
             Entities.Add(entity);
         }
+
+        PixelSpriteAtlas.Update();
+    }
+
+    public void Draw(CommandList commandList)
+    {
+        PixelSpriteAtlas.Draw(commandList);
     }
 }

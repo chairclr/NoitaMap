@@ -127,7 +127,7 @@ public class ViewerDisplay : IDisposable
 
         WorldPixelScenes = new WorldPixelScenes(this);
 
-        Entities = new EntityContainer();
+        Entities = new EntityContainer(this);
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
@@ -307,6 +307,8 @@ public class ViewerDisplay : IDisposable
         MainCommandList.SetGraphicsResourceSet(0, VertexResourceSet);
 
         MainCommandList.SetGraphicsResourceSet(1, PixelSamplerResourceSet);
+
+        Entities.Draw(MainCommandList);
 
         WorldPixelScenes.Draw(MainCommandList);
 
