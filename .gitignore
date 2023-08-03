@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 !NoitaMap/Assets/Libraries/x64/
 !NoitaMap/Assets/Libraries/x86/
+/NoitaMap/Properties/launchSettings.json
