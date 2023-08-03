@@ -102,6 +102,8 @@ public class DummyComponent : Component
                 case "struct ceng::math::CXForm<float>":
                     reader.BaseStream.Position += 20;
                     break;
+                case "unsigned short":
+                case "short":
                 case "unsigned int":
                 case "int":
                 case "unsigned long long":
