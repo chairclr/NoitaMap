@@ -46,176 +46,28 @@ public class EntityLoadTest
 
             for (int i = 0; i < entityCount; i++)
             {
-                string name = reader.ReadNoitaString()!;
+                Entity entity = new Entity(schema);
 
-                byte lifetimePhase = reader.ReadByte();
-
-                string fileName = reader.ReadNoitaString()!;
-
-                string tags = reader.ReadNoitaString()!;
-
-                float x = reader.ReadBESingle();
-                float y = reader.ReadBESingle();
-
-                float scalex = reader.ReadBESingle();
-                float scaley = reader.ReadBESingle();
-
-                float rotation = reader.ReadBESingle();
-
-                int componentCount = reader.ReadBEInt32();
+                entity.Deserialize(reader);
 
                 Console.WriteLine(
                    $"""
                     --- Entity ---
-                    name: {name}
-                    tags: {tags}
-                    lifetime phase: {lifetimePhase}
-                    filename: {fileName}
-                    position: {x}, {y}
-                    rotation: {rotation}
-                    scale: {scalex}, {scaley}
-                    components ({componentCount}):
+                    name: {entity.Name}
+                    tags: {entity.Tags}
+                    lifetime phase: {entity.LifetimePhase}
+                    filename: {entity.FileName}
+                    position: {entity.Position}
+                    rotation: {entity.Rotation}
+                    scale: {entity.Scale}
+                    components ({entity.Components.Count}):
                     """);
 
-                for (int j = 0; j < componentCount; j++)
-                {
-                    string componentName = reader.ReadNoitaString()!;
-
-                    if (componentName is null)
-                    {
-                        throw new Exception();
-                    }
-
-                    byte otherByte = reader.ReadByte();
-
-                    bool enabled = reader.ReadBoolean();
-
-                    string? componentTags = reader.ReadNoitaString();
-
-                    //Console.WriteLine(
-                    //    $"""
-                    //         --- {componentName} ---
-                    //         other byte: {otherByte}
-                    //         enabled: {enabled}
-                    //         tags: {componentTags}
-                    //     """);
-
-                    void ProcessField(string typeName, string name, int size)
-                    {
-                        string type = typeName;
-
-                        if (type.StartsWith("enum "))
-                        {
-                            type = "<>enum_type";
-                        }
-
-                        if (type.StartsWith("class ceng::math::CVector2"))
-                        {
-                            type = "<>ceng::math::CVector";
-                        }
-
-                        if (type.StartsWith("struct LensValue"))
-                        {
-                            type = "<>LensValue";
-                        }
-
-                        Console.WriteLine($"{reader.BaseStream.Position}: {type} {name}");
-
-                        switch (type)
-                        {
-                            case "class PixelSprite *":
-                                {
-                                    int len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-
-                                    // 20 ??? bytes
-                                    reader.BaseStream.Position += 20;
-
-                                    // anchor_x
-                                    reader.BaseStream.Position += 4;
-                                    // anchor_y
-                                    reader.BaseStream.Position += 4;
-                                    // 5 ??? bytes
-                                    reader.BaseStream.Position += 5;
-
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-
-                                    // 1 ??? byte
-                                    reader.BaseStream.Position += 1;
-                                }
-                                break;
-                            case "struct UintArrayInline":
-                                {
-                                    int len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len * sizeof(uint);
-                                }
-                                break;
-                            case "class ConfigGun":
-                            case "class ConfigGunActionInfo":
-                            case "class ConfigExplosion":
-                                {
-                                    ObjectSchema objectSchema = ObjectSchema.GetSchema(type);
-
-                                    foreach (ObjectSchema.ObjectSchemaField field in objectSchema.SchemaFields)
-                                    {
-                                        if (field.Kind == "Privates")
-                                            continue;
-
-                                        ProcessField(field.RawType, field.Name, (int)field.Size!);
-                                    }
-                                }
-                                break;
-                            case "class ConfigDamagesByType":
-                                // -4 for fun
-                                reader.BaseStream.Position += size - 4;
-                                break;
-                            case "ConfigDamageCritical":
-                            case "class ConfigDamageCritical":
-                                reader.BaseStream.Position += 8;
-                                break;
-                            case "unsigned int":
-                            case "int":
-                            case "unsigned long":
-                            case "long long":
-                            case "long":
-                            case "float":
-                            case "double":
-                            case "bool":
-                            case "struct ValueRange":
-                            case "ValueRange":
-                            case "ValueRangeInt":
-                            case "<>ceng::math::CVector":
-                            case "<>enum_type":
-                            case "<>LensValue":
-                            case "struct types::aabb":
-                                reader.BaseStream.Position += size;
-                                break;
-                            case "std_string":
-                            case "std::string":
-                            case "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >":
-                                {
-                                    int length = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += length;
-                                }
-                                break;
-                            default:
-                                throw new NotImplementedException($"??? type at {reader.BaseStream.Position} {type} {componentName}.{name}");
-                        }
-                    }
-
-                    foreach (ComponentVar var in schema.Vars[componentName])
-                    {
-                        ProcessField(var.Type, var.Name, var.Size);
-                    }
-                }
-
-                break;
+                // + 4 bytes for funny
+                reader.BaseStream.Position += 4;
             }
         }
 
         decompressedData = null;
-        //Directory.CreateDirectory("entities");
-        //File.WriteAllBytes(Path.Combine("entities", Path.GetFileName(path)), NoitaDecompressor.ReadAndDecompressChunk(path));
     }
 }
