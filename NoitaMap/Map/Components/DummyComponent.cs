@@ -104,8 +104,11 @@ public class DummyComponent : Component
                     break;
                 case "unsigned int":
                 case "int":
+                case "unsigned long long":
                 case "unsigned long":
                 case "long long":
+                case "unsigned __int64":
+                case "__int64":
                 case "long":
                 case "float":
                 case "double":
@@ -117,7 +120,6 @@ public class DummyComponent : Component
                 case "<>enum_type":
                 case "<>LensValue":
                 case "struct types::aabb":
-                case "unsigned __int64":
                 case "struct types::iaabb":
                     reader.BaseStream.Position += size;
                     break;
