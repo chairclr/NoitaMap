@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
-using NoitaMap.Viewer;
 
 namespace NoitaMap.Map.Components;
 
@@ -22,15 +21,15 @@ public partial class ComponentSchema
         // We must replace < and > with &lt; and &gt; in order to actually parse it
         text = ILoveNollaGames.Replace(text, x => x.Value.Replace("<", "&lt;").Replace(">", "&gt;"));
 
-        XmlSerializer serializer = new XmlSerializer(typeof(SchemaRoot));
+        XmlSerializer serializer = new XmlSerializer(typeof(ComponentSchemaRoot));
         using StringReader reader = new StringReader(text);
 
-        SchemaRoot schema = (SchemaRoot)serializer.Deserialize(reader)!;
+        ComponentSchemaRoot schema = (ComponentSchemaRoot)serializer.Deserialize(reader)!;
 
         Vars = schema.Components.ToDictionary(x => x.Name, x => x.Vars.Select(x => new ComponentVar(x.Name, x.Type, x.Size)).ToArray());
     }
 
-    public static ComponentSchema GetSchema(string name) 
+    public static ComponentSchema GetSchema(string name)
     {
         if (SchemaCache.TryGetValue(name, out ComponentSchema? schema))
         {
@@ -65,7 +64,7 @@ public class ComponentVar
 }
 
 [XmlRoot(ElementName = "Var")]
-public class VarElement
+public class ComponentSchemaVarElement
 {
     [NotNull]
     [XmlAttribute(AttributeName = "name")]
@@ -80,7 +79,7 @@ public class VarElement
 }
 
 [XmlRoot(ElementName = "Component")]
-public class ComponentElement
+public class ComponentSchemaComponentElement
 {
     [NotNull]
     [XmlAttribute(AttributeName = "component_name")]
@@ -88,11 +87,11 @@ public class ComponentElement
 
     [NotNull]
     [XmlElement(ElementName = "Var")]
-    public List<VarElement>? Vars { get; set; }
+    public List<ComponentSchemaVarElement>? Vars { get; set; }
 }
 
 [XmlRoot(ElementName = "Schema")]
-public class SchemaRoot
+public class ComponentSchemaRoot
 {
     [NotNull]
     [XmlAttribute(AttributeName = "hash")]
@@ -100,5 +99,5 @@ public class SchemaRoot
 
     [NotNull]
     [XmlElement(ElementName = "Component")]
-    public List<ComponentElement>? Components { get; set; }
+    public List<ComponentSchemaComponentElement>? Components { get; set; }
 }
