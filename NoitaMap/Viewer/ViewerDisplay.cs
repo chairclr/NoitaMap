@@ -48,7 +48,7 @@ public class ViewerDisplay : IDisposable
 
     private readonly WorldPixelScenes WorldPixelScenes;
 
-    private readonly EntityLoadTest Entities;
+    private readonly EntityContainer Entities;
 
     private readonly ImGuiRenderer ImGuiRenderer;
 
@@ -127,7 +127,7 @@ public class ViewerDisplay : IDisposable
 
         WorldPixelScenes = new WorldPixelScenes(this);
 
-        Entities = new EntityLoadTest();
+        Entities = new EntityContainer();
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
@@ -213,7 +213,7 @@ public class ViewerDisplay : IDisposable
             {
                 try
                 {
-                    Entities.Load(path);
+                    Entities.LoadEntities(path);
                 }
                 catch (Exception ex)
                 {
@@ -278,6 +278,8 @@ public class ViewerDisplay : IDisposable
         ChunkContainer.Update();
 
         WorldPixelScenes.Update();
+
+        Entities.Update();
     }
 
     private Vector2 ScalePosition(Vector2 position)
