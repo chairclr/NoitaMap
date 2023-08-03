@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.Contracts;
+using System.Numerics;
 using System.Security.Cryptography;
 using NoitaMap.Map.Components;
 
@@ -99,9 +100,9 @@ public class EntityLoadTest
                     //         tags: {componentTags}
                     //     """);
 
-                    foreach (ComponentVar var in schema.Vars[componentName])
+                    void ProcessField(string typeName, string name, int size)
                     {
-                        string type = var.Type;
+                        string type = typeName;
 
                         if (type.StartsWith("enum "))
                         {
@@ -118,7 +119,7 @@ public class EntityLoadTest
                             type = "<>LensValue";
                         }
 
-                        Console.WriteLine($"{reader.BaseStream.Position}: {var.Type} {var.Name}");
+                        Console.WriteLine($"{reader.BaseStream.Position}: {type} {name}");
 
                         switch (type)
                         {
@@ -151,203 +152,27 @@ public class EntityLoadTest
                                 }
                                 break;
                             case "class ConfigGun":
-                                {
-                                    // actions_per_round
-                                    reader.BaseStream.Position += 4;
-                                    // shuffle_deck_when_empty
-                                    reader.BaseStream.Position += 1;
-                                    // reload_time
-                                    reader.BaseStream.Position += 4;
-                                    // deck_capacity
-                                    reader.BaseStream.Position += 4;
-                                }
-                                break;
                             case "class ConfigGunActionInfo":
-                                {
-                                    // action_id
-                                    int len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_name
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_description
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_sprite_filename
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_unidentified_sprite_filename
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_type
-                                    reader.BaseStream.Position += 4;
-                                    // action_spawn_level
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_spawn_probability
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_spawn_requires_flag
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    // action_spawn_manual_unlock
-                                    reader.BaseStream.Position += 1;
-
-                                    reader.BaseStream.Position += 4;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    reader.BaseStream.Position += 4;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                }
-                                break;
                             case "class ConfigExplosion":
                                 {
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    int len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    // physics_explosion_power
-                                    reader.BaseStream.Position += 8;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    reader.BaseStream.Position += 1;
-                                    len = reader.ReadBEInt32();
-                                    reader.BaseStream.Position += len;
-                                    reader.BaseStream.Position += 4;
-                                    reader.BaseStream.Position += 4;
+                                    ObjectSchema objectSchema = ObjectSchema.GetSchema(type);
 
-                                    //ConfigDamageCritical
-                                    //{
-                                    //    reader.BaseStream.Position += 4;
-                                    //    reader.BaseStream.Position += 4;
-                                    //    reader.BaseStream.Position += 1;
-                                    //}
+                                    foreach (ObjectSchema.ObjectSchemaField field in objectSchema.SchemaFields)
+                                    {
+                                        if (field.Kind == "Privates")
+                                            continue;
 
-                                    //// delay
-                                    //reader.BaseStream.Position += 8;
-
-                                    //reader.BaseStream.Position += 4;
-                                    //reader.BaseStream.Position += 4;
-                                    //reader.BaseStream.Position += 4;
-                                    //reader.BaseStream.Position += 8;
-                                    //reader.BaseStream.Position += 4;
+                                        ProcessField(field.RawType, field.Name, (int)field.Size!);
+                                    }
                                 }
                                 break;
                             case "class ConfigDamagesByType":
-                                {
-                                    reader.BaseStream.Position += 60;
-                                }
+                                // -4 for fun
+                                reader.BaseStream.Position += size - 4;
+                                break;
+                            case "ConfigDamageCritical":
+                            case "class ConfigDamageCritical":
+                                reader.BaseStream.Position += 8;
                                 break;
                             case "unsigned int":
                             case "int":
@@ -358,11 +183,16 @@ public class EntityLoadTest
                             case "double":
                             case "bool":
                             case "struct ValueRange":
+                            case "ValueRange":
+                            case "ValueRangeInt":
                             case "<>ceng::math::CVector":
                             case "<>enum_type":
                             case "<>LensValue":
-                                reader.BaseStream.Position += var.Size;
+                            case "struct types::aabb":
+                                reader.BaseStream.Position += size;
                                 break;
+                            case "std_string":
+                            case "std::string":
                             case "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >":
                                 {
                                     int length = reader.ReadBEInt32();
@@ -370,8 +200,13 @@ public class EntityLoadTest
                                 }
                                 break;
                             default:
-                                throw new NotImplementedException($"??? type at {reader.BaseStream.Position} {componentName}.{var.Type} {var.Name}");
+                                throw new NotImplementedException($"??? type at {reader.BaseStream.Position} {type} {componentName}.{name}");
                         }
+                    }
+
+                    foreach (ComponentVar var in schema.Vars[componentName])
+                    {
+                        ProcessField(var.Type, var.Name, var.Size);
                     }
                 }
 
