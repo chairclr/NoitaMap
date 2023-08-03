@@ -24,6 +24,14 @@ public class PixelSpriteComponent : Component
 
     public Vector2 Scale;
 
+    public int CustomTextureWidth;
+
+    public int CustomTextureHeight;
+
+    public Rgba32[,]? CustomTextureData;
+
+    public int CustomTextureHash;
+
     public PixelSpriteComponent(string name)
         : base(name)
     {
@@ -81,7 +89,25 @@ public class PixelSpriteComponent : Component
         len = reader.ReadBEInt32();
         reader.BaseStream.Position += len;
 
-        // 1 ??? byte
-        reader.BaseStream.Position += 1;
+        bool hasCustomTexture = reader.ReadBoolean();
+
+        if (hasCustomTexture)
+        {
+            CustomTextureWidth = reader.ReadBEInt32();
+
+            CustomTextureHeight = reader.ReadBEInt32();
+
+            CustomTextureData = new Rgba32[CustomTextureWidth, CustomTextureHeight];
+
+            for (int tx = 0; tx < CustomTextureWidth; tx++)
+            {
+                for (int ty = 0; ty < CustomTextureHeight; ty++)
+                {
+                    uint value = reader.ReadBEUInt32();
+                    CustomTextureData[tx, ty].PackedValue = value;
+                    CustomTextureHash = HashCode.Combine(CustomTextureHash, value);
+                }
+            }
+        }
     }
 }

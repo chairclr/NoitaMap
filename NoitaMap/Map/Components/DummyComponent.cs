@@ -133,10 +133,30 @@ public class DummyComponent : Component
                         reader.BaseStream.Position += length;
                     }
                     break;
+                case "class std::vector<int,class std::allocator<int> >":
+                    {
+                        int length = reader.ReadBEInt32();
+                        reader.BaseStream.Position += length * sizeof(int);
+                    }
+                    break;
+                case "class std::vector<float,class std::allocator<float> >":
+                    {
+                        int length = reader.ReadBEInt32();
+                        reader.BaseStream.Position += length * sizeof(float);
+                    }
+                    break;
                 case "class std::vector<double,class std::allocator<double> >":
                     {
                         int length = reader.ReadBEInt32();
                         reader.BaseStream.Position += length * sizeof(double);
+                    }
+                    break;
+                case "class std::vector<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::allocator<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > > >":
+                    int vectorLength = reader.ReadBEInt32();
+                    for (int i = 0; i < vectorLength; i++)
+                    {
+                        int stringLength = reader.ReadBEInt32();
+                        reader.BaseStream.Position += stringLength;
                     }
                     break;
                 default:
@@ -144,9 +164,18 @@ public class DummyComponent : Component
             }
         }
 
-        foreach (ComponentVar var in Schema.Vars[ComponentName])
+        try
         {
-            ProcessField(var.Type, var.Name, var.Size);
+            foreach (ComponentVar var in Schema.Vars[ComponentName])
+            {
+                ProcessField(var.Type, var.Name, var.Size);
+            }
+        }
+        catch
+        {
+            Console.WriteLine($"Exception at {reader.BaseStream.Position}:");
+
+            throw;
         }
     }
 }

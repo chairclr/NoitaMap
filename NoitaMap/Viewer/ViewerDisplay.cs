@@ -217,6 +217,14 @@ public class ViewerDisplay : IDisposable
                 }
                 catch (Exception ex)
                 {
+#if  DEBUG
+                    byte[] decompressed = NoitaDecompressor.ReadAndDecompressChunk(path);
+
+                    Directory.CreateDirectory("entity_error_logs");
+
+                    File.WriteAllBytes($"entity_error_logs/{Path.GetFileNameWithoutExtension(path)}.bin", decompressed);
+#endif
+
                     Console.WriteLine($"Error decoding entity at path \"{path}\":");
                     Console.WriteLine(ex.ToString());
                 }
