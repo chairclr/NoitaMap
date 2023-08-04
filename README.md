@@ -6,6 +6,9 @@ A cool map viewer for [Noita](https://noitagame.com/) written in C# using [Veldr
 
 - View basic chunk data visually
 - View the physics objects located in chunks
+- Load entities from entity files
+- Display pixel sprites from entities in the world
+- Display world pixel scenes
 - View the world pixel scenes such as Orb Room backgrounds and Holy Mountain backgrounds
 - Pan and zoom around the world
 - Multithreaded loading for fast and user-friendly loading
