@@ -4,17 +4,15 @@ using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using NoitaMap.Map.Entities;
-using Silk.NET.Input;
-using Silk.NET.Maths;
-using Silk.NET.Windowing;
-using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
+using Veldrid.Sdl2;
+using Veldrid.StartupUtilities;
 
 namespace NoitaMap.Viewer;
 
 public partial class ViewerDisplay : IDisposable
 {
-    private readonly IWindow Window;
+    private readonly Sdl2Window Window;
 
     public readonly GraphicsDevice GraphicsDevice;
 
@@ -54,12 +52,14 @@ public partial class ViewerDisplay : IDisposable
 
     public ViewerDisplay()
     {
-        WindowOptions windowOptions = new WindowOptions()
+        WindowCreateInfo windowOptions = new WindowCreateInfo()
         {
-            API = GraphicsAPI.None,
-            Title = "Noita Map Viewer",
-            Size = new Vector2D<int>(1280, 720),
-            IsContextControlDisabled = true
+            X = 50,
+            Y = 50,
+            WindowWidth = 1280,
+            WindowHeight = 720,
+            WindowInitialState = WindowState.Normal,
+            WindowTitle = "Noita Map Viewer",
         };
 
         GraphicsDeviceOptions graphicsOptions = new GraphicsDeviceOptions()
@@ -68,12 +68,10 @@ public partial class ViewerDisplay : IDisposable
             Debug = true,
 #endif
             SyncToVerticalBlank = true,
-            HasMainSwapchain = true
+            HasMainSwapchain = true,
         };
 
-        VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
-
-        Window.IsContextControlDisabled = true;
+        VeldridStartup.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
 
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
@@ -111,9 +109,7 @@ public partial class ViewerDisplay : IDisposable
 
         ConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
 
-        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
-
-        ConstantBuffer.Update();
+        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Width, Window.Height, 0f, 1f);
 
         VertexResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(VertexResourceLayout, ConstantBuffer.DeviceBuffer));
 
@@ -125,7 +121,7 @@ public partial class ViewerDisplay : IDisposable
 
         Entities = new EntityContainer(this);
 
-        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
+        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Width, Window.Height);
 
         // End frame because it starts a frame, which locks my font texture atlas
         ImGui.EndFrame();
@@ -136,15 +132,7 @@ public partial class ViewerDisplay : IDisposable
 
         ImGui.NewFrame();
 
-        Window.Center();
-
-        InputSystem.SetInputContext(Window.CreateInput());
-
-        Window.Render += x => Render();
-
-        Window.Update += x => Update();
-
-        Window.Resize += HandleResize;
+        Window.Resized += HandleResize;
     }
 
     public void Start()
@@ -227,7 +215,34 @@ public partial class ViewerDisplay : IDisposable
             }
         });
 
-        Window.Run();
+        bool exit = false;
+
+        Window.Closing += () => exit = true;
+
+        while (!exit)
+        {
+            DeltaTimeWatch.Stop();
+
+            float deltaTime = (float)DeltaTimeWatch.Elapsed.TotalSeconds;
+
+            DeltaTimeWatch.Restart();
+
+            InputSnapshot inputSnapshot = Window.PumpEvents();
+
+            ImGuiIOPtr io = ImGui.GetIO();
+            foreach (KeyEvent keyEvent in inputSnapshot.KeyEvents)
+            {
+                io.AddKeyEvent(KeyTranslator.GetKey(keyEvent.Key), keyEvent.Down);
+            }
+
+            ImGuiRenderer.Update(deltaTime, inputSnapshot);
+
+            InputSystem.Update(inputSnapshot);
+
+            Update();
+
+            Render();
+        }
     }
 
     private Vector2 MouseTranslateOrigin = Vector2.Zero;
@@ -241,22 +256,12 @@ public partial class ViewerDisplay : IDisposable
             Matrix4x4.CreateScale(new Vector3(ViewScale, 1f));
 
     public Matrix4x4 Projection =>
-        Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
+        Matrix4x4.CreateOrthographic(Window.Width, Window.Height, 0f, 1f);
 
     public Stopwatch DeltaTimeWatch = Stopwatch.StartNew();
 
     private void Update()
     {
-        DeltaTimeWatch.Stop();
-
-        float deltaTime = (float)DeltaTimeWatch.Elapsed.TotalSeconds;
-
-        DeltaTimeWatch.Restart();
-
-        ImGuiRenderer.Update(deltaTime, InputSystem.GetInputSnapshot());
-
-        InputSystem.Update();
-
         Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
 
         ViewScale += new Vector2(InputSystem.ScrollDelta) * (ViewScale / 10f);
@@ -379,24 +384,20 @@ public partial class ViewerDisplay : IDisposable
         });
     }
 
-    private void HandleResize(Vector2D<int> size)
+    private void HandleResize()
     {
-        GraphicsDevice.ResizeMainWindow((uint)size.X, (uint)size.Y);
+        GraphicsDevice.ResizeMainWindow((uint)Window.Width, (uint)Window.Height);
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
-        ImGuiRenderer.WindowResized(size.X, size.Y);
-
-        // We call render to be more responsive when resizing.. or something like that
-        Update();
-        Render();
+        ImGuiRenderer.WindowResized(Window.Width, Window.Height);
     }
 
     protected virtual void Dispose(bool disposing)
     {
         if (!Disposed)
         {
-            Window.Dispose();
+            //Window.Dispose();
 
             ImGuiRenderer.Dispose();
 

@@ -16,14 +16,13 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
     <PackageReference Include="ImGui.NET" Version="1.89.7.1" />
-    <PackageReference Include="Silk.NET.Input.Glfw" Version="2.17.1" />
-    <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.17.1" />
-    <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.17.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
     <PackageReference Include="Veldrid" Version="4.9.0" />
     <PackageReference Include="Veldrid.ImGui" Version="5.72.0" />
     <PackageReference Include="Veldrid.RenderDoc" Version="1.0.1" />
+    <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
   </ItemGroup>
   
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild">

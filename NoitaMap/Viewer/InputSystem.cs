@@ -1,122 +1,35 @@
 ﻿using System.Numerics;
 using ImGuiNET;
-using Silk.NET.Input;
 using Veldrid;
-using Key = Silk.NET.Input.Key;
+using Veldrid.Sdl2;
 
 namespace NoitaMap.Viewer;
 
-public static class InputSystem
+public unsafe static class InputSystem
 {
-    private static IInputContext? InputContext;
-
-    private static IMouse? Mouse;
-
-    private static IKeyboard? Keyboard;
-
     private static MouseState LastMouseState = new MouseState();
 
     private static MouseState CurrentMouseState = new MouseState();
 
-    private static float Scroll = 0f;
+    private delegate uint GetMouseStateDelegate(out int x, out int y);
 
-    private static SystemSnapshot InputSnapshot = new SystemSnapshot();
+    private static GetMouseStateDelegate? GetMouseState;
 
-    public static void SetInputContext(IInputContext inputContext)
+    public static void Update(InputSnapshot inputSnapshot)
     {
-        InputContext = inputContext;
+        GetMouseState ??= Sdl2Native.LoadFunction<GetMouseStateDelegate>("SDL_GetMouseState");
 
-        void Setup()
-        {
-            if (Mouse is not null)
-            {
-                Mouse.Scroll += (_, x) =>
-                {
-                    Scroll += x.Y;
-                };
-            }
+        LastMouseState = CurrentMouseState;
 
-            if (Keyboard is not null)
-            {
-                Keyboard.KeyChar += (_, x) =>
-                {
-                    InputSnapshot.InternalKeyCharPresses.Add(x);
-                };
+        // We use GetMouseState to be more responsive
+        GetMouseState(out int x, out int y);
+        CurrentMouseState.Position = new Vector2(x, y);
 
-                void OnKey(Key key, bool down)
-                {
-                    switch (key)
-                    {
-                        case Key.ControlLeft:
-                        case Key.ControlRight:
-                            ImGui.GetIO().KeyCtrl = down;
-                            break;
-                        case Key.ShiftLeft:
-                        case Key.ShiftRight:
-                            ImGui.GetIO().KeyShift = down;
-                            break;
-                        case Key.AltLeft:
-                        case Key.AltRight:
-                            ImGui.GetIO().KeyAlt = down;
-                            break;
-                        default:
-                            if (Enum.TryParse(key.ToString(), true, out ImGuiKey imkey))
-                            {
-                                ImGui.GetIO().AddKeyEvent(imkey, down);
-                            }
-                            break;
-                    }
-                }
+        CurrentMouseState.LeftDown = inputSnapshot.IsMouseDown(MouseButton.Left);
+        CurrentMouseState.RightDown = inputSnapshot.IsMouseDown(MouseButton.Right);
+        CurrentMouseState.MiddleDown = inputSnapshot.IsMouseDown(MouseButton.Middle);
 
-                Keyboard.KeyDown += (_, x, y) =>
-                {
-                    OnKey(x, true);
-                };
-
-                Keyboard.KeyUp += (_, x, y) =>
-                {
-                    OnKey(x, false);
-                };
-            }
-        }
-
-        Mouse = InputContext.Mice.FirstOrDefault(x => x.IsConnected);
-
-        Keyboard = InputContext.Keyboards.FirstOrDefault(x => x.IsConnected);
-
-        Setup();
-
-        InputContext.ConnectionChanged += (x, y) =>
-        {
-            Mouse = InputContext.Mice.FirstOrDefault(x => x.IsConnected);
-
-            Keyboard = InputContext.Keyboards.FirstOrDefault(x => x.IsConnected);
-
-            Setup();
-        };
-    }
-
-    public static void Update()
-    {
-        InputSnapshot.Update();
-
-        if (Mouse is not null && Mouse.IsConnected)
-        {
-            LastMouseState = CurrentMouseState;
-
-            CurrentMouseState.Position = Mouse.Position;
-
-            CurrentMouseState.LeftDown = Mouse.IsButtonPressed(Silk.NET.Input.MouseButton.Left);
-            CurrentMouseState.RightDown = Mouse.IsButtonPressed(Silk.NET.Input.MouseButton.Right);
-            CurrentMouseState.MiddleDown = Mouse.IsButtonPressed(Silk.NET.Input.MouseButton.Middle);
-
-            CurrentMouseState.Scroll = Scroll;
-        }
-    }
-
-    public static InputSnapshot GetInputSnapshot()
-    {
-        return InputSnapshot;
+        CurrentMouseState.Scroll += inputSnapshot.WheelDelta;
     }
 
     public static bool LeftMouseDown => !ImGui.GetIO().WantCaptureMouse && CurrentMouseState.LeftDown;
@@ -154,51 +67,4 @@ public static class InputSystem
         public float Scroll;
     }
 
-    private class SystemSnapshot : InputSnapshot
-    {
-        public readonly List<KeyEvent> InternalKeyEvents = new List<KeyEvent>();
-
-        public readonly List<MouseEvent> InternalMouseEvents = new List<MouseEvent>();
-
-        public readonly List<char> InternalKeyCharPresses = new List<char>();
-
-        public IReadOnlyList<KeyEvent> KeyEvents => InternalKeyEvents;
-
-        public IReadOnlyList<MouseEvent> MouseEvents => InternalMouseEvents;
-
-        public IReadOnlyList<char> KeyCharPresses => InternalKeyCharPresses;
-
-        public Vector2 MousePosition { get; set; }
-
-        public float WheelDelta { get; set; }
-
-        public bool IsMouseDown(Veldrid.MouseButton button)
-        {
-            return button switch
-            {
-                Veldrid.MouseButton.Left => InputSystem.CurrentMouseState.LeftDown,
-                Veldrid.MouseButton.Right => InputSystem.CurrentMouseState.RightDown,
-                Veldrid.MouseButton.Middle => InputSystem.CurrentMouseState.MiddleDown,
-                _ => false,
-            };
-        }
-
-        public SystemSnapshot()
-        {
-
-        }
-
-        public void Update()
-        {
-            MousePosition = InputSystem.MousePosition;
-
-            WheelDelta = InputSystem.ScrollDelta;
-
-            InternalKeyEvents.Clear();
-
-            InternalMouseEvents.Clear();
-
-            InternalKeyCharPresses.Clear();
-        }
-    }
 }

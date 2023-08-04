@@ -362,6 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-!NoitaMap/Assets/Libraries/x64/
-!NoitaMap/Assets/Libraries/x86/
+!/NoitaMap/Assets/**
+!/NoitaMap/Assets/**
 /NoitaMap/Properties/launchSettings.json
