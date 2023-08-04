@@ -69,7 +69,7 @@ public partial class ViewerDisplay : IDisposable
 #endif
             SyncToVerticalBlank = true,
             HasMainSwapchain = true,
-            
+
         };
 
         VeldridStartup.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
@@ -357,7 +357,7 @@ public partial class ViewerDisplay : IDisposable
             {
                 CullMode = FaceCullMode.None,
                 FillMode = PolygonFillMode.Solid,
-                FrontFace = FrontFace.Clockwise
+                FrontFace = FrontFace.Clockwise,
             },
             ShaderSet = new ShaderSetDescription()
             {
@@ -381,7 +381,7 @@ public partial class ViewerDisplay : IDisposable
                     ),
                 },
             },
-            ResourceLayouts = new ResourceLayout[] { VertexResourceLayout, PixelSamplerResourceLayout, PixelTextureResourceLayout }
+            ResourceLayouts = new ResourceLayout[] { VertexResourceLayout, PixelSamplerResourceLayout, PixelTextureResourceLayout },
         });
     }
 

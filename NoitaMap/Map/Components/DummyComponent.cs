@@ -161,6 +161,13 @@ public class DummyComponent : Component
                         reader.BaseStream.Position += stringLength;
                     }
                     break;
+                // sizeof(PathFindingJumpParams) = 12
+                case "class std::vector<struct PathFindingJumpParams,class std::allocator<struct PathFindingJumpParams> >":
+                    {
+                        int length = reader.ReadBEInt32();
+                        reader.BaseStream.Position += length * 12;
+                    }
+                    break;
                 default:
                     throw new NotImplementedException($"??? type at {reader.BaseStream.Position} {type} {ComponentName}.{name}");
             }
