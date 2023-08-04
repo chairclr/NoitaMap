@@ -77,7 +77,7 @@ public partial class ViewerDisplay : IDisposable
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
-        (Shader[] shaders, VertexElementDescription[] vertexElements) = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
+        Shader[] shaders = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
 
         VertexResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
         {
@@ -103,7 +103,7 @@ public partial class ViewerDisplay : IDisposable
             }
         });
 
-        MainPipeline = CreatePipeline(shaders, vertexElements);
+        MainPipeline = CreatePipeline(shaders);
 
         MaterialProvider = new MaterialProvider();
 
@@ -339,7 +339,7 @@ public partial class ViewerDisplay : IDisposable
     }
 
 
-    private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements)
+    private Pipeline CreatePipeline(Shader[] shaders)
     {
         return GraphicsDevice.ResourceFactory.CreateGraphicsPipeline(new GraphicsPipelineDescription()
         {
@@ -363,13 +363,22 @@ public partial class ViewerDisplay : IDisposable
                 Shaders = shaders,
                 VertexLayouts = new VertexLayoutDescription[]
                 {
-                    new VertexLayoutDescription(vertexElements[..2]),
-                    new VertexLayoutDescription(vertexElements[2..]) with
-                        {
-                            InstanceStepRate = 6
-                        },
-
-                }
+                    new VertexLayoutDescription
+                    (
+                        new VertexElementDescription("position", VertexElementFormat.Float3, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("uv", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
+                    ),
+                    new VertexLayoutDescription
+                    (
+                        80, 6,
+                        new VertexElementDescription("worldMatrix_0", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("worldMatrix_1", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("worldMatrix_2", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("worldMatrix_3", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("texPos", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("texSize", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
+                    ),
+                },
             },
             ResourceLayouts = new ResourceLayout[] { VertexResourceLayout, PixelSamplerResourceLayout, PixelTextureResourceLayout }
         });
