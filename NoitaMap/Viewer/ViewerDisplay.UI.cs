@@ -85,16 +85,6 @@ public partial class ViewerDisplay
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Physics Object Atlases"))
-                {
-                    foreach (Texture tex in ChunkContainer.PhysicsObjectAtlas.Textures)
-                    {
-                        ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(GraphicsDevice.ResourceFactory, tex), new Vector2(tex.Width, tex.Height));
-                    }
-
-                    ImGui.EndTabBar();
-                }
-
                 ImGui.EndTabBar();
             }
         }
@@ -103,7 +93,7 @@ public partial class ViewerDisplay
 
         if (DebugDrawChunkBorders)
         {
-            foreach (Chunk chunk in ChunkContainer.ChunkAtlas.Chunks)
+            foreach (Chunk chunk in ChunkContainer.Chunks)
             {
                 Matrix4x4 mat = chunk.WorldMatrix * View;
 
@@ -118,7 +108,7 @@ public partial class ViewerDisplay
 
         if (DebugDrawPhysicsObjectBorders)
         {
-            foreach (PhysicsObject physicsObject in ChunkContainer.PhysicsObjectAtlas.PhysicsObjects)
+            foreach (PhysicsObject physicsObject in ChunkContainer.PhysicsObjects)
             {
                 Matrix4x4 mat = physicsObject.WorldMatrix * View;
 
@@ -133,7 +123,7 @@ public partial class ViewerDisplay
 
         if (DebugDrawPixelSceneBorders)
         {
-            foreach (PixelScene pixelScene in WorldPixelScenes.PixelScenes.PixelScenes)
+            foreach (PixelScene pixelScene in WorldPixelScenes.PixelScenes)
             {
                 Matrix4x4 mat = pixelScene.WorldMatrix * View;
 
@@ -148,7 +138,7 @@ public partial class ViewerDisplay
 
         if (DebugDrawPixelSpriteComponentBorders)
         {
-            foreach (PixelSpriteComponent pixelSprite in Entities.PixelSpriteAtlas.PixelSprites)
+            foreach (PixelSpriteComponent pixelSprite in Entities.PixelSprites)
             {
                 if (pixelSprite.Enabled)
                 {

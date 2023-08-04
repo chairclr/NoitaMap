@@ -16,15 +16,15 @@ public partial class ChunkContainer : IDisposable
 
     public readonly MaterialProvider MaterialProvider;
 
-    private readonly Dictionary<Vector2, Chunk> Chunks = new Dictionary<Vector2, Chunk>();
-
-    public readonly ChunkAtlasBuffer ChunkAtlas;
-
-    private readonly ConcurrentQueue<Chunk> FinishedChunks = new ConcurrentQueue<Chunk>();
-
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
-    public readonly PhysicsObjectAtlasBuffer PhysicsObjectAtlas;
+    private readonly ChunkAtlasBuffer ChunkAtlas;
+
+    public IReadOnlyList<Chunk> Chunks => ChunkAtlas.Chunks;
+
+    private readonly PhysicsObjectAtlasBuffer PhysicsObjectAtlas;
+
+    public IReadOnlyList<PhysicsObject> PhysicsObjects => PhysicsObjectAtlas.PhysicsObjects;
 
     private bool Disposed;
 
@@ -73,8 +73,6 @@ public partial class ChunkContainer : IDisposable
 
         ChunkAtlas.AddChunk(chunk);
 
-        FinishedChunks.Enqueue(chunk);
-
         PhysicsObjectAtlas.AddPhysicsObjects(chunk.PhysicsObjects!);
     }
 
@@ -83,11 +81,6 @@ public partial class ChunkContainer : IDisposable
         ChunkAtlas.Update();
 
         PhysicsObjectAtlas.Update();
-
-        while (FinishedChunks.TryDequeue(out Chunk? chunk))
-        {
-            Chunks.Add(chunk.Position, chunk);
-        }
     }
 
     public void Draw(CommandList commandList)

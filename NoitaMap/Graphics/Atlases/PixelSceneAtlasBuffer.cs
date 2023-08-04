@@ -61,15 +61,4 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
 
         InstancesPerAtlas[resourcePosition.AtlasIndex]++;
     }
-
-    private static Image<Rgba32> LoadPixelSceneImage(string path)
-    {
-        Configuration configuration = Configuration.Default;
-
-        configuration.PreferContiguousImageBuffers = true;
-
-        Image<Rgba32> image = Image.Load<Rgba32>(new DecoderOptions() { Configuration = configuration }, path);
-
-        return image;
-    }
 }

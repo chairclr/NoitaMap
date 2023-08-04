@@ -41,7 +41,9 @@ public class EntityContainer
 
     private readonly List<Entity> Entities = new List<Entity>();
 
-    public readonly PixelSpriteAtlasBuffer PixelSpriteAtlas;
+    private readonly PixelSpriteAtlasBuffer PixelSpriteAtlas;
+
+    public IReadOnlyList<PixelSpriteComponent> PixelSprites => PixelSpriteAtlas.PixelSprites;
 
     public EntityContainer(ViewerDisplay viewerDisplay)
     {

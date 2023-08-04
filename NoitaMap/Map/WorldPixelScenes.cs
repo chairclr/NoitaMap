@@ -31,15 +31,17 @@ namespace NoitaMap.Map;
 
 public class WorldPixelScenes
 {
-    private ViewerDisplay ViewerDisplay;
+    private readonly ViewerDisplay ViewerDisplay;
 
-    public PixelSceneAtlasBuffer PixelScenes;
+    private readonly PixelSceneAtlasBuffer PixelScenesAtlas;
+
+    public IReadOnlyList<PixelScene> PixelScenes => PixelScenesAtlas.PixelScenes;
 
     public WorldPixelScenes(ViewerDisplay viewerDisplay)
     {
         ViewerDisplay = viewerDisplay;
 
-        PixelScenes = new PixelSceneAtlasBuffer(ViewerDisplay);
+        PixelScenesAtlas = new PixelSceneAtlasBuffer(ViewerDisplay);
     }
 
     public void Load(string path)
@@ -67,7 +69,7 @@ public class WorldPixelScenes
 
                 pixelScene.Deserialize(reader);
 
-                PixelScenes.AddPixelScene(pixelScene);
+                PixelScenesAtlas.AddPixelScene(pixelScene);
             }
 
             int length2 = reader.ReadBEInt32();
@@ -78,7 +80,7 @@ public class WorldPixelScenes
 
                 pixelScene.Deserialize(reader);
 
-                PixelScenes.AddPixelScene(pixelScene);
+                PixelScenesAtlas.AddPixelScene(pixelScene);
             }
         }
 
@@ -87,11 +89,11 @@ public class WorldPixelScenes
 
     public void Update()
     {
-        PixelScenes.Update();
+        PixelScenesAtlas.Update();
     }
 
     public void Draw(CommandList commandList)
     {
-        PixelScenes.Draw(commandList);
+        PixelScenesAtlas.Draw(commandList);
     }
 }
