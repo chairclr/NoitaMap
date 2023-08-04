@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics;
+using CommunityToolkit.HighPerformance;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
 using SixLabors.ImageSharp.Formats;
@@ -8,8 +9,6 @@ namespace NoitaMap.Graphics.Atlases;
 
 public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
 {
-    private readonly PathService PathService;
-
     private readonly List<PixelScene> PixelScenes = new List<PixelScene>();
 
     private readonly ConcurrentQueue<PixelScene> ThreadedPixelSceneQueue = new ConcurrentQueue<PixelScene>();
@@ -17,29 +16,12 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
     public PixelSceneAtlasBuffer(ViewerDisplay viewerDisplay)
         : base(viewerDisplay)
     {
-        PathService = viewerDisplay.PathService;
+
     }
 
     public void AddPixelScene(PixelScene pixelScene)
     {
-        if (pixelScene.AtlasTexturePath is null)
-        {
-            return;
-        }
-
-        if (PathService.DataPath is null)
-        {
-            return;
-        }
-
-        string? path = null;
-
-        if (pixelScene.AtlasTexturePath.StartsWith("data/"))
-        {
-            path = Path.Combine(PathService.DataPath, pixelScene.AtlasTexturePath.Remove(0, 5));
-        }
-
-        if (!File.Exists(path))
+        if (pixelScene.WorkingTextureData is null)
         {
             return;
         }
@@ -66,29 +48,13 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
 
     public void ProcessPixelScene(PixelScene pixelScene)
     {
-        if (pixelScene.AtlasTexturePath is null)
-        {
-            throw new Exception("pixelScene.AtlasTexturePath was null when it shouldn't have been");
-        }
-
-        string? path = null;
-
-        if (pixelScene.AtlasTexturePath.StartsWith("data/"))
-        {
-            path = Path.Combine(PathService.DataPath!, pixelScene.AtlasTexturePath.Remove(0, 5));
-        }
-
-        using Image<Rgba32> image = LoadPixelSceneImage(path!);
-
-        image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory);
-
-        ResourcePosition resourcePosition = AddTextureToAtlas(image.Width, image.Height, path!.GetHashCode(), memory.Span);
+        ResourcePosition resourcePosition = AddTextureToAtlas(pixelScene.TextureWidth, pixelScene.TextureHeight, pixelScene.TextureHash, pixelScene.WorkingTextureData.AsSpan());
 
         PixelScenes.Add(pixelScene);
 
         TransformBuffer.InsertInstance(resourcePosition.InstanceIndex, new VertexInstance()
         {
-            Transform = Matrix4x4.CreateScale(image.Width, image.Height, 1f) * Matrix4x4.CreateTranslation(pixelScene.X, pixelScene.Y, 0f),
+            Transform = pixelScene.WorldMatrix,
             TexturePosition = resourcePosition.UV,
             TextureSize = resourcePosition.UVSize
         });

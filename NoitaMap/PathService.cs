@@ -1,14 +1,30 @@
-﻿namespace NoitaMap;
+﻿using Silk.NET.Core;
 
-public class PathService
+namespace NoitaMap;
+
+public static class PathService
 {
-    public string SavePath;
+    public static string SavePath { get; private set; } = null!;
 
-    public string WorldPath;
+    public static string WorldPath { get; private set; } = null!;
 
-    public string? DataPath;
+    public static string? DataPath { get; private set; }
 
-    public PathService(string[] args)
+    static PathService()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
+
+            SavePath ??= Path.Combine(localLowPath, "Nolla_Games_Noita", "save00");
+
+            WorldPath ??= Path.Combine(SavePath, "world");
+
+            DataPath ??= Path.Combine(localLowPath, "Nolla_Games_Noita", "data");
+        }
+    }
+
+    public static void SetPaths(string[] args)
     {
         for (int i = 0; i < args.Length; i++)
         {

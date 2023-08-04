@@ -41,7 +41,7 @@ public class EntityContainer
 
     private readonly List<Entity> Entities = new List<Entity>();
 
-    private readonly PixelSpriteAtlasBuffer PixelSpriteAtlas;
+    public readonly PixelSpriteAtlasBuffer PixelSpriteAtlas;
 
     public EntityContainer(ViewerDisplay viewerDisplay)
     {

@@ -3,6 +3,7 @@ using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
+using NoitaMap.Map.Components;
 using NoitaMap.Map.Entities;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -17,8 +18,6 @@ public class ViewerDisplay : IDisposable
     private readonly IWindow Window;
 
     public readonly GraphicsDevice GraphicsDevice;
-
-    public readonly PathService PathService;
 
     private readonly CommandList MainCommandList;
 
@@ -54,10 +53,8 @@ public class ViewerDisplay : IDisposable
 
     private bool Disposed;
 
-    public ViewerDisplay(PathService pathService)
+    public ViewerDisplay()
     {
-        PathService = pathService;
-
         WindowOptions windowOptions = new WindowOptions()
         {
             API = GraphicsAPI.None,
@@ -406,6 +403,27 @@ public class ViewerDisplay : IDisposable
                 }
 
                 ImGui.EndTabBar();
+            }
+        }
+
+        //TODO: Implement better debug settings
+        ImDrawListPtr drawList = ImGui.GetBackgroundDrawList();
+        
+        foreach (PixelSpriteComponent pixelSprite in Entities.PixelSpriteAtlas.PixelSprites)
+        {
+            if (pixelSprite.Enabled)
+            {
+                Vector2 min = Vector2.Transform(Vector2.Transform(Vector2.Zero, pixelSprite.WorldMatrix), View);
+                Vector2 max = Vector2.Transform(Vector2.Transform(Vector2.One, pixelSprite.WorldMatrix), View);
+        
+                if (pixelSprite.ImageFile is null)
+                {
+                    drawList.AddRect(min, max, Color.Red.ToPixel<Rgba32>().PackedValue, 0f, ImDrawFlags.None, 4f);
+                }
+                else
+                {
+                    drawList.AddRect(min, max, Color.Lime.ToPixel<Rgba32>().PackedValue, 0f, ImDrawFlags.None, 4f);
+                }
             }
         }
     }
