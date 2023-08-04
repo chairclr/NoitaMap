@@ -8,20 +8,6 @@ public static class PathService
 
     public static string? DataPath { get; private set; }
 
-    static PathService()
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            string localLowPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low";
-
-            SavePath ??= Path.Combine(localLowPath, "Nolla_Games_Noita", "save00");
-
-            WorldPath ??= Path.Combine(SavePath, "world");
-
-            DataPath ??= Path.Combine(localLowPath, "Nolla_Games_Noita", "data");
-        }
-    }
-
     public static void SetPaths(string[] args)
     {
         for (int i = 0; i < args.Length; i++)

@@ -4,6 +4,8 @@ using NoitaMap.Graphics;
 using NoitaMap.Graphics.Atlases;
 using NoitaMap.Map;
 using Veldrid;
+using Vortice.Direct3D11;
+using Vulkan.Win32;
 
 namespace NoitaMap.Viewer;
 
@@ -25,6 +27,16 @@ public partial class ChunkContainer : IDisposable
 
     public IReadOnlyList<PhysicsObject> PhysicsObjects => PhysicsObjectAtlas.PhysicsObjects;
 
+    private Framebuffer PhysicsObjectFramebuffer;
+
+    private Texture PhysicsObjectFramebufferTexture;
+
+    private ResourceSet PhysicsObjectResourceSet;
+
+    private readonly QuadVertexBuffer<Vertex> VertexBuffer;
+
+    public bool ForceNoFrambuffer = false;
+
     private bool Disposed;
 
     public ChunkContainer(ViewerDisplay viewerDisplay)
@@ -38,6 +50,48 @@ public partial class ChunkContainer : IDisposable
         ChunkAtlas = new ChunkAtlasBuffer(ViewerDisplay);
 
         PhysicsObjectAtlas = new PhysicsObjectAtlasBuffer(ViewerDisplay);
+
+        PhysicsObjectFramebufferTexture = ViewerDisplay.GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
+        {
+            Type = TextureType.Texture2D,
+            Format = PixelFormat.B8_G8_R8_A8_UNorm,
+            Width = (uint)ViewerDisplay.Window.Width,
+            Height = (uint)ViewerDisplay.Window.Height,
+            Usage = TextureUsage.Sampled | TextureUsage.RenderTarget,
+            MipLevels = 1,
+
+            // Nececessary
+            Depth = 1,
+            ArrayLayers = 1,
+            SampleCount = TextureSampleCount.Count1
+        });
+
+        PhysicsObjectFramebuffer = ViewerDisplay.GraphicsDevice.ResourceFactory.CreateFramebuffer(new FramebufferDescription()
+        {
+            ColorTargets = new FramebufferAttachmentDescription[] { new FramebufferAttachmentDescription(PhysicsObjectFramebufferTexture, 0) }
+        });
+
+        PhysicsObjectResourceSet = ViewerDisplay.CreateTextureBinding(PhysicsObjectFramebufferTexture);
+
+        InstanceBuffer<VertexInstance> instanceBuffer = new InstanceBuffer<VertexInstance>(ViewerDisplay.GraphicsDevice);
+
+        instanceBuffer.AddInstance(new VertexInstance()
+        {
+            TexturePosition = new Vector2(0f, 0f),
+            TextureSize = new Vector2(1f, 1f),
+            Transform = Matrix4x4.Identity
+        });
+
+        instanceBuffer.UpdateInstanceBuffer();
+
+        VertexBuffer = new QuadVertexBuffer<Vertex>(ViewerDisplay.GraphicsDevice, (x, y) =>
+        {
+            return new Vertex()
+            {
+                Position = new Vector3(x, 0f),
+                UV = y
+            };
+        }, instanceBuffer);
     }
 
     public void LoadChunk(string chunkFilePath)
@@ -86,7 +140,77 @@ public partial class ChunkContainer : IDisposable
     {
         ChunkAtlas.Draw(commandList);
 
-        PhysicsObjectAtlas.Draw(commandList);
+        if (ViewerDisplay.ViewScale.X > 1f && ViewerDisplay.ViewScale.Y > 1f && !ForceNoFrambuffer)
+        {
+            Matrix4x4 cachedViewProjection = ConstantBuffer.Data.ViewProjection;
+
+            commandList.SetFramebuffer(PhysicsObjectFramebuffer);
+
+            commandList.ClearColorTarget(0, RgbaFloat.Clear);
+
+            ConstantBuffer.Data.ViewProjection =
+                Matrix4x4.CreateTranslation(-new Vector3(MathF.Floor(ViewerDisplay.ViewOffset.X), MathF.Floor(ViewerDisplay.ViewOffset.Y), 0f)) *
+                ViewerDisplay.Projection *
+                Matrix4x4.CreateTranslation(-1f, -1f, 0f);
+
+            ConstantBuffer.Update(commandList);
+
+            PhysicsObjectAtlas.Draw(commandList);
+
+            commandList.SetFramebuffer(ViewerDisplay.GraphicsDevice.SwapchainFramebuffer);
+
+            ConstantBuffer.Data.ViewProjection =
+                Matrix4x4.CreateScale(PhysicsObjectFramebuffer.Width, PhysicsObjectFramebuffer.Height, 1f) *
+                Matrix4x4.CreateTranslation(-new Vector3(ViewerDisplay.ViewOffset.X - MathF.Floor(ViewerDisplay.ViewOffset.X), ViewerDisplay.ViewOffset.Y - MathF.Floor(ViewerDisplay.ViewOffset.Y), 0f)) *
+                Matrix4x4.CreateScale(new Vector3(ViewerDisplay.ViewScale.X, ViewerDisplay.ViewScale.Y, 1f)) *
+                ViewerDisplay.Projection *
+                Matrix4x4.CreateTranslation(-1f, -1f, 0f);
+
+            ConstantBuffer.Update(commandList);
+
+            commandList.SetGraphicsResourceSet(2, PhysicsObjectResourceSet);
+
+            VertexBuffer.Draw(commandList, 6, 0);
+
+            ConstantBuffer.Data.ViewProjection = cachedViewProjection;
+
+            ConstantBuffer.Update(commandList);
+        }
+        else
+        {
+            PhysicsObjectAtlas.Draw(commandList);
+        }
+    }
+
+    public void Resize()
+    {
+        PhysicsObjectFramebufferTexture.Dispose();
+
+        PhysicsObjectFramebuffer.Dispose();
+
+        PhysicsObjectResourceSet.Dispose();
+
+        PhysicsObjectFramebufferTexture = ViewerDisplay.GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
+        {
+            Type = TextureType.Texture2D,
+            Format = PixelFormat.B8_G8_R8_A8_UNorm,
+            Width = (uint)ViewerDisplay.Window.Width,
+            Height = (uint)ViewerDisplay.Window.Height,
+            Usage = TextureUsage.Sampled | TextureUsage.RenderTarget,
+            MipLevels = 1,
+
+            // Nececessary
+            Depth = 1,
+            ArrayLayers = 1,
+            SampleCount = TextureSampleCount.Count1
+        });
+
+        PhysicsObjectFramebuffer = ViewerDisplay.GraphicsDevice.ResourceFactory.CreateFramebuffer(new FramebufferDescription()
+        {
+            ColorTargets = new FramebufferAttachmentDescription[] { new FramebufferAttachmentDescription(PhysicsObjectFramebufferTexture, 0) }
+        });
+
+        PhysicsObjectResourceSet = ViewerDisplay.CreateTextureBinding(PhysicsObjectFramebufferTexture);
     }
 
     private static Vector2 GetChunkPositionFromPath(string filePath)

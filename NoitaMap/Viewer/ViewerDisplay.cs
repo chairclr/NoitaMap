@@ -12,7 +12,7 @@ namespace NoitaMap.Viewer;
 
 public partial class ViewerDisplay : IDisposable
 {
-    private readonly Sdl2Window Window;
+    public readonly Sdl2Window Window;
 
     public readonly GraphicsDevice GraphicsDevice;
 
@@ -69,6 +69,7 @@ public partial class ViewerDisplay : IDisposable
 #endif
             SyncToVerticalBlank = true,
             HasMainSwapchain = true,
+            
         };
 
         VeldridStartup.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
@@ -247,9 +248,9 @@ public partial class ViewerDisplay : IDisposable
 
     private Vector2 MouseTranslateOrigin = Vector2.Zero;
 
-    private Vector2 ViewScale = Vector2.One;
+    public Vector2 ViewScale { get; private set; } = Vector2.One;
 
-    private Vector2 ViewOffset = Vector2.Zero;
+    public Vector2 ViewOffset { get; private set; } = Vector2.Zero;
 
     public Matrix4x4 View =>
             Matrix4x4.CreateTranslation(new Vector3(-ViewOffset, 0f)) *
@@ -398,6 +399,8 @@ public partial class ViewerDisplay : IDisposable
         GraphicsDevice.ResizeMainWindow((uint)Window.Width, (uint)Window.Height);
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
+
+        ChunkContainer.Resize();
 
         ImGuiRenderer.WindowResized(Window.Width, Window.Height);
     }

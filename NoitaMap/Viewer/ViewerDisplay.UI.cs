@@ -80,6 +80,8 @@ public partial class ViewerDisplay
                     ImGui.Checkbox("Draw PixelScene borders", ref DebugDrawPixelSceneBorders);
                     ImGui.Checkbox("Draw PixelSpriteComponent borders", ref DebugDrawPixelSpriteComponentBorders);
 
+                    ImGui.Checkbox("Force PhysicsObject no framebuffer", ref ChunkContainer.ForceNoFrambuffer);
+
                     ImGui.EndTabItem();
                 }
 
