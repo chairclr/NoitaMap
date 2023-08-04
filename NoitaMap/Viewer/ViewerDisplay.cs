@@ -140,43 +140,45 @@ public partial class ViewerDisplay : IDisposable
 
     public void Start()
     {
-        Task.Run(() =>
-        {
             string[] chunkPaths = Directory.EnumerateFiles(PathService.WorldPath, "world_*_*.png_petri").ToArray();
 
-            TotalChunkCount = chunkPaths.Length;
+        foreach (string chunkPath in chunkPaths)
+        {
+            ChunkContainer.LoadChunk(chunkPath);
 
-            int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)(Environment.ProcessorCount - 2));
+            LoadedChunks++;
+        }
+            //TotalChunkCount = chunkPaths.Length;
 
-            // Split up all of the paths into a collection of (at most) ChunksPerThread paths for each thread to process
-            // This is so that each thread can process ChunksPerThread chunks at once, rather than having too many threads
-            string[][] threadedChunkPaths = new string[(int)MathF.Ceiling((float)chunkPaths.Length / (float)ChunksPerThread)][];
+            //int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)(Environment.ProcessorCount - 2));
 
-            int total = 0;
-            for (int i = 0; i < threadedChunkPaths.Length; i++)
-            {
-                int chunkCountForThread = Math.Min(chunkPaths.Length - total, ChunksPerThread);
-                threadedChunkPaths[i] = new string[chunkCountForThread];
+            //// Split up all of the paths into a collection of (at most) ChunksPerThread paths for each thread to process
+            //// This is so that each thread can process ChunksPerThread chunks at once, rather than having too many threads
+            //string[][] threadedChunkPaths = new string[(int)MathF.Ceiling((float)chunkPaths.Length / (float)ChunksPerThread)][];
 
-                for (int j = 0; j < chunkCountForThread; j++)
-                {
-                    threadedChunkPaths[i][j] = chunkPaths[total];
+            //int total = 0;
+            //for (int i = 0; i < threadedChunkPaths.Length; i++)
+            //{
+            //    int chunkCountForThread = Math.Min(chunkPaths.Length - total, ChunksPerThread);
+            //    threadedChunkPaths[i] = new string[chunkCountForThread];
 
-                    total++;
-                }
-            }
+            //    for (int j = 0; j < chunkCountForThread; j++)
+            //    {
+            //        threadedChunkPaths[i][j] = chunkPaths[total];
 
-            Parallel.ForEach(threadedChunkPaths, chunkPaths =>
-            {
-                for (int i = 0; i < chunkPaths.Length; i++)
-                {
-                    ChunkContainer.LoadChunk(chunkPaths[i]);
+            //        total++;
+            //    }
+            //}
 
-                    LoadedChunks++;
-                }
-            });
+            //Parallel.ForEach(threadedChunkPaths, chunkPaths =>
+            //{
+            //    for (int i = 0; i < chunkPaths.Length; i++)
+            //    {
+            //        ChunkContainer.LoadChunk(chunkPaths[i]);
 
-        });
+            //        LoadedChunks++;
+            //    }
+            //});
 
         Task.Run(() =>
         {
