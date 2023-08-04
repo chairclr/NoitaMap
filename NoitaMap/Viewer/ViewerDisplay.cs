@@ -230,6 +230,12 @@ public partial class ViewerDisplay : IDisposable
 
             InputSnapshot inputSnapshot = Window.PumpEvents();
 
+            ImGuiIOPtr io = ImGui.GetIO();
+            foreach (KeyEvent keyEvent in inputSnapshot.KeyEvents)
+            {
+                io.AddKeyEvent(KeyTranslator.GetKey(keyEvent.Key), keyEvent.Down);
+            }
+
             ImGuiRenderer.Update(deltaTime, inputSnapshot);
 
             InputSystem.Update(inputSnapshot);
