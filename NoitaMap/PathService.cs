@@ -1,6 +1,4 @@
-﻿using Silk.NET.Core;
-
-namespace NoitaMap;
+﻿namespace NoitaMap;
 
 public static class PathService
 {

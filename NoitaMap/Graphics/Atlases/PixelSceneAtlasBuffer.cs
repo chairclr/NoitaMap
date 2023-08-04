@@ -1,9 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using System.Numerics;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
-using SixLabors.ImageSharp.Formats;
 
 namespace NoitaMap.Graphics.Atlases;
 

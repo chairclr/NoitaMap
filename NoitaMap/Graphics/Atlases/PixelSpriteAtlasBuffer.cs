@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using CommunityToolkit.HighPerformance;
-using NoitaMap.Map;
 using NoitaMap.Map.Components;
 using NoitaMap.Viewer;
 

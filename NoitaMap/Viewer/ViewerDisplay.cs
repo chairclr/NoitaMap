@@ -3,7 +3,6 @@ using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
-using NoitaMap.Map.Components;
 using NoitaMap.Map.Entities;
 using Silk.NET.Input;
 using Silk.NET.Maths;

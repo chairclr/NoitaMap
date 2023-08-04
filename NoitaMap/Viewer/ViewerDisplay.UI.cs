@@ -2,8 +2,6 @@
 using ImGuiNET;
 using NoitaMap.Map;
 using NoitaMap.Map.Components;
-using Veldrid;
-using Veldrid.OpenGLBinding;
 
 namespace NoitaMap.Viewer;
 

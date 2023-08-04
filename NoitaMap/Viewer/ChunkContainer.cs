@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
 using NoitaMap.Graphics.Atlases;

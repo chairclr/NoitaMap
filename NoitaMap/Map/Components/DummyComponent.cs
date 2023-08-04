@@ -1,4 +1,6 @@
-﻿namespace NoitaMap.Map.Components;
+﻿using NoitaMap.Map.Schemas;
+
+namespace NoitaMap.Map.Components;
 
 public class DummyComponent : Component
 {
