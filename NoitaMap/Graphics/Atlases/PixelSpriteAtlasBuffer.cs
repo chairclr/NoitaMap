@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using CommunityToolkit.HighPerformance;
+using NoitaMap.Map;
 using NoitaMap.Map.Components;
 using NoitaMap.Viewer;
 
@@ -61,6 +62,9 @@ public class PixelSpriteAtlasBuffer : PackedAtlasedQuadBuffer
         {
             throw new InvalidOperationException("No texture data with pixel sprite component");
         }
+
+        // Release working texture data, so that the GC can collect it
+        pixelSprite.WorkingTextureData = null;
 
         PixelSprites.Add(pixelSprite);
 

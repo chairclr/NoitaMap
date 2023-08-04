@@ -50,6 +50,9 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
     {
         ResourcePosition resourcePosition = AddTextureToAtlas(pixelScene.TextureWidth, pixelScene.TextureHeight, pixelScene.TextureHash, pixelScene.WorkingTextureData.AsSpan());
 
+        // Release working texture data, so that the GC can collect it
+        pixelScene.WorkingTextureData = null;
+
         PixelScenes.Add(pixelScene);
 
         TransformBuffer.InsertInstance(resourcePosition.InstanceIndex, new VertexInstance()
