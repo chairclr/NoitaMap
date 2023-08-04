@@ -15,7 +15,7 @@ public partial class ComponentSchema
 
     private ComponentSchema(string name)
     {
-        string text = File.ReadAllText(Path.Combine(@"C:\Program Files (x86)\Steam\steamapps\common\Noita\data\schemas", $"{name}.xml"));
+        string text = File.ReadAllText(Path.Combine("Assets", "Schemas", $"{name}.xml"));
 
         // Nolla's xml isn't actualy really xml, and the attributes can include < and >, which is not supported by regular xml parses
         // We must replace < and > with &lt; and &gt; in order to actually parse it
