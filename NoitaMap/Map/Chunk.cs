@@ -16,7 +16,7 @@ public class Chunk
 
     public Rgba32[,]? WorkingTextureData;
 
-    public Matrix4x4 PrecalculatedWorldMatrix = Matrix4x4.Identity;
+    public Matrix4x4 WorldMatrix = Matrix4x4.Identity;
 
     public bool ReadyToBeAddedToAtlas = false;
 
@@ -103,7 +103,7 @@ public class Chunk
         }
         else
         {
-            PrecalculatedWorldMatrix = Matrix4x4.CreateScale(512f, 512f, 1f) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
+            WorldMatrix = Matrix4x4.CreateScale(512f, 512f, 1f) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
 
             ReadyToBeAddedToAtlas = true;
         }

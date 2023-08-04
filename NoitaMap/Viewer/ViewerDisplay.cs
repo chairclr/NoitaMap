@@ -3,6 +3,8 @@ using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
+using NoitaMap.Map.Components;
+using NoitaMap.Map.Entities;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -11,13 +13,11 @@ using Veldrid;
 
 namespace NoitaMap.Viewer;
 
-public class ViewerDisplay : IDisposable
+public partial class ViewerDisplay : IDisposable
 {
     private readonly IWindow Window;
 
     public readonly GraphicsDevice GraphicsDevice;
-
-    public readonly PathService PathService;
 
     private readonly CommandList MainCommandList;
 
@@ -47,14 +47,14 @@ public class ViewerDisplay : IDisposable
 
     private readonly WorldPixelScenes WorldPixelScenes;
 
+    private readonly EntityContainer Entities;
+
     private readonly ImGuiRenderer ImGuiRenderer;
 
     private bool Disposed;
 
-    public ViewerDisplay(PathService pathService)
+    public ViewerDisplay()
     {
-        PathService = pathService;
-
         WindowOptions windowOptions = new WindowOptions()
         {
             API = GraphicsAPI.None,
@@ -123,6 +123,8 @@ public class ViewerDisplay : IDisposable
         ChunkContainer = new ChunkContainer(this);
 
         WorldPixelScenes = new WorldPixelScenes(this);
+
+        Entities = new EntityContainer(this);
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
@@ -200,6 +202,32 @@ public class ViewerDisplay : IDisposable
             }
         });
 
+        Task.Run(() =>
+        {
+            string[] entityPaths = Directory.EnumerateFiles(PathService.WorldPath, "entities_*.bin").ToArray();
+
+            foreach (string path in entityPaths)
+            {
+                try
+                {
+                    Entities.LoadEntities(path);
+                }
+                catch (Exception ex)
+                {
+#if  DEBUG
+                    byte[] decompressed = NoitaDecompressor.ReadAndDecompressChunk(path);
+
+                    Directory.CreateDirectory("entity_error_logs");
+
+                    File.WriteAllBytes($"entity_error_logs/{Path.GetFileNameWithoutExtension(path)}.bin", decompressed);
+#endif
+
+                    Console.WriteLine($"Error decoding entity at path \"{path}\":");
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+        });
+
         Window.Run();
     }
 
@@ -255,6 +283,8 @@ public class ViewerDisplay : IDisposable
         ChunkContainer.Update();
 
         WorldPixelScenes.Update();
+
+        Entities.Update();
     }
 
     private Vector2 ScalePosition(Vector2 position)
@@ -283,6 +313,8 @@ public class ViewerDisplay : IDisposable
 
         MainCommandList.SetGraphicsResourceSet(1, PixelSamplerResourceSet);
 
+        Entities.Draw(MainCommandList);
+
         WorldPixelScenes.Draw(MainCommandList);
 
         ChunkContainer.Draw(MainCommandList);
@@ -302,78 +334,6 @@ public class ViewerDisplay : IDisposable
         GraphicsDevice.SwapBuffers();
     }
 
-    private bool ShowMetrics = true;
-
-    private bool ShowDebugger = false;
-
-    private void DrawUI()
-    {
-        ImGui.SetNextWindowPos(Vector2.Zero);
-        ImGui.Begin("##StatusWindow", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize);
-
-        ImGui.TextUnformatted($"Framerate:     {ImGui.GetIO().Framerate:F1}");
-
-        ImGui.TextUnformatted($"Chunks Loaded: {LoadedChunks} / {TotalChunkCount}");
-
-        if (ImGui.IsKeyPressed(ImGuiKey.F11, false))
-        {
-            ShowMetrics = !ShowMetrics;
-        }
-
-        if (ShowMetrics)
-        {
-            ImGui.TextUnformatted($"---- Metrics ----");
-            foreach ((string name, Func<string> format) in Statistics.Metrics)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {format()}");
-            }
-
-#if TIME_STATS
-            ImGui.TextUnformatted($"---- Per Frame Times ----");
-            foreach ((string name, TimeSpan time) in Statistics.OncePerFrameTimeStats)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
-            }
-
-            ImGui.TextUnformatted($"---- Summed Times ----");
-            foreach ((string name, TimeSpan time) in Statistics.SummedTimeStats)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
-            }
-
-            ImGui.TextUnformatted($"---- Single Times ----");
-            foreach ((string name, TimeSpan time) in Statistics.SingleTimeStats)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
-            }
-#endif
-        }
-
-        ImGui.End();
-
-        if (ImGui.IsKeyPressed(ImGuiKey.F12, false))
-        {
-            ShowDebugger = !ShowDebugger;
-        }
-
-        if (ShowDebugger)
-        {
-            if (ImGui.BeginTabBar("MainBar"))
-            {
-                if (ImGui.BeginTabItem("Physics Object Atlases"))
-                {
-                    foreach (Texture tex in ChunkContainer.PhysicsObjectAtlas.Textures)
-                    {
-                        ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(GraphicsDevice.ResourceFactory, tex), new Vector2(tex.Width, tex.Height));
-                    }
-
-                    ImGui.EndTabBar();
-                }
-
-                ImGui.EndTabBar();
-            }
-        }
-    }
 
     private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements)
     {
