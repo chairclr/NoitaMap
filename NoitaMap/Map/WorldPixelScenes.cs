@@ -33,7 +33,7 @@ public class WorldPixelScenes
 {
     private ViewerDisplay ViewerDisplay;
 
-    private PixelSceneAtlasBuffer PixelScenes;
+    public PixelSceneAtlasBuffer PixelScenes;
 
     public WorldPixelScenes(ViewerDisplay viewerDisplay)
     {

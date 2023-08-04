@@ -13,7 +13,7 @@ using Veldrid;
 
 namespace NoitaMap.Viewer;
 
-public class ViewerDisplay : IDisposable
+public partial class ViewerDisplay : IDisposable
 {
     private readonly IWindow Window;
 
@@ -334,99 +334,6 @@ public class ViewerDisplay : IDisposable
         GraphicsDevice.SwapBuffers();
     }
 
-    private bool ShowMetrics = true;
-
-    private bool ShowDebugger = false;
-
-    private void DrawUI()
-    {
-        ImGui.SetNextWindowPos(Vector2.Zero);
-        ImGui.Begin("##StatusWindow", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize);
-
-        ImGui.TextUnformatted($"Framerate:     {ImGui.GetIO().Framerate:F1}");
-
-        ImGui.TextUnformatted($"Chunks Loaded: {LoadedChunks} / {TotalChunkCount}");
-
-        if (ImGui.IsKeyPressed(ImGuiKey.F11, false))
-        {
-            ShowMetrics = !ShowMetrics;
-        }
-
-        if (ShowMetrics)
-        {
-            ImGui.TextUnformatted($"---- Metrics ----");
-            foreach ((string name, Func<string> format) in Statistics.Metrics)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {format()}");
-            }
-
-#if TIME_STATS
-            ImGui.TextUnformatted($"---- Per Frame Times ----");
-            foreach ((string name, TimeSpan time) in Statistics.OncePerFrameTimeStats)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
-            }
-
-            ImGui.TextUnformatted($"---- Summed Times ----");
-            foreach ((string name, TimeSpan time) in Statistics.SummedTimeStats)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
-            }
-
-            ImGui.TextUnformatted($"---- Single Times ----");
-            foreach ((string name, TimeSpan time) in Statistics.SingleTimeStats)
-            {
-                ImGui.TextUnformatted($"{name + ":",-20} {time.TotalSeconds:F5}s");
-            }
-#endif
-        }
-
-        ImGui.End();
-
-        if (ImGui.IsKeyPressed(ImGuiKey.F12, false))
-        {
-            ShowDebugger = !ShowDebugger;
-        }
-
-        if (ShowDebugger)
-        {
-            if (ImGui.BeginTabBar("MainBar"))
-            {
-                if (ImGui.BeginTabItem("Physics Object Atlases"))
-                {
-                    foreach (Texture tex in ChunkContainer.PhysicsObjectAtlas.Textures)
-                    {
-                        ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(GraphicsDevice.ResourceFactory, tex), new Vector2(tex.Width, tex.Height));
-                    }
-
-                    ImGui.EndTabBar();
-                }
-
-                ImGui.EndTabBar();
-            }
-        }
-
-        //TODO: Implement better debug settings
-        ImDrawListPtr drawList = ImGui.GetBackgroundDrawList();
-        
-        foreach (PixelSpriteComponent pixelSprite in Entities.PixelSpriteAtlas.PixelSprites)
-        {
-            if (pixelSprite.Enabled)
-            {
-                Vector2 min = Vector2.Transform(Vector2.Transform(Vector2.Zero, pixelSprite.WorldMatrix), View);
-                Vector2 max = Vector2.Transform(Vector2.Transform(Vector2.One, pixelSprite.WorldMatrix), View);
-        
-                if (pixelSprite.ImageFile is null)
-                {
-                    drawList.AddRect(min, max, Color.Red.ToPixel<Rgba32>().PackedValue, 0f, ImDrawFlags.None, 4f);
-                }
-                else
-                {
-                    drawList.AddRect(min, max, Color.Lime.ToPixel<Rgba32>().PackedValue, 0f, ImDrawFlags.None, 4f);
-                }
-            }
-        }
-    }
 
     private Pipeline CreatePipeline(Shader[] shaders, VertexElementDescription[] vertexElements)
     {

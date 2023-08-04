@@ -12,7 +12,7 @@ public class PhysicsObject
 
     public int Height;
 
-    public Matrix4x4 PrecalculatedWorldMatrix = Matrix4x4.Identity;
+    public Matrix4x4 WorldMatrix = Matrix4x4.Identity;
 
     public Rgba32[,]? WorkingTextureData;
 
@@ -53,7 +53,7 @@ public class PhysicsObject
             }
         }
 
-        PrecalculatedWorldMatrix = Matrix4x4.CreateScale(Width, Height, 1f) * (Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f)));
+        WorldMatrix = Matrix4x4.CreateScale(Width, Height, 1f) * (Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f)));
 
         ReadyToBeAddedToAtlas = true;
     }

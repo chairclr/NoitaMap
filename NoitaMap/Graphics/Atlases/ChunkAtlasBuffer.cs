@@ -14,7 +14,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
     private const int MaxBatchSize = 32;
 
-    private readonly List<Chunk> Chunks = new List<Chunk>();
+    public readonly List<Chunk> Chunks = new List<Chunk>();
 
     private readonly ConcurrentQueue<Chunk> ThreadedChunkQueue = new ConcurrentQueue<Chunk>();
 
@@ -117,7 +117,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
         TransformBuffer.AddInstance(new VertexInstance()
         {
-            Transform = chunk.PrecalculatedWorldMatrix,
+            Transform = chunk.WorldMatrix,
             TexturePosition = pos,
             TextureSize = size,
         });

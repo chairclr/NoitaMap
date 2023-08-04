@@ -7,7 +7,7 @@ namespace NoitaMap.Graphics.Atlases;
 
 public class PhysicsObjectAtlasBuffer : PackedAtlasedQuadBuffer
 {
-    private readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
+    public readonly List<PhysicsObject> PhysicsObjects = new List<PhysicsObject>();
 
     private readonly ConcurrentQueue<PhysicsObject> ThreadedPhysicsObjectsQueue = new ConcurrentQueue<PhysicsObject>();
 
@@ -67,7 +67,7 @@ public class PhysicsObjectAtlasBuffer : PackedAtlasedQuadBuffer
 
         TransformBuffer.InsertInstance(resourcePosition.InstanceIndex, new VertexInstance()
         {
-            Transform = physicsObject.PrecalculatedWorldMatrix,
+            Transform = physicsObject.WorldMatrix,
             TexturePosition = resourcePosition.UV,
             TextureSize = resourcePosition.UVSize
         });

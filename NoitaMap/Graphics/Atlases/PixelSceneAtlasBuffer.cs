@@ -9,7 +9,7 @@ namespace NoitaMap.Graphics.Atlases;
 
 public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
 {
-    private readonly List<PixelScene> PixelScenes = new List<PixelScene>();
+    public readonly List<PixelScene> PixelScenes = new List<PixelScene>();
 
     private readonly ConcurrentQueue<PixelScene> ThreadedPixelSceneQueue = new ConcurrentQueue<PixelScene>();
 
