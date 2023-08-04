@@ -72,7 +72,7 @@ public partial class ViewerDisplay : IDisposable
             HasMainSwapchain = true,
         };
 
-        VeldridStartup.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, GraphicsBackend.OpenGL, out Window, out GraphicsDevice);
+        VeldridStartup.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
 
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
@@ -111,8 +111,6 @@ public partial class ViewerDisplay : IDisposable
         ConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
 
         ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Width, Window.Height, 0f, 1f);
-
-        ConstantBuffer.Update();
 
         VertexResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(VertexResourceLayout, ConstantBuffer.DeviceBuffer));
 

@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace NoitaMap.Graphics;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct Vertex
 {
     public Vector3 Position;
@@ -9,6 +11,7 @@ public struct Vertex
     public Vector2 UV;
 }
 
+[StructLayout(LayoutKind.Sequential)]
 public struct VertexInstance
 {
     public Matrix4x4 Transform;
@@ -18,6 +21,7 @@ public struct VertexInstance
     public Vector2 TextureSize;
 }
 
+[StructLayout(LayoutKind.Sequential)]
 public struct VertexConstantBuffer
 {
     public Matrix4x4 ViewProjection; // 64 bytes
