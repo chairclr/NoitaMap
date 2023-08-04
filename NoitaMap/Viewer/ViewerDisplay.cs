@@ -7,7 +7,6 @@ using NoitaMap.Map.Entities;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
-using Vulkan.Xlib;
 
 namespace NoitaMap.Viewer;
 

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Numerics;
-using System.Runtime.InteropServices;
+﻿using System.Numerics;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
@@ -23,6 +21,7 @@ public unsafe static class InputSystem
 
         LastMouseState = CurrentMouseState;
 
+        // We use GetMouseState to be more responsive
         GetMouseState(out int x, out int y);
         CurrentMouseState.Position = new Vector2(x, y);
 
