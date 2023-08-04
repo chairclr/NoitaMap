@@ -90,6 +90,16 @@ public class DummyComponent : Component
                         }
                     }
                     break;
+                case "struct SpriteStains *":
+                    {
+                        reader.BaseStream.Position += 6;
+
+                        foreach (ComponentVar var in Schema.Vars[reader.ReadNoitaString()!])
+                        {
+                            ProcessField(var.Type, var.Name, var.Size);
+                        }
+                    }
+                    break;
                 case "class ConfigDamagesByType":
                     // -4 for fun
                     reader.BaseStream.Position += size - 4;
