@@ -46,7 +46,7 @@ public class ImGuiRenderer
 
     private nint TextureId = 100;
 
-    private nint FontAtlasId = 1;
+    private readonly nint FontAtlasId = 1;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public ImGuiRenderer(GraphicsDevice graphicsDevice, OutputDescription outputDescription, int width, int height)
@@ -371,8 +371,7 @@ public class ImGuiRenderer
                     {
                         name += "-legacy";
                     }
-                    string resourceName = name + ".hlsl.bytes";
-                    return GetEmbeddedResourceBytes(resourceName);
+                    return GetEmbeddedResourceBytes($"{name}.hlsl.bytes");
                 }
             case GraphicsBackend.OpenGL:
                 {
@@ -380,18 +379,15 @@ public class ImGuiRenderer
                     {
                         name += "-legacy";
                     }
-                    string resourceName = name + ".glsl";
-                    return GetEmbeddedResourceBytes(resourceName);
+                    return GetEmbeddedResourceBytes($"{name}.glsl");
                 }
             case GraphicsBackend.Vulkan:
                 {
-                    string resourceName = name + ".spv";
-                    return GetEmbeddedResourceBytes(resourceName);
+                    return GetEmbeddedResourceBytes($"{name}.spv");
                 }
             case GraphicsBackend.Metal:
                 {
-                    string resourceName = name + ".metallib";
-                    return GetEmbeddedResourceBytes(resourceName);
+                    return GetEmbeddedResourceBytes($"{name}.metallib");
                 }
             default:
                 throw new NotImplementedException();
