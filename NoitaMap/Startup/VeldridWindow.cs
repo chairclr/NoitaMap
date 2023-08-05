@@ -1,12 +1,20 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.Sdl2;
-using Vulkan.Xlib;
 
 namespace NoitaMap.Startup;
 
 public class VeldridWindow
 {
+    public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, out Sdl2Window window, out GraphicsDevice graphicsDevice)
+    {
+        Sdl2Native.SDL_Init(SDLInitFlags.Video);
+
+        window = CreateWindow(windowOptions);
+        graphicsDevice = CreateGraphicsDevice(window, deviceOptions, GetPlatformDefaultBackend());
+    }
+
     public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out Sdl2Window window, out GraphicsDevice graphicsDevice)
     {
         Sdl2Native.SDL_Init(SDLInitFlags.Video);
@@ -110,6 +118,22 @@ public class VeldridWindow
                 }
             default:
                 throw new PlatformNotSupportedException("Cannot create a SwapchainSource for " + sysWmInfo.subsystem + ".");
+        }
+    }
+
+    public static GraphicsBackend GetPlatformDefaultBackend()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return GraphicsDevice.IsBackendSupported(GraphicsBackend.Direct3D11) ? GraphicsBackend.Direct3D11 : GraphicsBackend.OpenGL;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return GraphicsDevice.IsBackendSupported(GraphicsBackend.Metal) ? GraphicsBackend.Metal : GraphicsBackend.OpenGL;
+        }
+        else
+        {
+            return GraphicsDevice.IsBackendSupported(GraphicsBackend.Vulkan) ? GraphicsBackend.Vulkan : GraphicsBackend.OpenGL;
         }
     }
 }
