@@ -85,7 +85,7 @@ public class VeldridWindow
 
     public static unsafe SwapchainSource GetSwapchainSource(Sdl2Window window)
     {
-        IntPtr sdlHandle = window.SdlWindowHandle;
+        nint sdlHandle = window.SdlWindowHandle;
 
         SDL_SysWMinfo sysWmInfo;
         Sdl2Native.SDL_GetVersion(&sysWmInfo.version);
@@ -113,7 +113,7 @@ public class VeldridWindow
             case SysWMType.Cocoa:
                 {
                     CocoaWindowInfo cocoaInfo = Unsafe.Read<CocoaWindowInfo>(&sysWmInfo.info);
-                    IntPtr nsWindow = cocoaInfo.Window;
+                    nint nsWindow = cocoaInfo.Window;
                     return SwapchainSource.CreateNSWindow(nsWindow);
                 }
             default:

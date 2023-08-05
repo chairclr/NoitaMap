@@ -47,7 +47,8 @@ public unsafe class FontAssets
 
         io.Fonts.GetTexDataAsRGBA32(out byte* byteOriginalAtlasPixels, out int originalAtlasWidth, out int originalAtlasHeight);
         io.Fonts.TexReady = false;
-        Rgba32* originalAtlasPixels = (Rgba32*)byteOriginalAtlasPixels;
+        Rgba32* originalAtlasPixels = (Rgba32*)ImGuiNative.igMemAlloc((uint)(originalAtlasWidth * originalAtlasHeight * Unsafe.SizeOf<Rgba32>()));
+        Unsafe.CopyBlock(originalAtlasPixels, byteOriginalAtlasPixels, (uint)(originalAtlasWidth * originalAtlasHeight * Unsafe.SizeOf<Rgba32>()));
 
         ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
         fontConfig.FontDataOwnedByAtlas = true;

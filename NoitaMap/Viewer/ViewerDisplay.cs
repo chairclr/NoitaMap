@@ -68,8 +68,7 @@ public partial class ViewerDisplay : IDisposable
             Debug = true,
 #endif
             SyncToVerticalBlank = true,
-            HasMainSwapchain = true,
-
+            HasMainSwapchain = true
         };
 
         VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, GraphicsBackend.Direct3D11, out Window, out GraphicsDevice);

@@ -20,11 +20,17 @@
     <EmbeddedResource Include="Assets\ImGui-Embedded\GLSL\imgui-vertex.glsl">
       <LogicalName>imgui-vertex.glsl</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\GLSL\imgui-vertex-legacy.glsl">
+      <LogicalName>imgui-vertex-legacy.glsl</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-frag.hlsl.bytes">
       <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-vertex.hlsl.bytes">
       <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-vertex-legacy.hlsl.bytes">
+      <LogicalName>imgui-vertex-legacy.hlsl.bytes</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\ImGui-Embedded\Metal\imgui-frag.metallib">
       <LogicalName>imgui-frag.metallib</LogicalName>
