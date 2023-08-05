@@ -4,9 +4,9 @@ using ImGuiNET;
 using NoitaMap.Graphics;
 using NoitaMap.Map;
 using NoitaMap.Map.Entities;
+using NoitaMap.Startup;
 using Veldrid;
 using Veldrid.Sdl2;
-using Veldrid.StartupUtilities;
 
 namespace NoitaMap.Viewer;
 
@@ -46,20 +46,20 @@ public partial class ViewerDisplay : IDisposable
 
     private readonly EntityContainer Entities;
 
-    private readonly ImGuiRenderer ImGuiRenderer;
+    //private readonly ImGuiRenderer ImGuiRenderer;
 
     private bool Disposed;
 
     public ViewerDisplay()
     {
-        WindowCreateInfo windowOptions = new WindowCreateInfo()
+        WindowOptions windowOptions = new WindowOptions()
         {
             X = 50,
             Y = 50,
-            WindowWidth = 1280,
-            WindowHeight = 720,
-            WindowInitialState = WindowState.Normal,
-            WindowTitle = "Noita Map Viewer",
+            Width = 1280,
+            Height = 720,
+            Title = "Noita Map Viewer",
+            Hide = false
         };
 
         GraphicsDeviceOptions graphicsOptions = new GraphicsDeviceOptions()
@@ -72,7 +72,7 @@ public partial class ViewerDisplay : IDisposable
 
         };
 
-        VeldridStartup.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
+        VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, GraphicsBackend.Direct3D11, out Window, out GraphicsDevice);
 
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
@@ -122,14 +122,14 @@ public partial class ViewerDisplay : IDisposable
 
         Entities = new EntityContainer(this);
 
-        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Width, Window.Height);
+        //ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Width, Window.Height);
 
         // End frame because it starts a frame, which locks my font texture atlas
         ImGui.EndFrame();
 
         FontAssets.AddImGuiFont();
 
-        ImGuiRenderer.RecreateFontDeviceTexture(GraphicsDevice);
+        //ImGuiRenderer.RecreateFontDeviceTexture(GraphicsDevice);
 
         ImGui.NewFrame();
 
@@ -236,7 +236,7 @@ public partial class ViewerDisplay : IDisposable
                 io.AddKeyEvent(KeyTranslator.GetKey(keyEvent.Key), keyEvent.Down);
             }
 
-            ImGuiRenderer.Update(deltaTime, inputSnapshot);
+            //ImGuiRenderer.Update(deltaTime, inputSnapshot);
 
             InputSystem.Update(inputSnapshot);
 
@@ -326,7 +326,7 @@ public partial class ViewerDisplay : IDisposable
 
         DrawUI();
 
-        ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
+        //ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
 
         StatisticTimer timer = new StatisticTimer("Main Command List").Begin();
 
@@ -402,7 +402,7 @@ public partial class ViewerDisplay : IDisposable
 
         ChunkContainer.Resize();
 
-        ImGuiRenderer.WindowResized(Window.Width, Window.Height);
+        //ImGuiRenderer.WindowResized(Window.Width, Window.Height);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -411,7 +411,7 @@ public partial class ViewerDisplay : IDisposable
         {
             //Window.Dispose();
 
-            ImGuiRenderer.Dispose();
+            //ImGuiRenderer.Dispose();+
 
             MainFrameBuffer.Dispose();
 
