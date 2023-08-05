@@ -12,6 +12,33 @@
   <PropertyGroup Condition="'$(PublishProtocol)'==''">
     <DefineConstants>$(DefineConstants);TIME_STATS</DefineConstants>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\GLSL\imgui-frag.glsl">
+      <LogicalName>imgui-frag.glsl</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\GLSL\imgui-vertex.glsl">
+      <LogicalName>imgui-vertex.glsl</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-frag.hlsl.bytes">
+      <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-vertex.hlsl.bytes">
+      <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\Metal\imgui-frag.metallib">
+      <LogicalName>imgui-frag.metallib</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\Metal\imgui-vertex.metallib">
+      <LogicalName>imgui-vertex.metallib</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\SPIR-V\imgui-frag.spv">
+      <LogicalName>imgui-frag.spv</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\SPIR-V\imgui-vertex.spv">
+      <LogicalName>imgui-vertex.spv</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />

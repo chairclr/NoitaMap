@@ -46,6 +46,8 @@ public partial class ViewerDisplay : IDisposable
 
     private readonly EntityContainer Entities;
 
+    public readonly ImGuiRenderer ImGuiRenderer;
+
     private bool Disposed;
 
     public ViewerDisplay()
@@ -120,16 +122,7 @@ public partial class ViewerDisplay : IDisposable
 
         Entities = new EntityContainer(this);
 
-        //ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Width, Window.Height);
-
-        // End frame because it starts a frame, which locks my font texture atlas
-        ImGui.EndFrame();
-
-        FontAssets.AddImGuiFont();
-
-        //ImGuiRenderer.RecreateFontDeviceTexture(GraphicsDevice);
-
-        ImGui.NewFrame();
+        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Width, Window.Height);
 
         Window.Resized += HandleResize;
     }
@@ -236,6 +229,8 @@ public partial class ViewerDisplay : IDisposable
 
             //ImGuiRenderer.Update(deltaTime, inputSnapshot);
 
+            ImGuiRenderer.BeginFrame(deltaTime);
+
             InputSystem.Update(inputSnapshot);
 
             Update();
@@ -324,7 +319,7 @@ public partial class ViewerDisplay : IDisposable
 
         DrawUI();
 
-        //ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
+        ImGuiRenderer.EndFrame(MainCommandList);
 
         StatisticTimer timer = new StatisticTimer("Main Command List").Begin();
 
@@ -407,8 +402,6 @@ public partial class ViewerDisplay : IDisposable
     {
         if (!Disposed)
         {
-            //Window.Dispose();
-
             //ImGuiRenderer.Dispose();
 
             MainFrameBuffer.Dispose();
