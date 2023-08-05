@@ -98,7 +98,6 @@ public class InstanceBuffer<T> : InstanceBuffer
 
             CopyCommandList.Begin();
 
-            // -1 because we just added an element
             CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
 
             CopyCommandList.End();
