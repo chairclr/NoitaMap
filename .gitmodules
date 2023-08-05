@@ -1,0 +1,6 @@
+[submodule "veldrid"]
+	path = veldrid
+	url = https://github.com/ppy/veldrid.git
+[submodule "veldrid-spirv"]
+	path = veldrid-spirv
+	url = https://github.com/ppy/veldrid-spirv.git
