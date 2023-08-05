@@ -89,20 +89,31 @@ public class ImGuiRenderer
         io.Fonts.ClearTexData();
     }
 
-    public void BeginFrame(float deltaTime)
+    public void BeginFrame(float deltaTime, InputSnapshot inputSnapshot)
     {
         if (FrameBegun)
             throw new InvalidOperationException("Frame already begun");
 
         FrameBegun = true;
 
-        ImGui.NewFrame();
-
         ImGuiIOPtr io = ImGui.GetIO();
 
         io.DisplaySize = WindowSize;
         io.DisplayFramebufferScale = Vector2.One;
         io.DeltaTime = deltaTime;
+
+        foreach (KeyEvent keyEvent in inputSnapshot.KeyEvents)
+        {
+            io.AddKeyEvent(KeyTranslator.GetKey(keyEvent.Key), keyEvent.Down);
+        }
+
+        io.MousePos = InputSystem.MousePosition;
+
+        io.MouseDown[(int)ImGuiMouseButton.Left] = inputSnapshot.IsMouseDown(MouseButton.Left);
+        io.MouseDown[(int)ImGuiMouseButton.Right] = inputSnapshot.IsMouseDown(MouseButton.Right);
+        io.MouseDown[(int)ImGuiMouseButton.Middle] = inputSnapshot.IsMouseDown(MouseButton.Middle);
+
+        ImGui.NewFrame();
     }
 
     public void EndFrame(CommandList commandList)
@@ -177,6 +188,11 @@ public class ImGuiRenderer
             textureView.Dispose();
             RemoveImGuiBinding(textureView);
         }
+    }
+
+    public void HandleResize(int width, int height)
+    {
+        WindowSize = new Vector2(width, height);
     }
 
     public ResourceSet GetImageResourceSet(nint id)

@@ -220,17 +220,9 @@ public partial class ViewerDisplay : IDisposable
 
             InputSnapshot inputSnapshot = Window.PumpEvents();
 
-            ImGuiIOPtr io = ImGui.GetIO();
-            foreach (KeyEvent keyEvent in inputSnapshot.KeyEvents)
-            {
-                io.AddKeyEvent(KeyTranslator.GetKey(keyEvent.Key), keyEvent.Down);
-            }
-
-            //ImGuiRenderer.Update(deltaTime, inputSnapshot);
-
-            ImGuiRenderer.BeginFrame(deltaTime);
-
             InputSystem.Update(inputSnapshot);
+
+            ImGuiRenderer.BeginFrame(deltaTime, inputSnapshot);
 
             Update();
 
@@ -392,9 +384,9 @@ public partial class ViewerDisplay : IDisposable
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
-        ChunkContainer.Resize();
+        ChunkContainer.HandleResize();
 
-        //ImGuiRenderer.WindowResized(Window.Width, Window.Height);
+        ImGuiRenderer.HandleResize(Window.Width, Window.Height);
     }
 
     protected virtual void Dispose(bool disposing)

@@ -182,7 +182,7 @@ public partial class ChunkContainer : IDisposable
         }
     }
 
-    public void Resize()
+    public void HandleResize()
     {
         PhysicsObjectFramebufferTexture.Dispose();
 
