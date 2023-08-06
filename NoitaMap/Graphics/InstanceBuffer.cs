@@ -69,8 +69,6 @@ public class InstanceBuffer<T> : InstanceBuffer
         lock (Instances)
         {
             Instances.Add(instanceData);
-
-            CheckCapacity();
         }
     }
 
@@ -79,8 +77,6 @@ public class InstanceBuffer<T> : InstanceBuffer
         lock (Instances)
         {
             Instances.Insert(index, instanceData);
-
-            CheckCapacity();
         }
     }
 
@@ -114,6 +110,8 @@ public class InstanceBuffer<T> : InstanceBuffer
     {
         lock (Instances)
         {
+            CheckCapacity();
+
             MappedResource resource = GraphicsDevice.Map(Buffer, MapMode.Write);
 
             Span<T> span = CollectionsMarshal.AsSpan(Instances);
