@@ -4,23 +4,53 @@ using Veldrid;
 
 namespace NoitaMap.Graphics;
 
-public unsafe class QuadVertexBuffer<TVert> : IDisposable
-    where TVert : unmanaged
+public abstract class QuadVertexBuffer : IDisposable
 {
-    private readonly GraphicsDevice GraphicsDevice;
-
-    private readonly DeviceBuffer VertexBuffer;
+    protected readonly GraphicsDevice GraphicsDevice;
 
     public List<InstanceBuffer> InstanceBuffers = new List<InstanceBuffer>();
 
-    public bool Ready { get; private set; } = false;
+    private bool Disposed;
+
+    public bool Ready { get; protected set; } = false;
+
+    public QuadVertexBuffer(GraphicsDevice graphicsDevice)
+    {
+        GraphicsDevice = graphicsDevice;
+    }
+
+    public abstract void Draw(CommandList commandList, int length, int offset);
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            foreach (InstanceBuffer instanceBuffer in InstanceBuffers)
+            {
+                instanceBuffer.Dispose();
+            }
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+}
+
+public unsafe class QuadVertexBuffer<TVert> : QuadVertexBuffer, IDisposable
+    where TVert : unmanaged
+{
+    private readonly DeviceBuffer VertexBuffer;
 
     private bool Disposed;
 
     public QuadVertexBuffer(GraphicsDevice graphicsDevice, Func<Vector2, Vector2, TVert> constructVert, params InstanceBuffer[] instanceBuffers)
+        : base(graphicsDevice)
     {
-        GraphicsDevice = graphicsDevice;
-
         VertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
         {
             SizeInBytes = (uint)(Unsafe.SizeOf<TVert>() * 6),
@@ -42,7 +72,7 @@ public unsafe class QuadVertexBuffer<TVert> : IDisposable
         InstanceBuffers.AddRange(instanceBuffers);
     }
 
-    public void Draw(CommandList commandList, int length, int offset)
+    public override void Draw(CommandList commandList, int length, int offset)
     {
         commandList.SetVertexBuffer(0, VertexBuffer);
 
@@ -54,24 +84,15 @@ public unsafe class QuadVertexBuffer<TVert> : IDisposable
         commandList.Draw(6, (uint)length, 0, (uint)offset);
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
+
         if (!Disposed)
         {
             VertexBuffer.Dispose();
 
-            foreach (InstanceBuffer instanceBuffer in InstanceBuffers)
-            {
-                instanceBuffer.Dispose();
-            }
-
             Disposed = true;
         }
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }
