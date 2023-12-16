@@ -77,6 +77,8 @@ public class ImGuiRenderer
 
         io.Fonts.SetTexID(FontAtlasId);
 
+        GraphicsDevice.WaitForIdle();
+
         FontTexture?.Dispose();
         FontTexture = GraphicsDevice.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
         FontTexture.Name = "ImGui.NET Font Texture";

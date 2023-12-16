@@ -71,7 +71,7 @@ public partial class ViewerDisplay : IDisposable
             HasMainSwapchain = true
         };
 
-        VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, GraphicsBackend.Direct3D11, out Window, out GraphicsDevice);
+        VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
 
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
@@ -393,6 +393,7 @@ public partial class ViewerDisplay : IDisposable
     {
         if (!Disposed)
         {
+            GraphicsDevice.WaitForIdle();
             //ImGuiRenderer.Dispose();
 
             MainFrameBuffer.Dispose();

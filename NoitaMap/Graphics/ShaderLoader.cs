@@ -13,6 +13,9 @@ public static class ShaderLoader
         byte[] vertexShaderBytes = File.ReadAllBytes(Path.Combine(shaderPath, $"{vertexShader}.spirv"));
         byte[] pixelShaderBytes = File.ReadAllBytes(Path.Combine(shaderPath, $"{pixelShader}.spirv"));
 
+        string vsEntryPoint = "VSMain";
+        string psEntryPoint = "PSMain";
+
         if (graphicsDevice.BackendType != GraphicsBackend.Vulkan)
         {
             CrossCompileTarget compileTarget = graphicsDevice.BackendType switch
@@ -32,6 +35,9 @@ public static class ShaderLoader
 
             vertexShaderBytes = Encoding.UTF8.GetBytes(result.VertexShader);
             pixelShaderBytes = Encoding.UTF8.GetBytes(result.FragmentShader);
+
+            vsEntryPoint = "main";
+            psEntryPoint = "main";
         }
 
         Shader vs = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
@@ -41,7 +47,7 @@ public static class ShaderLoader
 #endif
             ShaderBytes = vertexShaderBytes,
             Stage = ShaderStages.Vertex,
-            EntryPoint = "main"
+            EntryPoint = vsEntryPoint,
         });
 
         Shader ps = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
@@ -51,7 +57,7 @@ public static class ShaderLoader
 #endif
             ShaderBytes = pixelShaderBytes,
             Stage = ShaderStages.Fragment,
-            EntryPoint = "main"
+            EntryPoint = psEntryPoint
         });
 
         return new Shader[] { vs, ps };

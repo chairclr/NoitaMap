@@ -12,7 +12,7 @@ public class VeldridWindow
         Sdl2Native.SDL_Init(SDLInitFlags.Video);
 
         window = CreateWindow(windowOptions);
-        graphicsDevice = CreateGraphicsDevice(window, deviceOptions, GetPlatformDefaultBackend());
+        graphicsDevice = CreateGraphicsDevice(window, deviceOptions, GetPlatformDefaultBackend()); 
     }
 
     public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out Sdl2Window window, out GraphicsDevice graphicsDevice)

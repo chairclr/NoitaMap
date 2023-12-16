@@ -13,32 +13,19 @@ public partial class FastLZ
             {
                 string libraryPath = Path.Combine(File.Exists(assembly.Location) ? Path.GetDirectoryName(assembly.Location)! : Environment.CurrentDirectory, "Assets", "Libraries");
 
-                string extension;
+                string arch = Environment.Is64BitProcess ? "x64" : "x86";
 
                 if (OperatingSystem.IsWindows())
                 {
-                    libraryPath = Path.Combine(libraryPath, "win");
-
-                    extension = "dll";
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "win", arch, $"fastlz.dll"));
                 }
                 else if (OperatingSystem.IsLinux())
                 {
-                    libraryPath = Path.Combine(libraryPath, "lin");
-
-                    extension = "so";
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "lin", arch, $"libfastlz.so"));
                 }
                 else
                 {
-                    throw new Exception("Not Windows/Linux");
-                }
-
-                if (Environment.Is64BitProcess)
-                {
-                    return NativeLibrary.Load(Path.Combine(libraryPath, "x64", $"fastlz.{extension}"));
-                }
-                else
-                {
-                    return NativeLibrary.Load(Path.Combine(libraryPath, "x86", $"fastlz.{extension}"));
+                    throw new Exception("Invalid Platform");
                 }
             }
 
