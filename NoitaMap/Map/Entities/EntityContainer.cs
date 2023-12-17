@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using NoitaMap.Graphics.Atlases;
+using NoitaMap.Logging;
 using NoitaMap.Map.Components;
 using NoitaMap.Viewer;
 using Veldrid;
@@ -92,6 +93,11 @@ public class EntityContainer
                 // + 4 bytes for funny
                 reader.BaseStream.Position += 4;
             }
+
+            if (ms.Position != ms.Length)
+            {
+                Logger.LogWarning($"Failed to fully read {path}");
+            }
         }
 
         decompressedData = null;
@@ -103,8 +109,6 @@ public class EntityContainer
     {
         while (ThreadedEntityQueue.TryDequeue(out Entity? entity))
         {
-            Console.WriteLine($"Loaded Entity (name: {entity.Name}): {entity.FileName}");
-
             Entities.Add(entity);
         }
 

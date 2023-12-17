@@ -2,6 +2,7 @@
 using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
+using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Map.Entities;
 using NoitaMap.Startup;
@@ -200,8 +201,8 @@ public partial class ViewerDisplay : IDisposable
                     File.WriteAllBytes($"entity_error_logs/{Path.GetFileNameWithoutExtension(path)}.bin", decompressed);
 #endif
 
-                    Console.WriteLine($"Error decoding entity at path \"{path}\":");
-                    Console.WriteLine(ex.ToString());
+                    Logger.LogWarning($"Error decoding entity at path \"{path}\":");
+                    Logger.LogWarning(ex);
                 }
             }
         });

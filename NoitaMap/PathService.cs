@@ -1,4 +1,6 @@
-﻿namespace NoitaMap;
+﻿using NoitaMap.Logging;
+
+namespace NoitaMap;
 
 public static class PathService
 {
@@ -18,7 +20,7 @@ public static class PathService
             {
                 if (i + 1 >= args.Length)
                 {
-                    Console.WriteLine("Invalid Command Line Argument");
+                    Logger.LogCritical("Invalid Command Line Argument");
 
                     break;
                 }
@@ -30,7 +32,7 @@ public static class PathService
             {
                 if (i + 1 >= args.Length)
                 {
-                    Console.WriteLine("Invalid Command Line Argument");
+                    Logger.LogCritical("Invalid Command Line Argument");
 
                     break;
                 }
@@ -42,7 +44,7 @@ public static class PathService
             {
                 if (i + 1 >= args.Length)
                 {
-                    Console.WriteLine("Invalid Command Line Argument");
+                    Logger.LogCritical("Invalid Command Line Argument");
 
                     break;
                 }
@@ -57,7 +59,7 @@ public static class PathService
             }
             else
             {
-                Console.WriteLine($"Unknown argument: {arg}");
+                Logger.LogCritical($"Unknown argument: {arg}");
                 PrintUsage();
                 Environment.Exit(-1);
             }
@@ -76,17 +78,19 @@ public static class PathService
 
         if (SavePath is null)
         {
-            Console.WriteLine("Please specify a path for your save: --save \"/path/to/your/save\"");
+            Logger.LogCritical("Please specify a path for your save: --save \"/path/to/your/save\"");
             throw new Exception("No Save Path Specified");
         }
         else
         {
             WorldPath ??= Path.Combine(SavePath, "world");
+
+            DataPath ??= Path.Combine(Path.Combine(SavePath, "../data"));
         }
 
         if (WorldPath is null)
         {
-            Console.WriteLine("Please specify a path for your world: --world \"/path/to/your/save/world\"");
+            Logger.LogCritical("Please specify a path for your world: --world \"/path/to/your/save/world\"");
             throw new Exception("No Save Path Specified");
         }
 
@@ -94,6 +98,10 @@ public static class PathService
         {
             DataPath = null;
         }
+
+        Logger.LogInformation($"SavePath: \"{SavePath}\"");
+        Logger.LogInformation($"WorldPath: \"{WorldPath}\"");
+        Logger.LogInformation($"DataPath: \"{DataPath}\"");
     }
 
     private static void PrintUsage()
