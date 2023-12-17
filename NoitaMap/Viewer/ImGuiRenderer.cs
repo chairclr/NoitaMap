@@ -4,7 +4,7 @@ using Veldrid;
 
 namespace NoitaMap.Viewer;
 
-public class ImGuiRenderer
+public class ImGuiRenderer : IDisposable
 {
     private readonly GraphicsDevice GraphicsDevice;
 
@@ -14,7 +14,7 @@ public class ImGuiRenderer
 
     private bool FrameBegun = false;
 
-    private DeviceBuffer VertexBufer;
+    private DeviceBuffer VertexBuffer;
 
     private DeviceBuffer IndexBuffer;
 
@@ -47,6 +47,8 @@ public class ImGuiRenderer
     private nint TextureId = 100;
 
     private readonly nint FontAtlasId = 1;
+
+    private bool Disposed = false;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public ImGuiRenderer(GraphicsDevice graphicsDevice, OutputDescription outputDescription, int width, int height)
@@ -218,11 +220,11 @@ public class ImGuiRenderer
         }
 
         uint totalVBSize = (uint)(draw_data.TotalVtxCount * sizeof(ImDrawVert));
-        if (totalVBSize > VertexBufer.SizeInBytes)
+        if (totalVBSize > VertexBuffer.SizeInBytes)
         {
-            VertexBufer.Dispose();
-            VertexBufer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalVBSize * 1.5f), BufferUsage.VertexBuffer | BufferUsage.Dynamic));
-            VertexBufer.Name = $"ImGui.NET Vertex Buffer";
+            VertexBuffer.Dispose();
+            VertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalVBSize * 1.5f), BufferUsage.VertexBuffer | BufferUsage.Dynamic));
+            VertexBuffer.Name = $"ImGui.NET Vertex Buffer";
         }
 
         uint totalIBSize = (uint)(draw_data.TotalIdxCount * sizeof(ushort));
@@ -238,7 +240,7 @@ public class ImGuiRenderer
             ImDrawListPtr cmd_list = draw_data.CmdListsRange[i];
 
             cl.UpdateBuffer(
-                VertexBufer,
+                VertexBuffer,
                 vertexOffsetInVertices * (uint)sizeof(ImDrawVert),
                 cmd_list.VtxBuffer.Data,
                 (uint)(cmd_list.VtxBuffer.Size * sizeof(ImDrawVert)));
@@ -268,7 +270,7 @@ public class ImGuiRenderer
             GraphicsDevice.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
         }
 
-        cl.SetVertexBuffer(0, VertexBufer);
+        cl.SetVertexBuffer(0, VertexBuffer);
         cl.SetIndexBuffer(IndexBuffer, IndexFormat.UInt16);
         cl.SetPipeline(ImGuiPipeline);
         cl.SetGraphicsResourceSet(0, MainResourceSet);
@@ -321,8 +323,8 @@ public class ImGuiRenderer
     public void CreateDeviceResources(OutputDescription outputDescription)
     {
         ResourceFactory factory = GraphicsDevice.ResourceFactory;
-        VertexBufer = factory.CreateBuffer(new BufferDescription(10000, BufferUsage.VertexBuffer | BufferUsage.Dynamic));
-        VertexBufer.Name = "ImGui.NET Vertex Buffer";
+        VertexBuffer = factory.CreateBuffer(new BufferDescription(10000, BufferUsage.VertexBuffer | BufferUsage.Dynamic));
+        VertexBuffer.Name = "ImGui.NET Vertex Buffer";
         IndexBuffer = factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.Dynamic));
         IndexBuffer.Name = "ImGui.NET Index Buffer";
 
@@ -377,6 +379,47 @@ public class ImGuiRenderer
         MainResourceSet.Name = "ImGui.NET Main Resource Set";
 
         RecreateFontDeviceTexture();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            VertexBuffer.Dispose();
+
+            IndexBuffer.Dispose();
+
+            ProjectionConstantBuffer.Dispose();
+
+            FontTexture.Dispose();
+
+            VertexShader.Dispose();
+
+            FragmentShader.Dispose();
+
+            Layout.Dispose();
+
+            TextureLayout.Dispose();
+
+            ImGuiPipeline.Dispose();
+
+            MainResourceSet.Dispose();
+
+            FontTextureResourceSet.Dispose();
+
+            foreach (IDisposable disposable in OwnedResources)
+            {
+                disposable.Dispose();
+            }
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 
     private static byte[] LoadEmbeddedShaderCode(ResourceFactory factory, string name, ShaderStages stage)

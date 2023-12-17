@@ -397,7 +397,8 @@ public partial class ViewerDisplay : IDisposable
         if (!Disposed)
         {
             GraphicsDevice.WaitForIdle();
-            //ImGuiRenderer.Dispose();
+            
+            ImGuiRenderer.Dispose();
 
             MainFrameBuffer.Dispose();
 
