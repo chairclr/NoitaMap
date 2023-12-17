@@ -187,6 +187,7 @@ public partial class ViewerDisplay : IDisposable
 
             foreach (string path in entityPaths)
             {
+                StatisticTimer timer = new StatisticTimer("Load Entity").Begin();
                 try
                 {
                     Entities.LoadEntities(path);
@@ -204,6 +205,7 @@ public partial class ViewerDisplay : IDisposable
                     Logger.LogWarning($"Error decoding entity at path \"{path}\":");
                     Logger.LogWarning(ex);
                 }
+                timer.End(StatisticMode.Sum);
             }
         });
 

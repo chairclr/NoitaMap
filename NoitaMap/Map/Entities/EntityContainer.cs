@@ -53,8 +53,6 @@ public class EntityContainer
 
     public void LoadEntities(string path)
     {
-        StatisticTimer timer = new StatisticTimer("Load Entity").Begin();
-
         byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(path);
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
@@ -97,12 +95,12 @@ public class EntityContainer
             if (ms.Position != ms.Length)
             {
                 Logger.LogWarning($"Failed to fully read {path}");
+                throw new Exception();
             }
         }
 
         decompressedData = null;
 
-        timer.End(StatisticMode.Sum);
     }
 
     public void Update()
