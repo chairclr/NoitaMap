@@ -106,6 +106,11 @@ public partial class ViewerDisplay : IDisposable
 
         MainPipeline = CreatePipeline(shaders);
 
+        foreach (Shader shader in shaders)
+        {
+            shader.Dispose();
+        }
+
         MaterialProvider = new MaterialProvider();
 
         ConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
@@ -377,7 +382,7 @@ public partial class ViewerDisplay : IDisposable
     {
         return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
         {
-            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(texture) },
+            BoundResources = new BindableResource[] { texture },
             Layout = PixelTextureResourceLayout
         });
     }
@@ -410,6 +415,14 @@ public partial class ViewerDisplay : IDisposable
             ChunkContainer.Dispose();
 
             Entities.Dispose();
+
+            WorldPixelScenes.Dispose();
+
+            VertexResourceLayout.Dispose();
+
+            PixelSamplerResourceLayout.Dispose();
+
+            PixelTextureResourceLayout.Dispose();
 
             MainCommandList.Dispose();
 
