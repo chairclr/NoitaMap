@@ -60,12 +60,12 @@ public unsafe class QuadVertexBuffer<TVert> : QuadVertexBuffer, IDisposable
         Span<TVert> verts = stackalloc TVert[6];
 
         verts[0] = constructVert(new Vector2(0f, 0f), Vector2.Zero);
-        verts[1] = constructVert(new Vector2(1f, 0f), Vector2.UnitX);
-        verts[2] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
+        verts[2] = constructVert(new Vector2(1f, 0f), Vector2.UnitX);
+        verts[1] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
 
         verts[3] = constructVert(new Vector2(1f, 0f), Vector2.UnitX);
-        verts[4] = constructVert(new Vector2(1f, 1f), Vector2.One);
-        verts[5] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
+        verts[5] = constructVert(new Vector2(1f, 1f), Vector2.One);
+        verts[4] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
 
         GraphicsDevice.UpdateBuffer(VertexBuffer, 0, verts);
 

@@ -342,7 +342,7 @@ public partial class ViewerDisplay : IDisposable
             PrimitiveTopology = PrimitiveTopology.TriangleList,
             RasterizerState = new RasterizerStateDescription()
             {
-                CullMode = FaceCullMode.None,
+                CullMode = FaceCullMode.Front,
                 FillMode = PolygonFillMode.Solid,
                 FrontFace = FrontFace.Clockwise,
             },
@@ -358,7 +358,8 @@ public partial class ViewerDisplay : IDisposable
                     ),
                     new VertexLayoutDescription
                     (
-                        80, 6,
+                        stride: 80,
+                        instanceStepRate: 6,
                         new VertexElementDescription("worldMatrix_0", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix_1", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix_2", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),

@@ -385,32 +385,32 @@ public class ImGuiRenderer : IDisposable
     {
         if (!Disposed)
         {
-            VertexBuffer.Dispose();
-
-            IndexBuffer.Dispose();
-
-            ProjectionConstantBuffer.Dispose();
-
-            FontTexture.Dispose();
-
-            VertexShader.Dispose();
-
-            FragmentShader.Dispose();
+            foreach (IDisposable disposable in OwnedResources)
+            {
+                disposable.Dispose();
+            }
 
             Layout.Dispose();
 
             TextureLayout.Dispose();
 
-            ImGuiPipeline.Dispose();
+            FontTextureResourceSet.Dispose();
+
+            VertexBuffer.Dispose();
+
+            IndexBuffer.Dispose();
 
             MainResourceSet.Dispose();
 
-            FontTextureResourceSet.Dispose();
+            ProjectionConstantBuffer.Dispose();
 
-            foreach (IDisposable disposable in OwnedResources)
-            {
-                disposable.Dispose();
-            }
+            FontTexture.Dispose();
+    
+            VertexShader.Dispose();
+
+            FragmentShader.Dispose();
+
+            ImGuiPipeline.Dispose();
 
             Disposed = true;
         }
