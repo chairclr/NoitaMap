@@ -92,15 +92,19 @@ public class InstanceBuffer<T> : InstanceBuffer
                 Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic
             });
 
-            CopyCommandList.Begin();
+            if (Buffer is not null)
+            {
 
-            CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
+                CopyCommandList.Begin();
 
-            CopyCommandList.End();
+                CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
 
-            GraphicsDevice.SubmitCommands(CopyCommandList);
+                CopyCommandList.End();
 
-            Buffer?.Dispose();
+                GraphicsDevice.SubmitCommands(CopyCommandList);
+
+                Buffer.Dispose();
+            }
 
             Buffer = newBuffer;
         }

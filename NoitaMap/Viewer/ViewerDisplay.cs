@@ -409,6 +409,8 @@ public partial class ViewerDisplay : IDisposable
 
             ChunkContainer.Dispose();
 
+            Entities.Dispose();
+
             MainCommandList.Dispose();
 
             GraphicsDevice.Dispose();

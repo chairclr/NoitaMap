@@ -36,7 +36,7 @@ namespace NoitaMap.Map.Entities;
 // string tags
 // Fields (see schema files)
 
-public class EntityContainer
+public class EntityContainer : IDisposable
 {
     private readonly ConcurrentQueue<Entity> ThreadedEntityQueue = new ConcurrentQueue<Entity>();
 
@@ -45,6 +45,8 @@ public class EntityContainer
     private readonly PixelSpriteAtlasBuffer PixelSpriteAtlas;
 
     public IReadOnlyList<PixelSpriteComponent> PixelSprites => PixelSpriteAtlas.PixelSprites;
+
+    private bool Disposed;
 
     public EntityContainer(ViewerDisplay viewerDisplay)
     {
@@ -116,5 +118,21 @@ public class EntityContainer
     public void Draw(CommandList commandList)
     {
         PixelSpriteAtlas.Draw(commandList);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            PixelSpriteAtlas.Dispose();
+            
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

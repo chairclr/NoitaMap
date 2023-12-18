@@ -65,11 +65,13 @@ public partial class ChunkContainer : IDisposable
             ArrayLayers = 1,
             SampleCount = TextureSampleCount.Count1
         });
+        PhysicsObjectFramebufferTexture.Name = nameof(PhysicsObjectFramebufferTexture);
 
         PhysicsObjectFramebuffer = ViewerDisplay.GraphicsDevice.ResourceFactory.CreateFramebuffer(new FramebufferDescription()
         {
             ColorTargets = new FramebufferAttachmentDescription[] { new FramebufferAttachmentDescription(PhysicsObjectFramebufferTexture, 0) }
         });
+        PhysicsObjectFramebuffer.Name = nameof(PhysicsObjectFramebuffer);
 
         PhysicsObjectResourceSet = ViewerDisplay.CreateTextureBinding(PhysicsObjectFramebufferTexture);
 
@@ -229,6 +231,16 @@ public partial class ChunkContainer : IDisposable
             ConstantBuffer.Dispose();
 
             ChunkAtlas.Dispose();
+
+            PhysicsObjectAtlas.Dispose();
+
+            PhysicsObjectFramebuffer.Dispose();
+
+            PhysicsObjectFramebufferTexture.Dispose();
+
+            PhysicsObjectResourceSet.Dispose();
+
+            VertexBuffer.Dispose();
 
             Disposed = true;
         }
