@@ -4,8 +4,6 @@ using NoitaMap.Graphics;
 using NoitaMap.Graphics.Atlases;
 using NoitaMap.Map;
 using Veldrid;
-using Vortice.Direct3D11;
-using Vulkan.Win32;
 
 namespace NoitaMap.Viewer;
 
