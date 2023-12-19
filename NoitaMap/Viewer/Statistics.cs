@@ -16,9 +16,9 @@ public class Statistics
 public class StatisticTimer
 {
 #if TIME_STATS
-    private string Name;
+    private readonly string Name;
 
-    private ThreadLocal<Stopwatch> Stopwatch = new ThreadLocal<Stopwatch>(() => new Stopwatch());
+    private readonly ThreadLocal<Stopwatch> Stopwatch = new ThreadLocal<Stopwatch>(() => new Stopwatch());
 #endif
 
     public StatisticTimer(string name)
