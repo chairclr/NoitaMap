@@ -29,13 +29,15 @@ namespace NoitaMap.Map;
 // int length
 // PixelScene[length] scenes
 
-public class WorldPixelScenes
+public class WorldPixelScenes : IDisposable
 {
     private readonly ViewerDisplay ViewerDisplay;
 
     private readonly PixelSceneAtlasBuffer PixelScenesAtlas;
 
     public IReadOnlyList<PixelScene> PixelScenes => PixelScenesAtlas.PixelScenes;
+    
+    private bool Disposed;
 
     public WorldPixelScenes(ViewerDisplay viewerDisplay)
     {
@@ -95,5 +97,21 @@ public class WorldPixelScenes
     public void Draw(CommandList commandList)
     {
         PixelScenesAtlas.Draw(commandList);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            PixelScenesAtlas.Dispose();
+
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

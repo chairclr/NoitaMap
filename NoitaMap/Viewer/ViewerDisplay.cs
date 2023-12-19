@@ -2,11 +2,12 @@
 using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
+using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Map.Entities;
+using NoitaMap.Startup;
 using Veldrid;
 using Veldrid.Sdl2;
-using Veldrid.StartupUtilities;
 
 namespace NoitaMap.Viewer;
 
@@ -46,20 +47,20 @@ public partial class ViewerDisplay : IDisposable
 
     private readonly EntityContainer Entities;
 
-    private readonly ImGuiRenderer ImGuiRenderer;
+    public readonly ImGuiRenderer ImGuiRenderer;
 
     private bool Disposed;
 
     public ViewerDisplay()
     {
-        WindowCreateInfo windowOptions = new WindowCreateInfo()
+        WindowOptions windowOptions = new WindowOptions()
         {
             X = 50,
             Y = 50,
-            WindowWidth = 1280,
-            WindowHeight = 720,
-            WindowInitialState = WindowState.Normal,
-            WindowTitle = "Noita Map Viewer",
+            Width = 1280,
+            Height = 720,
+            Title = "Noita Map Viewer",
+            Hide = false
         };
 
         GraphicsDeviceOptions graphicsOptions = new GraphicsDeviceOptions()
@@ -68,11 +69,10 @@ public partial class ViewerDisplay : IDisposable
             Debug = true,
 #endif
             SyncToVerticalBlank = true,
-            HasMainSwapchain = true,
-
+            HasMainSwapchain = true
         };
 
-        VeldridStartup.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
+        VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
 
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
@@ -106,6 +106,11 @@ public partial class ViewerDisplay : IDisposable
 
         MainPipeline = CreatePipeline(shaders);
 
+        foreach (Shader shader in shaders)
+        {
+            shader.Dispose();
+        }
+
         MaterialProvider = new MaterialProvider();
 
         ConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
@@ -123,15 +128,6 @@ public partial class ViewerDisplay : IDisposable
         Entities = new EntityContainer(this);
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Width, Window.Height);
-
-        // End frame because it starts a frame, which locks my font texture atlas
-        ImGui.EndFrame();
-
-        FontAssets.AddImGuiFont();
-
-        ImGuiRenderer.RecreateFontDeviceTexture(GraphicsDevice);
-
-        ImGui.NewFrame();
 
         Window.Resized += HandleResize;
     }
@@ -196,6 +192,7 @@ public partial class ViewerDisplay : IDisposable
 
             foreach (string path in entityPaths)
             {
+                StatisticTimer timer = new StatisticTimer("Load Entity").Begin();
                 try
                 {
                     Entities.LoadEntities(path);
@@ -210,9 +207,10 @@ public partial class ViewerDisplay : IDisposable
                     File.WriteAllBytes($"entity_error_logs/{Path.GetFileNameWithoutExtension(path)}.bin", decompressed);
 #endif
 
-                    Console.WriteLine($"Error decoding entity at path \"{path}\":");
-                    Console.WriteLine(ex.ToString());
+                    Logger.LogWarning($"Error decoding entity at path \"{path}\":");
+                    Logger.LogWarning(ex);
                 }
+                timer.End(StatisticMode.Sum);
             }
         });
 
@@ -230,15 +228,9 @@ public partial class ViewerDisplay : IDisposable
 
             InputSnapshot inputSnapshot = Window.PumpEvents();
 
-            ImGuiIOPtr io = ImGui.GetIO();
-            foreach (KeyEvent keyEvent in inputSnapshot.KeyEvents)
-            {
-                io.AddKeyEvent(KeyTranslator.GetKey(keyEvent.Key), keyEvent.Down);
-            }
-
-            ImGuiRenderer.Update(deltaTime, inputSnapshot);
-
             InputSystem.Update(inputSnapshot);
+
+            ImGuiRenderer.BeginFrame(deltaTime, inputSnapshot);
 
             Update();
 
@@ -326,7 +318,7 @@ public partial class ViewerDisplay : IDisposable
 
         DrawUI();
 
-        ImGuiRenderer.Render(GraphicsDevice, MainCommandList);
+        ImGuiRenderer.EndFrame(MainCommandList);
 
         StatisticTimer timer = new StatisticTimer("Main Command List").Begin();
 
@@ -355,7 +347,7 @@ public partial class ViewerDisplay : IDisposable
             PrimitiveTopology = PrimitiveTopology.TriangleList,
             RasterizerState = new RasterizerStateDescription()
             {
-                CullMode = FaceCullMode.None,
+                CullMode = FaceCullMode.Front,
                 FillMode = PolygonFillMode.Solid,
                 FrontFace = FrontFace.Clockwise,
             },
@@ -371,7 +363,8 @@ public partial class ViewerDisplay : IDisposable
                     ),
                     new VertexLayoutDescription
                     (
-                        80, 6,
+                        stride: 80,
+                        instanceStepRate: 6,
                         new VertexElementDescription("worldMatrix_0", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix_1", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix_2", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
@@ -389,7 +382,7 @@ public partial class ViewerDisplay : IDisposable
     {
         return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
         {
-            BoundResources = new BindableResource[] { GraphicsDevice.ResourceFactory.CreateTextureView(texture) },
+            BoundResources = new BindableResource[] { texture },
             Layout = PixelTextureResourceLayout
         });
     }
@@ -400,17 +393,17 @@ public partial class ViewerDisplay : IDisposable
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
-        ChunkContainer.Resize();
+        ChunkContainer.HandleResize();
 
-        ImGuiRenderer.WindowResized(Window.Width, Window.Height);
+        ImGuiRenderer.HandleResize(Window.Width, Window.Height);
     }
 
     protected virtual void Dispose(bool disposing)
     {
         if (!Disposed)
         {
-            //Window.Dispose();
-
+            GraphicsDevice.WaitForIdle();
+            
             ImGuiRenderer.Dispose();
 
             MainFrameBuffer.Dispose();
@@ -420,6 +413,16 @@ public partial class ViewerDisplay : IDisposable
             MainPipeline.Dispose();
 
             ChunkContainer.Dispose();
+
+            Entities.Dispose();
+
+            WorldPixelScenes.Dispose();
+
+            VertexResourceLayout.Dispose();
+
+            PixelSamplerResourceLayout.Dispose();
+
+            PixelTextureResourceLayout.Dispose();
 
             MainCommandList.Dispose();
 

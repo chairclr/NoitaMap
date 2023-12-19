@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using NoitaMap.Graphics.Atlases;
+using NoitaMap.Logging;
 using NoitaMap.Map.Components;
 using NoitaMap.Viewer;
 using Veldrid;
@@ -35,7 +36,7 @@ namespace NoitaMap.Map.Entities;
 // string tags
 // Fields (see schema files)
 
-public class EntityContainer
+public class EntityContainer : IDisposable
 {
     private readonly ConcurrentQueue<Entity> ThreadedEntityQueue = new ConcurrentQueue<Entity>();
 
@@ -45,6 +46,8 @@ public class EntityContainer
 
     public IReadOnlyList<PixelSpriteComponent> PixelSprites => PixelSpriteAtlas.PixelSprites;
 
+    private bool Disposed;
+
     public EntityContainer(ViewerDisplay viewerDisplay)
     {
         PixelSpriteAtlas = new PixelSpriteAtlasBuffer(viewerDisplay);
@@ -52,8 +55,6 @@ public class EntityContainer
 
     public void LoadEntities(string path)
     {
-        StatisticTimer timer = new StatisticTimer("Load Entity").Begin();
-
         byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(path);
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
@@ -92,19 +93,22 @@ public class EntityContainer
                 // + 4 bytes for funny
                 reader.BaseStream.Position += 4;
             }
+
+            if (ms.Position != ms.Length)
+            {
+                Logger.LogWarning($"Failed to fully read {path}");
+                throw new Exception();
+            }
         }
 
         decompressedData = null;
 
-        timer.End(StatisticMode.Sum);
     }
 
     public void Update()
     {
         while (ThreadedEntityQueue.TryDequeue(out Entity? entity))
         {
-            Console.WriteLine($"Loaded Entity (name: {entity.Name}): {entity.FileName}");
-
             Entities.Add(entity);
         }
 
@@ -114,5 +118,21 @@ public class EntityContainer
     public void Draw(CommandList commandList)
     {
         PixelSpriteAtlas.Draw(commandList);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            PixelSpriteAtlas.Dispose();
+            
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

@@ -1,4 +1,5 @@
-﻿using NoitaMap.Map.Schemas;
+﻿using NoitaMap.Logging;
+using NoitaMap.Map.Schemas;
 
 namespace NoitaMap.Map.Components;
 
@@ -192,7 +193,7 @@ public class DummyComponent : Component
         }
         catch
         {
-            Console.WriteLine($"Exception at {reader.BaseStream.Position}:");
+            Logger.LogWarning($"Error reading component. Exception at {reader.BaseStream.Position} for \"{ComponentName}\":");
 
             throw;
         }

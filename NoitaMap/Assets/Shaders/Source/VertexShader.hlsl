@@ -1,5 +1,6 @@
 #include "Common.hlsl"
 
+[[vk::binding(0, 0)]]
 cbuffer VertexShaderBuffer : register(b0)
 {
     row_major float4x4 ViewProjection; // 64 bytes

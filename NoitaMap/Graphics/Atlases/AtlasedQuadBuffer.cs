@@ -88,6 +88,11 @@ public abstract class AtlasedQuadBuffer : IDisposable
     {
         if (!Disposed)
         {
+            foreach (Texture texture in Textures)
+            {
+                texture.Dispose();
+            }
+
             foreach (ResourceSet res in ResourceAtlases)
             {
                 res.Dispose();

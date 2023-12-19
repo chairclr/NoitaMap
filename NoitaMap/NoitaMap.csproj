@@ -12,17 +12,47 @@
   <PropertyGroup Condition="'$(PublishProtocol)'==''">
     <DefineConstants>$(DefineConstants);TIME_STATS</DefineConstants>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\GLSL\imgui-frag.glsl">
+      <LogicalName>imgui-frag.glsl</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\GLSL\imgui-vertex.glsl">
+      <LogicalName>imgui-vertex.glsl</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\GLSL\imgui-vertex-legacy.glsl">
+      <LogicalName>imgui-vertex-legacy.glsl</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-frag.hlsl.bytes">
+      <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-vertex.hlsl.bytes">
+      <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\HLSL\imgui-vertex-legacy.hlsl.bytes">
+      <LogicalName>imgui-vertex-legacy.hlsl.bytes</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\Metal\imgui-frag.metallib">
+      <LogicalName>imgui-frag.metallib</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\Metal\imgui-vertex.metallib">
+      <LogicalName>imgui-vertex.metallib</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\SPIR-V\imgui-frag.spv">
+      <LogicalName>imgui-frag.spv</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\ImGui-Embedded\SPIR-V\imgui-vertex.spv">
+      <LogicalName>imgui-vertex.spv</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
     <PackageReference Include="ImGui.NET" Version="1.89.7.1" />
+    <PackageReference Include="ppy.Veldrid" Version="4.9.3-gf4e09bb395" />
+    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gc5e8498253" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
-    <PackageReference Include="Veldrid" Version="4.9.0" />
-    <PackageReference Include="Veldrid.ImGui" Version="5.72.0" />
-    <PackageReference Include="Veldrid.RenderDoc" Version="1.0.1" />
     <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
   </ItemGroup>
   
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild">
@@ -71,7 +101,7 @@
 
           Process process = new Process();
           process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", windows ? "win" : "linux", windows ? "dxc.exe" : "dxc");
-          process.StartInfo.Arguments = string.Format("-spirv -fvk-s-shift 1 0 -fvk-b-shift 2 0 -T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderCompilationPathNoExtension);
+          process.StartInfo.Arguments = string.Format("-spirv -T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderCompilationPathNoExtension);
           process.StartInfo.CreateNoWindow = true;
           process.StartInfo.UseShellExecute = false;
           process.StartInfo.RedirectStandardOutput = true;

@@ -69,8 +69,6 @@ public class InstanceBuffer<T> : InstanceBuffer
         lock (Instances)
         {
             Instances.Add(instanceData);
-
-            CheckCapacity();
         }
     }
 
@@ -79,8 +77,6 @@ public class InstanceBuffer<T> : InstanceBuffer
         lock (Instances)
         {
             Instances.Insert(index, instanceData);
-
-            CheckCapacity();
         }
     }
 
@@ -96,16 +92,19 @@ public class InstanceBuffer<T> : InstanceBuffer
                 Usage = BufferUsage.VertexBuffer | BufferUsage.Dynamic
             });
 
-            CopyCommandList.Begin();
+            if (Buffer is not null)
+            {
 
-            // -1 because we just added an element
-            CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
+                CopyCommandList.Begin();
 
-            CopyCommandList.End();
+                CopyCommandList.CopyBuffer(Buffer, 0, newBuffer, 0, Buffer!.SizeInBytes);
 
-            GraphicsDevice.SubmitCommands(CopyCommandList);
+                CopyCommandList.End();
 
-            Buffer?.Dispose();
+                GraphicsDevice.SubmitCommands(CopyCommandList);
+
+                Buffer.Dispose();
+            }
 
             Buffer = newBuffer;
         }
@@ -115,6 +114,8 @@ public class InstanceBuffer<T> : InstanceBuffer
     {
         lock (Instances)
         {
+            CheckCapacity();
+
             MappedResource resource = GraphicsDevice.Map(Buffer, MapMode.Write);
 
             Span<T> span = CollectionsMarshal.AsSpan(Instances);

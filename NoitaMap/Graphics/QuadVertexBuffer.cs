@@ -4,62 +4,27 @@ using Veldrid;
 
 namespace NoitaMap.Graphics;
 
-public unsafe class QuadVertexBuffer<TVert> : IDisposable
-    where TVert : unmanaged
+public abstract class QuadVertexBuffer : IDisposable
 {
-    private readonly GraphicsDevice GraphicsDevice;
-
-    private readonly DeviceBuffer VertexBuffer;
+    protected readonly GraphicsDevice GraphicsDevice;
 
     public List<InstanceBuffer> InstanceBuffers = new List<InstanceBuffer>();
 
-    public bool Ready { get; private set; } = false;
-
     private bool Disposed;
 
-    public QuadVertexBuffer(GraphicsDevice graphicsDevice, Func<Vector2, Vector2, TVert> constructVert, params InstanceBuffer[] instanceBuffers)
+    public bool Ready { get; protected set; } = false;
+
+    public QuadVertexBuffer(GraphicsDevice graphicsDevice)
     {
         GraphicsDevice = graphicsDevice;
-
-        VertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
-        {
-            SizeInBytes = (uint)(Unsafe.SizeOf<TVert>() * 6),
-            Usage = BufferUsage.VertexBuffer
-        });
-
-        Span<TVert> verts = stackalloc TVert[6];
-
-        verts[0] = constructVert(new Vector2(0f, 0f), Vector2.Zero);
-        verts[1] = constructVert(new Vector2(1f, 0f), Vector2.UnitX);
-        verts[2] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
-
-        verts[3] = constructVert(new Vector2(1f, 0f), Vector2.UnitX);
-        verts[4] = constructVert(new Vector2(1f, 1f), Vector2.One);
-        verts[5] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
-
-        GraphicsDevice.UpdateBuffer(VertexBuffer, 0, verts);
-
-        InstanceBuffers.AddRange(instanceBuffers);
     }
 
-    public void Draw(CommandList commandList, int length, int offset)
-    {
-        commandList.SetVertexBuffer(0, VertexBuffer);
-
-        for (int i = 0; i < InstanceBuffers.Count; i++)
-        {
-            commandList.SetVertexBuffer((uint)(i + 1), InstanceBuffers[i].Buffer!);
-        }
-
-        commandList.Draw(6, (uint)length, 0, (uint)offset);
-    }
+    public abstract void Draw(CommandList commandList, int length, int offset);
 
     protected virtual void Dispose(bool disposing)
     {
         if (!Disposed)
         {
-            VertexBuffer.Dispose();
-
             foreach (InstanceBuffer instanceBuffer in InstanceBuffers)
             {
                 instanceBuffer.Dispose();
@@ -73,5 +38,61 @@ public unsafe class QuadVertexBuffer<TVert> : IDisposable
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+}
+
+public unsafe class QuadVertexBuffer<TVert> : QuadVertexBuffer, IDisposable
+    where TVert : unmanaged
+{
+    private readonly DeviceBuffer VertexBuffer;
+
+    private bool Disposed;
+
+    public QuadVertexBuffer(GraphicsDevice graphicsDevice, Func<Vector2, Vector2, TVert> constructVert, params InstanceBuffer[] instanceBuffers)
+        : base(graphicsDevice)
+    {
+        VertexBuffer = GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription()
+        {
+            SizeInBytes = (uint)(Unsafe.SizeOf<TVert>() * 6),
+            Usage = BufferUsage.VertexBuffer
+        });
+
+        Span<TVert> verts = stackalloc TVert[6];
+
+        verts[0] = constructVert(new Vector2(0f, 0f), Vector2.Zero);
+        verts[2] = constructVert(new Vector2(1f, 0f), Vector2.UnitX);
+        verts[1] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
+
+        verts[3] = constructVert(new Vector2(1f, 0f), Vector2.UnitX);
+        verts[5] = constructVert(new Vector2(1f, 1f), Vector2.One);
+        verts[4] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
+
+        GraphicsDevice.UpdateBuffer(VertexBuffer, 0, verts);
+
+        InstanceBuffers.AddRange(instanceBuffers);
+    }
+
+    public override void Draw(CommandList commandList, int length, int offset)
+    {
+        commandList.SetVertexBuffer(0, VertexBuffer);
+
+        for (int i = 0; i < InstanceBuffers.Count; i++)
+        {
+            commandList.SetVertexBuffer((uint)(i + 1), InstanceBuffers[i].Buffer!);
+        }
+
+        commandList.Draw(6, (uint)length, 0, (uint)offset);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+
+        if (!Disposed)
+        {
+            VertexBuffer.Dispose();
+
+            Disposed = true;
+        }
     }
 }
