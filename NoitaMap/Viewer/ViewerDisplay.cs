@@ -8,6 +8,7 @@ using NoitaMap.Map.Entities;
 using NoitaMap.Startup;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using Silk.NET.Windowing.Sdl;
 using Veldrid;
 
 namespace NoitaMap.Viewer;
@@ -16,39 +17,39 @@ public partial class ViewerDisplay : IDisposable
 {
     public readonly IWindow Window;
 
-    public readonly GraphicsDevice GraphicsDevice;
+    public GraphicsDevice GraphicsDevice;
 
-    private readonly CommandList MainCommandList;
+    private CommandList MainCommandList;
 
     private Framebuffer MainFrameBuffer;
 
-    private readonly Pipeline MainPipeline;
+    private Pipeline MainPipeline;
 
-    private readonly ResourceLayout VertexResourceLayout;
+    private ResourceLayout VertexResourceLayout;
 
-    private readonly ResourceLayout PixelSamplerResourceLayout;
+    private ResourceLayout PixelSamplerResourceLayout;
 
-    private readonly ResourceLayout PixelTextureResourceLayout;
+    private ResourceLayout PixelTextureResourceLayout;
 
-    private readonly ResourceSet VertexResourceSet;
+    private ResourceSet VertexResourceSet;
 
-    private readonly ResourceSet PixelSamplerResourceSet;
+    private ResourceSet PixelSamplerResourceSet;
 
-    public readonly MaterialProvider MaterialProvider;
+    public MaterialProvider MaterialProvider;
 
-    public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
+    public ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
-    private readonly ChunkContainer ChunkContainer;
+    private ChunkContainer ChunkContainer;
 
     private int TotalChunkCount = 0;
 
     private int LoadedChunks = 0;
 
-    private readonly WorldPixelScenes WorldPixelScenes;
+    private WorldPixelScenes WorldPixelScenes;
 
-    private readonly EntityContainer Entities;
+    private EntityContainer Entities;
 
-    public readonly ImGuiRenderer ImGuiRenderer;
+    public ImGuiRenderer ImGuiRenderer;
 
     private bool Disposed;
 
@@ -56,11 +57,44 @@ public partial class ViewerDisplay : IDisposable
     {
         WindowOptions windowOptions = new WindowOptions()
         {
-            Position = new Silk.NET.Maths.Vector2D<int>(50, 50),
-            Size = new Silk.NET.Maths.Vector2D<int>(1280, 720),
-            Title = "Noita Map Viewer"
+            Position = new Vector2D<int>(50, 50),
+            Size = new Vector2D<int>(1280, 720),
+            Title = "Noita Map Viewer",
+            API = GraphicsAPI.None,
+            IsVisible = true,
+            ShouldSwapAutomatically = false
         };
 
+        SdlWindowing.Use();
+
+        Window = Silk.NET.Windowing.Window.Create(windowOptions);
+
+        Window.Load += Load;
+
+        Window.Resize += HandleResize;
+
+        Window.Render += (double d) => 
+        {
+            DeltaTimeWatch.Stop();
+
+            float deltaTime = (float)DeltaTimeWatch.Elapsed.TotalSeconds;
+
+            DeltaTimeWatch.Restart();
+
+            InputSystem.Update(Window);
+
+            ImGuiRenderer!.BeginFrame(deltaTime);
+
+            Update();
+
+            Render();
+        };
+
+        Window.Run();
+    }
+
+    public void Load()
+    {
         GraphicsDeviceOptions graphicsOptions = new GraphicsDeviceOptions()
         {
 #if DEBUG
@@ -70,7 +104,7 @@ public partial class ViewerDisplay : IDisposable
             HasMainSwapchain = true
         };
 
-        VeldridWindow.CreateWindowAndGraphicsDevice(windowOptions, graphicsOptions, out Window, out GraphicsDevice);
+        VeldridWindow.CreateWindowAndGraphicsDevice(Window, graphicsOptions, out GraphicsDevice);
 
         MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
@@ -127,10 +161,10 @@ public partial class ViewerDisplay : IDisposable
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
-        Window.Resize += HandleResize;
+        StartLoading();
     }
 
-    public void Start()
+    public void StartLoading()
     {
         Task.Run(() =>
         {
@@ -211,27 +245,6 @@ public partial class ViewerDisplay : IDisposable
                 timer.End(StatisticMode.Sum);
             }
         });
-
-        bool exit = false;
-
-        Window.Closing += () => exit = true;
-
-        while (!exit)
-        {
-            DeltaTimeWatch.Stop();
-
-            float deltaTime = (float)DeltaTimeWatch.Elapsed.TotalSeconds;
-
-            DeltaTimeWatch.Restart();
-
-            InputSystem.Update(Window);
-
-            ImGuiRenderer.BeginFrame(deltaTime);
-
-            Update();
-
-            Render();
-        }
     }
 
     private Vector2 MouseTranslateOrigin = Vector2.Zero;

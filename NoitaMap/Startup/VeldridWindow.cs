@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using NoitaMap.Logging;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Sdl;
 using Veldrid;
@@ -7,23 +8,14 @@ namespace NoitaMap.Startup;
 
 public class VeldridWindow
 {
-    public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, out IWindow window, out GraphicsDevice graphicsDevice)
+    public static void CreateWindowAndGraphicsDevice(IWindow window, GraphicsDeviceOptions deviceOptions, out GraphicsDevice graphicsDevice)
     {
-        window = CreateWindow(windowOptions);
-        graphicsDevice = CreateGraphicsDevice(window, deviceOptions, GetPlatformDefaultBackend()); 
+        graphicsDevice = CreateGraphicsDevice(window, deviceOptions, GetPlatformDefaultBackend());
     }
 
-    public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out IWindow window, out GraphicsDevice graphicsDevice)
+    public static void CreateWindowAndGraphicsDevice(IWindow window, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out GraphicsDevice graphicsDevice)
     {
-        window = CreateWindow(windowOptions);
         graphicsDevice = CreateGraphicsDevice(window, deviceOptions, preferredBackend);
-    }
-
-    private static IWindow CreateWindow(in WindowOptions windowOptions)
-    {
-        SdlWindowing.Use();
-
-        return Window.Create(windowOptions);
     }
 
     private static GraphicsDevice CreateGraphicsDevice(IWindow window, GraphicsDeviceOptions options, GraphicsBackend backend)
@@ -72,6 +64,8 @@ public class VeldridWindow
 
     public static unsafe SwapchainSource GetSwapchainSource(IWindow window)
     {
+        Logger.LogInformation(window.Native?.ToString());
+
         if (window.Native?.Win32 is not null)
         {
             return SwapchainSource.CreateWin32(window.Native.Win32.Value.Hwnd, window.Native.Win32.Value.HInstance);
