@@ -53,8 +53,8 @@ public partial class ChunkContainer : IDisposable
         {
             Type = TextureType.Texture2D,
             Format = PixelFormat.B8_G8_R8_A8_UNorm,
-            Width = (uint)ViewerDisplay.Window.Width,
-            Height = (uint)ViewerDisplay.Window.Height,
+            Width = (uint)ViewerDisplay.Window.Size.X,
+            Height = (uint)ViewerDisplay.Window.Size.Y,
             Usage = TextureUsage.Sampled | TextureUsage.RenderTarget,
             MipLevels = 1,
 
@@ -194,8 +194,8 @@ public partial class ChunkContainer : IDisposable
         {
             Type = TextureType.Texture2D,
             Format = PixelFormat.B8_G8_R8_A8_UNorm,
-            Width = (uint)ViewerDisplay.Window.Width,
-            Height = (uint)ViewerDisplay.Window.Height,
+            Width = (uint)ViewerDisplay.Window.Size.X,
+            Height = (uint)ViewerDisplay.Window.Size.Y,
             Usage = TextureUsage.Sampled | TextureUsage.RenderTarget,
             MipLevels = 1,
 

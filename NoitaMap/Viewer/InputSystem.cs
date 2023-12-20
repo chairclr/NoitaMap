@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
-using Veldrid;
-using Veldrid.Sdl2;
+using Silk.NET.Input;
+using Silk.NET.Windowing;
 
 namespace NoitaMap.Viewer;
 
@@ -11,25 +11,28 @@ public unsafe static class InputSystem
 
     private static MouseState CurrentMouseState = new MouseState();
 
-    private delegate uint GetMouseStateDelegate(out int x, out int y);
+    private static IInputContext? InputContext;
 
-    private static GetMouseStateDelegate? GetMouseState;
+    private static IMouse? Mouse;
 
-    public static void Update(InputSnapshot inputSnapshot)
+    private static IKeyboard? Keyboard;
+
+    public static void Update(IWindow window)
     {
-        GetMouseState ??= Sdl2Native.LoadFunction<GetMouseStateDelegate>("SDL_GetMouseState");
+        InputContext ??= window.CreateInput();
+        Mouse ??= InputContext.Mice[0];
+        Keyboard ??= InputContext.Keyboards[0];
 
         LastMouseState = CurrentMouseState;
 
         // We use GetMouseState to be more responsive
-        GetMouseState(out int x, out int y);
-        CurrentMouseState.Position = new Vector2(x, y);
+        CurrentMouseState.Position = Mouse.Position;
 
-        CurrentMouseState.LeftDown = inputSnapshot.IsMouseDown(MouseButton.Left);
-        CurrentMouseState.RightDown = inputSnapshot.IsMouseDown(MouseButton.Right);
-        CurrentMouseState.MiddleDown = inputSnapshot.IsMouseDown(MouseButton.Middle);
+        CurrentMouseState.LeftDown = Mouse.IsButtonPressed(MouseButton.Left);
+        CurrentMouseState.RightDown = Mouse.IsButtonPressed(MouseButton.Right);
+        CurrentMouseState.MiddleDown = Mouse.IsButtonPressed(MouseButton.Middle);
 
-        CurrentMouseState.Scroll += inputSnapshot.WheelDelta;
+        CurrentMouseState.Scroll += Mouse.ScrollWheels[0].X;
     }
 
     public static bool LeftMouseDown => !ImGui.GetIO().WantCaptureMouse && CurrentMouseState.LeftDown;
@@ -52,7 +55,7 @@ public unsafe static class InputSystem
 
     public static Vector2 MousePosition => CurrentMouseState.Position;
 
-    public static float ScrollDelta => ImGui.GetIO().WantCaptureMouse ? 0f : (CurrentMouseState.Scroll - LastMouseState.Scroll);
+    public static float ScrollDelta => ImGui.GetIO().WantCaptureMouse ? 0f : CurrentMouseState.Scroll;
 
     private struct MouseState
     {

@@ -6,14 +6,15 @@ using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Map.Entities;
 using NoitaMap.Startup;
+using Silk.NET.Maths;
+using Silk.NET.Windowing;
 using Veldrid;
-using Veldrid.Sdl2;
 
 namespace NoitaMap.Viewer;
 
 public partial class ViewerDisplay : IDisposable
 {
-    public readonly Sdl2Window Window;
+    public readonly IWindow Window;
 
     public readonly GraphicsDevice GraphicsDevice;
 
@@ -55,12 +56,9 @@ public partial class ViewerDisplay : IDisposable
     {
         WindowOptions windowOptions = new WindowOptions()
         {
-            X = 50,
-            Y = 50,
-            Width = 1280,
-            Height = 720,
-            Title = "Noita Map Viewer",
-            Hide = false
+            Position = new Silk.NET.Maths.Vector2D<int>(50, 50),
+            Size = new Silk.NET.Maths.Vector2D<int>(1280, 720),
+            Title = "Noita Map Viewer"
         };
 
         GraphicsDeviceOptions graphicsOptions = new GraphicsDeviceOptions()
@@ -115,7 +113,7 @@ public partial class ViewerDisplay : IDisposable
 
         ConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
 
-        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Width, Window.Height, 0f, 1f);
+        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
 
         VertexResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(VertexResourceLayout, ConstantBuffer.DeviceBuffer));
 
@@ -127,9 +125,9 @@ public partial class ViewerDisplay : IDisposable
 
         Entities = new EntityContainer(this);
 
-        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Width, Window.Height);
+        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
-        Window.Resized += HandleResize;
+        Window.Resize += HandleResize;
     }
 
     public void Start()
@@ -226,11 +224,9 @@ public partial class ViewerDisplay : IDisposable
 
             DeltaTimeWatch.Restart();
 
-            InputSnapshot inputSnapshot = Window.PumpEvents();
+            InputSystem.Update(Window);
 
-            InputSystem.Update(inputSnapshot);
-
-            ImGuiRenderer.BeginFrame(deltaTime, inputSnapshot);
+            ImGuiRenderer.BeginFrame(deltaTime);
 
             Update();
 
@@ -249,7 +245,7 @@ public partial class ViewerDisplay : IDisposable
             Matrix4x4.CreateScale(new Vector3(ViewScale, 1f));
 
     public Matrix4x4 Projection =>
-        Matrix4x4.CreateOrthographic(Window.Width, Window.Height, 0f, 1f);
+        Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
 
     public Stopwatch DeltaTimeWatch = Stopwatch.StartNew();
 
@@ -383,15 +379,15 @@ public partial class ViewerDisplay : IDisposable
         });
     }
 
-    private void HandleResize()
+    private void HandleResize(Vector2D<int> size)
     {
-        GraphicsDevice.ResizeMainWindow((uint)Window.Width, (uint)Window.Height);
+        GraphicsDevice.ResizeMainWindow((uint)size.X, (uint)size.Y);
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
         ChunkContainer.HandleResize();
 
-        ImGuiRenderer.HandleResize(Window.Width, Window.Height);
+        ImGuiRenderer.HandleResize(size.X, size.Y);
     }
 
     protected virtual void Dispose(bool disposing)

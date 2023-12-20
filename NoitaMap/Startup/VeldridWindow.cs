@@ -1,45 +1,32 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using Silk.NET.Windowing;
+using Silk.NET.Windowing.Sdl;
 using Veldrid;
-using Veldrid.Sdl2;
 
 namespace NoitaMap.Startup;
 
 public class VeldridWindow
 {
-    public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, out Sdl2Window window, out GraphicsDevice graphicsDevice)
+    public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, out IWindow window, out GraphicsDevice graphicsDevice)
     {
-        Sdl2Native.SDL_Init(SDLInitFlags.Video);
-
         window = CreateWindow(windowOptions);
         graphicsDevice = CreateGraphicsDevice(window, deviceOptions, GetPlatformDefaultBackend()); 
     }
 
-    public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out Sdl2Window window, out GraphicsDevice graphicsDevice)
+    public static void CreateWindowAndGraphicsDevice(WindowOptions windowOptions, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out IWindow window, out GraphicsDevice graphicsDevice)
     {
-        Sdl2Native.SDL_Init(SDLInitFlags.Video);
-
         window = CreateWindow(windowOptions);
         graphicsDevice = CreateGraphicsDevice(window, deviceOptions, preferredBackend);
     }
 
-    private static Sdl2Window CreateWindow(in WindowOptions windowOptions)
+    private static IWindow CreateWindow(in WindowOptions windowOptions)
     {
-        SDL_WindowFlags flags = SDL_WindowFlags.OpenGL | SDL_WindowFlags.Resizable;
+        SdlWindowing.Use();
 
-        if (windowOptions.Hide)
-        {
-            flags |= SDL_WindowFlags.Hidden;
-        }
-        else
-        {
-            flags |= SDL_WindowFlags.Shown;
-        }
-
-        return new Sdl2Window(windowOptions.Title, windowOptions.X, windowOptions.Y, windowOptions.Width, windowOptions.Height, flags, false);
+        return Window.Create(windowOptions);
     }
 
-    private static GraphicsDevice CreateGraphicsDevice(Sdl2Window window, GraphicsDeviceOptions options, GraphicsBackend backend)
+    private static GraphicsDevice CreateGraphicsDevice(IWindow window, GraphicsDeviceOptions options, GraphicsBackend backend)
     {
         switch (backend)
         {
@@ -58,67 +45,51 @@ public class VeldridWindow
         throw new Exception($"Couldn't create graphics device for {backend}");
     }
 
-    private static SwapchainDescription GetSwapchainDesc(GraphicsDeviceOptions options, Sdl2Window window)
+    private static SwapchainDescription GetSwapchainDesc(GraphicsDeviceOptions options, IWindow window)
     {
         return new SwapchainDescription(
             GetSwapchainSource(window),
-            (uint)window.Width, (uint)window.Height,
+            (uint)window.Size.X, (uint)window.Size.Y,
             options.SwapchainDepthFormat,
             options.SyncToVerticalBlank,
             options.SwapchainSrgbFormat);
     }
 
-    public static GraphicsDevice CreateDefaultD3D11GraphicsDevice(GraphicsDeviceOptions options, Sdl2Window window)
+    public static GraphicsDevice CreateDefaultD3D11GraphicsDevice(GraphicsDeviceOptions options, IWindow window)
     {
         return GraphicsDevice.CreateD3D11(options, GetSwapchainDesc(options, window));
     }
 
-    public static GraphicsDevice CreateVulkanGraphicsDevice(GraphicsDeviceOptions options, Sdl2Window window)
+    public static GraphicsDevice CreateVulkanGraphicsDevice(GraphicsDeviceOptions options, IWindow window)
     {
         return GraphicsDevice.CreateVulkan(options, GetSwapchainDesc(options, window));
     }
 
-    private static GraphicsDevice CreateMetalGraphicsDevice(GraphicsDeviceOptions options, Sdl2Window window)
+    private static GraphicsDevice CreateMetalGraphicsDevice(GraphicsDeviceOptions options, IWindow window)
     {
         return GraphicsDevice.CreateMetal(options, GetSwapchainDesc(options, window));
     }
 
-    public static unsafe SwapchainSource GetSwapchainSource(Sdl2Window window)
+    public static unsafe SwapchainSource GetSwapchainSource(IWindow window)
     {
-        nint sdlHandle = window.SdlWindowHandle;
-
-        SDL_SysWMinfo sysWmInfo;
-        Sdl2Native.SDL_GetVersion(&sysWmInfo.version);
-        Sdl2Native.SDL_GetWMWindowInfo(sdlHandle, &sysWmInfo);
-
-        switch (sysWmInfo.subsystem)
+        if (window.Native?.Win32 is not null)
         {
-            case SysWMType.Windows:
-                {
-                    Win32WindowInfo w32Info = Unsafe.Read<Win32WindowInfo>(&sysWmInfo.info);
-                    return SwapchainSource.CreateWin32(w32Info.Sdl2Window, w32Info.hinstance);
-                }
-            case SysWMType.X11:
-                {
-                    X11WindowInfo x11Info = Unsafe.Read<X11WindowInfo>(&sysWmInfo.info);
-                    return SwapchainSource.CreateXlib(
-                    x11Info.display,
-                    x11Info.Sdl2Window);
-                }
-            case SysWMType.Wayland:
-                {
-                    WaylandWindowInfo wlInfo = Unsafe.Read<WaylandWindowInfo>(&sysWmInfo.info);
-                    return SwapchainSource.CreateWayland(wlInfo.display, wlInfo.surface);
-                }
-            case SysWMType.Cocoa:
-                {
-                    CocoaWindowInfo cocoaInfo = Unsafe.Read<CocoaWindowInfo>(&sysWmInfo.info);
-                    nint nsWindow = cocoaInfo.Window;
-                    return SwapchainSource.CreateNSWindow(nsWindow);
-                }
-            default:
-                throw new PlatformNotSupportedException("Cannot create a SwapchainSource for " + sysWmInfo.subsystem + ".");
+            return SwapchainSource.CreateWin32(window.Native.Win32.Value.Hwnd, window.Native.Win32.Value.HInstance);
         }
+        else if (window.Native?.X11 is not null)
+        {
+            return SwapchainSource.CreateXlib(window.Native.X11.Value.Display, (nint)window.Native.X11.Value.Window);
+        }
+        else if (window.Native?.Wayland is not null)
+        {
+            return SwapchainSource.CreateWayland(window.Native.Wayland.Value.Display, window.Native.Wayland.Value.Surface);
+        }
+        else if (window.Native?.Cocoa is not null)
+        {
+            return SwapchainSource.CreateNSWindow(window.Native.Cocoa.Value);
+        }
+
+        throw new Exception("motherfucker");
     }
 
     public static GraphicsBackend GetPlatformDefaultBackend()
@@ -137,5 +108,3 @@ public class VeldridWindow
         }
     }
 }
-
-public record struct WindowOptions(string Title, int X, int Y, int Width, int Height, bool Hide);

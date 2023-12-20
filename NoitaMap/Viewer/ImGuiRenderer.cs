@@ -94,7 +94,7 @@ public class ImGuiRenderer : IDisposable
         io.Fonts.ClearTexData();
     }
 
-    public void BeginFrame(float deltaTime, InputSnapshot inputSnapshot)
+    public void BeginFrame(float deltaTime)
     {
         if (FrameBegun)
             throw new InvalidOperationException("Frame already begun");
@@ -107,16 +107,11 @@ public class ImGuiRenderer : IDisposable
         io.DisplayFramebufferScale = Vector2.One;
         io.DeltaTime = deltaTime;
 
-        foreach (KeyEvent keyEvent in inputSnapshot.KeyEvents)
-        {
-            io.AddKeyEvent(KeyTranslator.GetKey(keyEvent.Key), keyEvent.Down);
-        }
-
         io.MousePos = InputSystem.MousePosition;
 
-        io.MouseDown[(int)ImGuiMouseButton.Left] = inputSnapshot.IsMouseDown(MouseButton.Left);
-        io.MouseDown[(int)ImGuiMouseButton.Right] = inputSnapshot.IsMouseDown(MouseButton.Right);
-        io.MouseDown[(int)ImGuiMouseButton.Middle] = inputSnapshot.IsMouseDown(MouseButton.Middle);
+        io.MouseDown[(int)ImGuiMouseButton.Left] = InputSystem.LeftMouseDown;
+        io.MouseDown[(int)ImGuiMouseButton.Right] = InputSystem.RightMouseDown;
+        io.MouseDown[(int)ImGuiMouseButton.Middle] = InputSystem.MiddleMouseDown;
 
         ImGui.NewFrame();
     }

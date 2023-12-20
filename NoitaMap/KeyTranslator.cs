@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Silk.NET.Input;
 using Veldrid;
 
 namespace NoitaMap;
@@ -16,8 +17,8 @@ public static class KeyTranslator
             Key.ControlRight => ImGuiKey.RightCtrl,
             Key.AltLeft => ImGuiKey.LeftAlt,
             Key.AltRight => ImGuiKey.RightAlt,
-            Key.WinLeft => ImGuiKey.LeftSuper,
-            Key.WinRight => ImGuiKey.RightSuper,
+            Key.SuperLeft => ImGuiKey.LeftSuper,
+            Key.SuperRight => ImGuiKey.RightSuper,
             Key.Menu => ImGuiKey.Menu,
             Key.F1 => ImGuiKey.F1,
             Key.F2 => ImGuiKey.F2,
@@ -39,7 +40,7 @@ public static class KeyTranslator
             Key.Escape => ImGuiKey.Escape,
             Key.Space => ImGuiKey.Space,
             Key.Tab => ImGuiKey.Tab,
-            Key.BackSpace => ImGuiKey.Backspace,
+            Key.Backspace => ImGuiKey.Backspace,
             Key.Insert => ImGuiKey.Insert,
             Key.Delete => ImGuiKey.Delete,
             Key.PageUp => ImGuiKey.PageUp,
@@ -104,16 +105,15 @@ public static class KeyTranslator
             Key.Number8 => ImGuiKey._8,
             Key.Number9 => ImGuiKey._9,
             Key.Minus => ImGuiKey.Minus,
-            Key.Plus => ImGuiKey.Equal,
-            Key.BracketLeft => ImGuiKey.LeftBracket,
-            Key.BracketRight => ImGuiKey.RightBracket,
+            Key.Equal => ImGuiKey.Equal,
+            Key.LeftBracket => ImGuiKey.LeftBracket,
+            Key.RightBracket => ImGuiKey.RightBracket,
             Key.Semicolon => ImGuiKey.Semicolon,
-            Key.Quote => ImGuiKey.Apostrophe,
+            Key.Apostrophe => ImGuiKey.Apostrophe,
             Key.Comma => ImGuiKey.Comma,
             Key.Period => ImGuiKey.Period,
             Key.Slash => ImGuiKey.Slash,
             Key.BackSlash => ImGuiKey.Backslash,
-            Key.LastKey => ImGuiKey.KeysData_SIZE,
             _ => ImGuiKey.None,
         };
     }
