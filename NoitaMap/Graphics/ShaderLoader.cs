@@ -37,11 +37,7 @@ public static class ShaderLoader
             pixelShaderBytes = Encoding.UTF8.GetBytes(result.FragmentShader);
         }
 
-        if (graphicsDevice.BackendType == GraphicsBackend.Vulkan)
-        {
-            vsEntryPoint = "main";
-            psEntryPoint = "main";
-        }
+        
 
         Shader vs = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
         {
