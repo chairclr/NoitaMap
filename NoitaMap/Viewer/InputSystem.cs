@@ -28,7 +28,7 @@ public unsafe static class InputSystem
         // We use GetMouseState to be more responsive
         CurrentMouseState.Position = Mouse.Position;
 
-        CurrentMouseState.LeftDown = Mouse.IsButtonPressed(MouseButton.Left);
+        CurrentMouseState.LeftDown = Mouse.IsButtonPressed(MouseButton.Left); 
         CurrentMouseState.RightDown = Mouse.IsButtonPressed(MouseButton.Right);
         CurrentMouseState.MiddleDown = Mouse.IsButtonPressed(MouseButton.Middle);
 
