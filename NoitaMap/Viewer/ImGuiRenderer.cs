@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Graphics;
+using NoitaMap.Logging;
 using Veldrid;
 
 namespace NoitaMap.Viewer;
@@ -262,6 +263,8 @@ public class ImGuiRenderer : IDisposable
                 io.DisplaySize.Y,
                 -1.0f,
                 1.0f);
+
+            Logger.LogInformation($"{io.DisplaySize}");
 
             GraphicsDevice.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
         }
