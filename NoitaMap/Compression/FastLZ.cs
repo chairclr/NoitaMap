@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
+using NoitaMap.Logging;
 
 namespace NoitaMap.Compression;
 
@@ -15,12 +16,16 @@ public partial class FastLZ
 
                 string arch = Environment.Is64BitProcess ? "x64" : "x86";
 
+                Logger.LogInformation($"Resolving import for {dllName}");
+
                 if (OperatingSystem.IsWindows())
                 {
+                    Logger.LogInformation($"Resolving windows import");
                     return NativeLibrary.Load(Path.Combine(libraryPath, "win", arch, $"fastlz.dll"));
                 }
                 else if (OperatingSystem.IsLinux())
                 {
+                    Logger.LogInformation($"Resolving linux import");
                     return NativeLibrary.Load(Path.Combine(libraryPath, "lin", arch, $"libfastlz.so"));
                 }
                 else
