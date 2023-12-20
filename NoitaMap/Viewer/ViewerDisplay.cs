@@ -320,13 +320,9 @@ public partial class ViewerDisplay : IDisposable
 
         ImGuiRenderer.EndFrame(MainCommandList);
 
-        StatisticTimer timer = new StatisticTimer("Main Command List").Begin();
-
         MainCommandList.End();
 
         GraphicsDevice.SubmitCommands(MainCommandList);
-
-        timer.End(StatisticMode.OncePerFrame);
 
         GraphicsDevice.SwapBuffers();
     }
