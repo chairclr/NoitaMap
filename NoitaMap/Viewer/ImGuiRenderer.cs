@@ -264,7 +264,7 @@ public class ImGuiRenderer : IDisposable
                 -1.0f,
                 1.0f);
 
-            Logger.LogInformation($"{io.DisplaySize}");
+            Logger.LogInformation($"{mvp}");
 
             GraphicsDevice.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
         }
