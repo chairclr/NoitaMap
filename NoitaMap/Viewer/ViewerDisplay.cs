@@ -361,10 +361,10 @@ public partial class ViewerDisplay : IDisposable
                     (
                         stride: 80,
                         instanceStepRate: 6,
-                        new VertexElementDescription("worldMatrix_0", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("worldMatrix_1", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("worldMatrix_2", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("worldMatrix_3", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("texPos", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("texSize", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
                     ),
