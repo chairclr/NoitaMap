@@ -266,7 +266,8 @@ public class ImGuiRenderer : IDisposable
 
             Logger.LogInformation($"{mvp}");
 
-            GraphicsDevice.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
+            cl.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
+            //GraphicsDevice.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
         }
 
         cl.SetVertexBuffer(0, VertexBuffer);
