@@ -352,7 +352,7 @@ public partial class ViewerDisplay : IDisposable
             PrimitiveTopology = PrimitiveTopology.TriangleList,
             RasterizerState = new RasterizerStateDescription()
             {
-                CullMode = FaceCullMode.Front,
+                CullMode = FaceCullMode.None,
                 FillMode = PolygonFillMode.Solid,
                 FrontFace = FrontFace.Clockwise,
             },
