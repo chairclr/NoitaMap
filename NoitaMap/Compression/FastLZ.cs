@@ -20,17 +20,15 @@ public partial class FastLZ
 
                 if (OperatingSystem.IsWindows())
                 {
-                    Logger.LogInformation($"Resolving windows import");
                     return NativeLibrary.Load(Path.Combine(libraryPath, "win", arch, $"fastlz.dll"));
                 }
                 else if (OperatingSystem.IsLinux())
                 {
-                    Logger.LogInformation($"Resolving linux import");
                     return NativeLibrary.Load(Path.Combine(libraryPath, "lin", arch, $"libfastlz.so"));
                 }
-                else
+                else if (OperatingSystem.IsMacOS())
                 {
-                    throw new Exception("Invalid Platform");
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "osx", $"libfastlz.dylib"));
                 }
             }
 
