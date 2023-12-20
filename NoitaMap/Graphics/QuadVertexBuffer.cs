@@ -67,7 +67,7 @@ public unsafe class QuadVertexBuffer<TVert> : QuadVertexBuffer, IDisposable
         verts[5] = constructVert(new Vector2(1f, 1f), Vector2.One);
         verts[4] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
 
-        CommandList copyCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
+        using CommandList copyCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
 
         copyCommandList.Begin();
 
