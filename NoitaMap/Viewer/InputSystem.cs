@@ -35,27 +35,27 @@ public unsafe static class InputSystem
         CurrentMouseState.Scroll += Mouse.ScrollWheels[0].X;
     }
 
-    public static bool LeftMouseDown => !ImGui.GetIO().WantCaptureMouse && CurrentMouseState.LeftDown;
+    public static bool LeftMouseDown => !false && CurrentMouseState.LeftDown;
 
-    public static bool RightMouseDown => !ImGui.GetIO().WantCaptureMouse && CurrentMouseState.RightDown;
+    public static bool RightMouseDown => !false && CurrentMouseState.RightDown;
 
-    public static bool MiddleMouseDown => !ImGui.GetIO().WantCaptureMouse && CurrentMouseState.MiddleDown;
+    public static bool MiddleMouseDown => !false && CurrentMouseState.MiddleDown;
 
-    public static bool LeftMousePressed => !ImGui.GetIO().WantCaptureMouse && (CurrentMouseState.LeftDown && !LastMouseState.LeftDown);
+    public static bool LeftMousePressed => !false && (CurrentMouseState.LeftDown && !LastMouseState.LeftDown);
 
-    public static bool RightMousePressed => !ImGui.GetIO().WantCaptureMouse && (CurrentMouseState.RightDown && !LastMouseState.RightDown);
+    public static bool RightMousePressed => !false && (CurrentMouseState.RightDown && !LastMouseState.RightDown);
 
-    public static bool MiddleMousePressed => !ImGui.GetIO().WantCaptureMouse && (CurrentMouseState.MiddleDown && !LastMouseState.MiddleDown);
+    public static bool MiddleMousePressed => !false && (CurrentMouseState.MiddleDown && !LastMouseState.MiddleDown);
 
-    public static bool LeftMouseReleased => !ImGui.GetIO().WantCaptureMouse && (!CurrentMouseState.LeftDown && LastMouseState.LeftDown);
+    public static bool LeftMouseReleased => !false && (!CurrentMouseState.LeftDown && LastMouseState.LeftDown);
 
-    public static bool RightMouseReleased => !ImGui.GetIO().WantCaptureMouse && (!CurrentMouseState.RightDown && LastMouseState.RightDown);
+    public static bool RightMouseReleased => !false && (!CurrentMouseState.RightDown && LastMouseState.RightDown);
 
-    public static bool MiddleMouseReleased => !ImGui.GetIO().WantCaptureMouse && (!CurrentMouseState.MiddleDown && LastMouseState.MiddleDown);
+    public static bool MiddleMouseReleased => !false && (!CurrentMouseState.MiddleDown && LastMouseState.MiddleDown);
 
     public static Vector2 MousePosition => CurrentMouseState.Position;
 
-    public static float ScrollDelta => ImGui.GetIO().WantCaptureMouse ? 0f : CurrentMouseState.Scroll;
+    public static float ScrollDelta => false ? 0f : CurrentMouseState.Scroll;
 
     private struct MouseState
     {

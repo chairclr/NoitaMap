@@ -83,7 +83,7 @@ public partial class ViewerDisplay : IDisposable
 
             InputSystem.Update(Window);
 
-            ImGuiRenderer!.BeginFrame(deltaTime);
+            //ImGuiRenderer!.BeginFrame(deltaTime);
 
             Update();
 
@@ -159,7 +159,7 @@ public partial class ViewerDisplay : IDisposable
 
         Entities = new EntityContainer(this);
 
-        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
+        //ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
         StartLoading();
     }
@@ -325,9 +325,9 @@ public partial class ViewerDisplay : IDisposable
 
         ChunkContainer.Draw(MainCommandList);
 
-        DrawUI();
+        //DrawUI();
 
-        ImGuiRenderer.EndFrame(MainCommandList);
+        //ImGuiRenderer.EndFrame(MainCommandList);
 
         MainCommandList.End();
 
@@ -400,7 +400,7 @@ public partial class ViewerDisplay : IDisposable
 
         ChunkContainer.HandleResize();
 
-        ImGuiRenderer.HandleResize(size.X, size.Y);
+        //ImGuiRenderer.HandleResize(size.X, size.Y);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -409,7 +409,7 @@ public partial class ViewerDisplay : IDisposable
         {
             GraphicsDevice.WaitForIdle();
             
-            ImGuiRenderer.Dispose();
+            //ImGuiRenderer.Dispose();
 
             MainFrameBuffer.Dispose();
 

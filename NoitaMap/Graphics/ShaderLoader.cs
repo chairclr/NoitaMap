@@ -30,7 +30,7 @@ public static class ShaderLoader
             VertexFragmentCompilationResult result = SpirvCompilation.CompileVertexFragment(vertexShaderBytes, pixelShaderBytes, compileTarget, new CrossCompileOptions()
             {
                 NormalizeResourceNames = true,
-                InvertVertexOutputY = compileTarget == CrossCompileTarget.HLSL
+                InvertVertexOutputY = compileTarget == CrossCompileTarget.HLSL,
             });
 
             vertexShaderBytes = Encoding.UTF8.GetBytes(result.VertexShader);
