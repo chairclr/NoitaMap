@@ -78,7 +78,7 @@ public partial class ViewerDisplay : IDisposable
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
-        Shader[] shaders = ShaderLoader.Load(GraphicsDevice, "PixelShader", "VertexShader");
+        Shader[] shaders = ShaderLoader.Load(GraphicsDevice, "Map/PixelShader", "Map/VertexShader");
 
         VertexResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
         {

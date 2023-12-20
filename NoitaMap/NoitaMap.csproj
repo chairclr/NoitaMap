@@ -56,8 +56,11 @@
   </ItemGroup>
   
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild">
-    <CompileShaderTask ShaderFile="VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
-    <CompileShaderTask ShaderFile="PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
+    <CompileShaderTask ShaderFile="Map/VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
+    <CompileShaderTask ShaderFile="Map/PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
+    
+    <CompileShaderTask ShaderFile="ImGui/VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
+    <CompileShaderTask ShaderFile="ImGui/PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
 
     <ItemGroup>
       <None Include="$(ProjectDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
@@ -91,17 +94,22 @@
           string projectDirectory = Path.GetDirectoryName(BuildEngine.ProjectFileOfTaskNode);
 
           string shaderSourcePathNoExtension = Path.Combine(projectDirectory, "Assets", "Shaders", "Source", ShaderFile);
-          string shaderCompilationDir = Path.Combine(projectDirectory, "Assets", "Shaders", "Compiled");
-          string shaderCompilationPathNoExtension = Path.Combine(shaderCompilationDir, ShaderFile);
+          string shaderRootOutputDir = Path.Combine(projectDirectory, "Assets", "Shaders", "Compiled");
+          string shaderOutputFile = Path.Combine(shaderRootOutputDir, ShaderFile);
 
-          Directory.CreateDirectory(shaderCompilationDir);
+          Directory.CreateDirectory(shaderRootOutputDir);
+
+          if (Path.GetDirectoryName(ShaderFile).Length > 0)
+          {
+              Directory.CreateDirectory(Path.Combine(shaderRootOutputDir, Path.GetDirectoryName(ShaderFile)));
+          }
 
           if (linux) // dxc can't find its libraries otherwise
               Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", Path.Combine(projectDirectory, "dxc", "linux"));
 
           Process process = new Process();
           process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", windows ? "win" : "linux", windows ? "dxc.exe" : "dxc");
-          process.StartInfo.Arguments = string.Format("-spirv -T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderCompilationPathNoExtension);
+          process.StartInfo.Arguments = string.Format("-spirv -T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderOutputFile);
           process.StartInfo.CreateNoWindow = true;
           process.StartInfo.UseShellExecute = false;
           process.StartInfo.RedirectStandardOutput = true;

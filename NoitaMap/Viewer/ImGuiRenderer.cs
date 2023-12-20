@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using ImGuiNET;
+using NoitaMap.Graphics;
 using Veldrid;
 
 namespace NoitaMap.Viewer;
@@ -24,7 +25,7 @@ public class ImGuiRenderer : IDisposable
 
     private Shader VertexShader;
 
-    private Shader FragmentShader;
+    private Shader PixelShader;
 
     private ResourceLayout Layout;
 
@@ -262,8 +263,8 @@ public class ImGuiRenderer : IDisposable
             Matrix4x4 mvp = Matrix4x4.CreateOrthographicOffCenter(
                 0f,
                 io.DisplaySize.X,
-                io.DisplaySize.Y,
                 0.0f,
+                io.DisplaySize.Y,
                 -1.0f,
                 1.0f);
 
@@ -331,12 +332,9 @@ public class ImGuiRenderer : IDisposable
         ProjectionConstantBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
         ProjectionConstantBuffer.Name = "ImGui.NET Projection Buffer";
 
-        byte[] vertexShaderBytes = LoadEmbeddedShaderCode(factory, "imgui-vertex", ShaderStages.Vertex);
-        byte[] fragmentShaderBytes = LoadEmbeddedShaderCode(factory, "imgui-frag", ShaderStages.Fragment);
-        VertexShader = factory.CreateShader(new ShaderDescription(ShaderStages.Vertex, vertexShaderBytes, GraphicsDevice.BackendType == GraphicsBackend.Vulkan ? "main" : "VS"));
-        VertexShader.Name = "ImGui.NET Vertex Shader";
-        FragmentShader = factory.CreateShader(new ShaderDescription(ShaderStages.Fragment, fragmentShaderBytes, GraphicsDevice.BackendType == GraphicsBackend.Vulkan ? "main" : "FS"));
-        FragmentShader.Name = "ImGui.NET Fragment Shader";
+        Shader[] shaders = ShaderLoader.Load(GraphicsDevice, "ImGui/PixelShader", "ImGui/VertexShader");
+        VertexShader = shaders[0];
+        PixelShader = shaders[1];
 
         VertexLayoutDescription[] vertexLayouts = new VertexLayoutDescription[]
         {
@@ -361,12 +359,7 @@ public class ImGuiRenderer : IDisposable
             PrimitiveTopology.TriangleList,
             new ShaderSetDescription(
                 vertexLayouts,
-                new[] { VertexShader, FragmentShader },
-                new[]
-                {
-                        new SpecializationConstant(0, GraphicsDevice.IsClipSpaceYInverted),
-                        new SpecializationConstant(1, 1),
-                }),
+                new[] { VertexShader, PixelShader }),
             new ResourceLayout[] { Layout, TextureLayout },
             outputDescription,
             ResourceBindingModel.Default);
@@ -405,10 +398,10 @@ public class ImGuiRenderer : IDisposable
             ProjectionConstantBuffer.Dispose();
 
             FontTexture.Dispose();
-    
+
             VertexShader.Dispose();
 
-            FragmentShader.Dispose();
+            PixelShader.Dispose();
 
             ImGuiPipeline.Dispose();
 
