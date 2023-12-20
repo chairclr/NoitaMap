@@ -84,6 +84,11 @@ public unsafe class QuadVertexBuffer<TVert> : QuadVertexBuffer, IDisposable
 
     public override void Draw(CommandList commandList, int length, int offset)
     {
+        if (length <= 0)
+        {
+            return;
+        }
+
         commandList.SetVertexBuffer(0, VertexBuffer);
 
         for (int i = 0; i < InstanceBuffers.Count; i++)

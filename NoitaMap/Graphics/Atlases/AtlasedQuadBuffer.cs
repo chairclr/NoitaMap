@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using NoitaMap.Logging;
 using NoitaMap.Viewer;
 using Veldrid;
 
