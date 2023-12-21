@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace NoitaMap.Logging;
 
 public class Logger
@@ -8,15 +10,17 @@ public class Logger
 
     public static void Log(LogLevel level, Exception? exception) => CurrentLogger.Log(level, exception);
 
-    public static void LogInformation(string? message) => CurrentLogger.Log(LogLevel.Information, message);
+    public static void LogInformation(string? message) => CurrentLogger.LogInformation(message);
 
-    public static void LogInformation(Exception? exception) => CurrentLogger.Log(LogLevel.Information, exception);
+    public static void LogInformation(Exception? exception) => CurrentLogger.LogInformation(exception);
 
-    public static void LogWarning(string? message) => CurrentLogger.Log(LogLevel.Warning, message);
+    public static void LogWarning(string? message) => CurrentLogger.LogWarning(message);
 
-    public static void LogWarning(Exception? exception) => CurrentLogger.Log(LogLevel.Warning, exception);
+    public static void LogWarning(Exception? exception) => CurrentLogger.LogWarning(exception);
 
-    public static void LogCritical(string? message) => CurrentLogger.Log(LogLevel.Critical, message);
+    public static void LogCritical(string? message) => CurrentLogger.LogCritical(message);
 
-    public static void LogCritical(Exception? exception) => CurrentLogger.Log(LogLevel.Critical, exception);
+    public static void LogCritical(string? message, StackTrace stackTrace) => CurrentLogger.LogCritical(message, stackTrace);
+
+    public static void LogCritical(Exception? exception) => CurrentLogger.LogCritical(exception);
 }

@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Logging;
+using Vulkan.Wayland;
 
 namespace NoitaMap.Compression;
 
@@ -14,7 +15,13 @@ public partial class FastLZ
             {
                 string libraryPath = Path.Combine(File.Exists(assembly.Location) ? Path.GetDirectoryName(assembly.Location)! : Environment.CurrentDirectory, "Assets", "Libraries");
 
-                string arch = Environment.Is64BitProcess ? "x64" : "x86";
+                string arch = RuntimeInformation.ProcessArchitecture switch
+                {
+                    Architecture.X86 => "x86",
+                    Architecture.X64 => "x64",
+                    Architecture.Arm64 => "arm64",
+                    _ => ""
+                };
 
                 if (OperatingSystem.IsWindows())
                 {
@@ -26,9 +33,11 @@ public partial class FastLZ
                 }
                 else if (OperatingSystem.IsMacOS())
                 {
-                    return NativeLibrary.Load(Path.Combine(libraryPath, "osx", $"libfastlz.dylib"));
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "osx", arch, $"libfastlz.dylib"));
                 }
             }
+
+            Logger.LogCritical($"Failed to resolve dll import: {dllName}", new System.Diagnostics.StackTrace(true));
 
             return 0;
         });

@@ -53,7 +53,9 @@ public partial class ViewerDisplay : IDisposable
 
     private bool Disposed;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public ViewerDisplay()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     {
         WindowOptions windowOptions = new WindowOptions()
         {
@@ -83,7 +85,7 @@ public partial class ViewerDisplay : IDisposable
 
             InputSystem.Update(Window);
 
-            //ImGuiRenderer!.BeginFrame(deltaTime);
+            ImGuiRenderer!.BeginFrame(deltaTime);
 
             Update();
 
@@ -114,26 +116,26 @@ public partial class ViewerDisplay : IDisposable
 
         VertexResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
         {
-            Elements = new ResourceLayoutElementDescription[]
-            {
+            Elements =
+            [
                 new ResourceLayoutElementDescription("VertexShaderBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex)
-            }
+            ]
         });
 
         PixelSamplerResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
         {
-            Elements = new ResourceLayoutElementDescription[]
-            {
+            Elements =
+            [
                 new ResourceLayoutElementDescription("PointSamplerView", ResourceKind.Sampler, ShaderStages.Fragment)
-            }
+            ]
         });
 
         PixelTextureResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
         {
-            Elements = new ResourceLayoutElementDescription[]
-            {
+            Elements =
+            [
                 new ResourceLayoutElementDescription("MainTextureView", ResourceKind.TextureReadOnly, ShaderStages.Fragment)
-            }
+            ]
         });
 
         MainPipeline = CreatePipeline(shaders);
@@ -159,7 +161,7 @@ public partial class ViewerDisplay : IDisposable
 
         Entities = new EntityContainer(this);
 
-        //ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
+        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
         StartLoading();
     }
@@ -325,9 +327,9 @@ public partial class ViewerDisplay : IDisposable
 
         ChunkContainer.Draw(MainCommandList);
 
-        //DrawUI();
+        DrawUI();
 
-        //ImGuiRenderer.EndFrame(MainCommandList);
+        ImGuiRenderer.EndFrame(MainCommandList);
 
         MainCommandList.End();
 
@@ -359,12 +361,12 @@ public partial class ViewerDisplay : IDisposable
             ShaderSet = new ShaderSetDescription()
             {
                 Shaders = shaders,
-                VertexLayouts = new VertexLayoutDescription[]
-                {
+                VertexLayouts =
+                [
                     new VertexLayoutDescription
                     (
-                        new VertexElementDescription("position", VertexElementFormat.Float3, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("uv", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
+                        new VertexElementDescription("position",    VertexElementFormat.Float3, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("uv",          VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
                     ),
                     new VertexLayoutDescription
                     (
@@ -374,12 +376,12 @@ public partial class ViewerDisplay : IDisposable
                         new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("texPos", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("texSize", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
+                        new VertexElementDescription("texPos",      VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("texSize",     VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
                     ),
-                },
+                ],
             },
-            ResourceLayouts = new ResourceLayout[] { VertexResourceLayout, PixelSamplerResourceLayout, PixelTextureResourceLayout },
+            ResourceLayouts = [VertexResourceLayout, PixelSamplerResourceLayout, PixelTextureResourceLayout],
         });
     }
 
@@ -387,7 +389,7 @@ public partial class ViewerDisplay : IDisposable
     {
         return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
         {
-            BoundResources = new BindableResource[] { texture },
+            BoundResources = [texture],
             Layout = PixelTextureResourceLayout
         });
     }
@@ -400,7 +402,7 @@ public partial class ViewerDisplay : IDisposable
 
         ChunkContainer.HandleResize();
 
-        //ImGuiRenderer.HandleResize(size.X, size.Y);
+        ImGuiRenderer.HandleResize(size.X, size.Y);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -409,7 +411,7 @@ public partial class ViewerDisplay : IDisposable
         {
             GraphicsDevice.WaitForIdle();
             
-            //ImGuiRenderer.Dispose();
+            ImGuiRenderer.Dispose();
 
             MainFrameBuffer.Dispose();
 
