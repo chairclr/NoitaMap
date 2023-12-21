@@ -16,8 +16,6 @@ public partial class FastLZ
 
                 string arch = Environment.Is64BitProcess ? "x64" : "x86";
 
-                Logger.LogInformation($"Resolving import for {dllName}");
-
                 if (OperatingSystem.IsWindows())
                 {
                     return NativeLibrary.Load(Path.Combine(libraryPath, "win", arch, $"fastlz.dll"));
