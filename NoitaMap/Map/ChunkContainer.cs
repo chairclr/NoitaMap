@@ -4,6 +4,7 @@ using NoitaMap.Graphics;
 using NoitaMap.Graphics.Atlases;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
+using Silk.NET.Maths;
 using Veldrid;
 
 namespace NoitaMap.Map;
@@ -183,7 +184,7 @@ public partial class ChunkContainer : IRenderable
         }
     }
 
-    public void HandleResize()
+    public void HandleResize(Vector2D<int> newSize)
     {
         PhysicsObjectFramebufferTexture.Dispose();
 
@@ -195,8 +196,8 @@ public partial class ChunkContainer : IRenderable
         {
             Type = TextureType.Texture2D,
             Format = PixelFormat.B8_G8_R8_A8_UNorm,
-            Width = (uint)Renderer.Window.Size.X,
-            Height = (uint)Renderer.Window.Size.Y,
+            Width = (uint)newSize.X,
+            Height = (uint)newSize.Y,
             Usage = TextureUsage.Sampled | TextureUsage.RenderTarget,
             MipLevels = 1,
 
@@ -208,7 +209,7 @@ public partial class ChunkContainer : IRenderable
 
         PhysicsObjectFramebuffer = Renderer.GraphicsDevice.ResourceFactory.CreateFramebuffer(new FramebufferDescription()
         {
-            ColorTargets = new FramebufferAttachmentDescription[] { new FramebufferAttachmentDescription(PhysicsObjectFramebufferTexture, 0) }
+            ColorTargets = [new FramebufferAttachmentDescription(PhysicsObjectFramebufferTexture, 0)]
         });
 
         PhysicsObjectResourceSet = Renderer.CreateTextureBinding(PhysicsObjectFramebufferTexture);

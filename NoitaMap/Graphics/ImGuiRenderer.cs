@@ -2,6 +2,7 @@
 using ImGuiNET;
 using NoitaMap.Logging;
 using NoitaMap.Viewer;
+using Silk.NET.Maths;
 using Veldrid;
 
 namespace NoitaMap.Graphics;
@@ -196,9 +197,9 @@ public class ImGuiRenderer : IRenderable
         }
     }
 
-    public void HandleResize(int width, int height)
+    public void HandleResize(Vector2D<int> newSize)
     {
-        WindowSize = new Vector2(width, height);
+        WindowSize = (Vector2)newSize;
     }
 
     public ResourceSet GetImageResourceSet(nint id)

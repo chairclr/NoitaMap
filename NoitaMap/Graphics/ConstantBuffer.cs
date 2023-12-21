@@ -48,7 +48,7 @@ public class ConstantBuffer<T> : IDisposable
         {
             fixed (void* constantBufferPointer = &Data)
             {
-                commandList.UpdateBuffer(DeviceBuffer, 0, (nint)constantBufferPointer, (uint)(Unsafe.SizeOf<T>()));
+                commandList.UpdateBuffer(DeviceBuffer, 0, (nint)constantBufferPointer, (uint)Unsafe.SizeOf<T>());
             }
         }
     }

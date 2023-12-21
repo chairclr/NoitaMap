@@ -44,6 +44,10 @@ public class Renderer : IDisposable
 
     public List<IRenderable> Renderables = new List<IRenderable>();
 
+    private bool PendingResize = false;
+
+    private Vector2D<int> NewPendingResize;
+
     private bool Disposed;
 
     public Renderer(IWindow window, GraphicsDevice graphicsDevice)
@@ -101,7 +105,11 @@ public class Renderer : IDisposable
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
-        Window.Resize += HandleResize;
+        Window.FramebufferResize += (Vector2D<int> newSize) => 
+        {
+            NewPendingResize = newSize;
+            PendingResize = true;
+        };
     }
 
     private Pipeline CreatePipeline(Shader[] shaders)
@@ -165,9 +173,16 @@ public class Renderer : IDisposable
 
     public void Update()
     {
+        if (PendingResize)
+        {
+            HandleResize(NewPendingResize);
+
+            PendingResize = false;
+        }
+
         Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
 
-        ViewScale += new Vector2(InputSystem.ScrollDelta) * (ViewScale / 10f);
+        ViewScale += new Vector2(InputSystem.ScrollDelta) * (ViewScale / 5f);
         ViewScale = Vector2.Clamp(ViewScale, new Vector2(0.01f, 0.01f), new Vector2(20f, 20f));
 
         Vector2 currentScaledMouse = ScalePosition(InputSystem.MousePosition);
@@ -224,10 +239,6 @@ public class Renderer : IDisposable
             renderable.Render(MainCommandList);
         }
 
-        // DrawUI();
-
-        // ImGuiRenderer.EndFrame(MainCommandList);
-
         MainCommandList.End();
 
         GraphicsDevice.SubmitCommands(MainCommandList);
@@ -246,13 +257,14 @@ public class Renderer : IDisposable
 
     private void HandleResize(Vector2D<int> size)
     {
-        GraphicsDevice.ResizeMainWindow((uint)size.X, (uint)size.Y);
+        GraphicsDevice.MainSwapchain.Resize((uint)size.X, (uint)size.Y);
 
         MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
 
-        // ChunkContainer.HandleResize();
-
-        ImGuiRenderer.HandleResize(size.X, size.Y);
+        foreach (IRenderable renderable in Renderables)
+        {
+            renderable.HandleResize(size);
+        }
     }
 
     protected virtual void Dispose(bool disposing)
