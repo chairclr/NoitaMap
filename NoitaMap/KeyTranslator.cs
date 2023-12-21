@@ -1,6 +1,5 @@
 ﻿using ImGuiNET;
 using Silk.NET.Input;
-using Veldrid;
 
 namespace NoitaMap;
 

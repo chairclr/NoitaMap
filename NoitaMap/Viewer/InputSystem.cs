@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using ImGuiNET;
 using Silk.NET.Input;
 using Silk.NET.Windowing;
 

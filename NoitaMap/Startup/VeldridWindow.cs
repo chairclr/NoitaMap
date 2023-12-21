@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using NoitaMap.Logging;
 using Silk.NET.Windowing;
-using Silk.NET.Windowing.Sdl;
 using Veldrid;
 
 namespace NoitaMap.Startup;

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Logging;
-using Vulkan.Wayland;
 
 namespace NoitaMap.Compression;
 
