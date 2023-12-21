@@ -6,7 +6,7 @@ namespace NoitaMap.Graphics.Atlases;
 
 public abstract class AtlasedQuadBuffer : IDisposable
 {
-    protected readonly ViewerDisplay ViewerDisplay;
+    protected readonly Renderer Renderer;
 
     protected readonly GraphicsDevice GraphicsDevice;
 
@@ -24,11 +24,11 @@ public abstract class AtlasedQuadBuffer : IDisposable
 
     private bool Disposed;
 
-    public AtlasedQuadBuffer(ViewerDisplay viewerDisplay)
+    public AtlasedQuadBuffer(Renderer renderer)
     {
-        ViewerDisplay = viewerDisplay;
+        Renderer = renderer;
 
-        GraphicsDevice = ViewerDisplay.GraphicsDevice;
+        GraphicsDevice = Renderer.GraphicsDevice;
 
         TransformBuffer = new InstanceBuffer<VertexInstance>(GraphicsDevice);
 
@@ -61,7 +61,7 @@ public abstract class AtlasedQuadBuffer : IDisposable
 
     protected void AddAtlas(Texture atlasTexture)
     {
-        ResourceAtlases.Add(ViewerDisplay.CreateTextureBinding(atlasTexture));
+        ResourceAtlases.Add(Renderer.CreateTextureBinding(atlasTexture));
 
         Textures.Add(atlasTexture);
     }

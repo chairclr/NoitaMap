@@ -95,7 +95,7 @@ public partial class ViewerDisplay
         {
             foreach (Chunk chunk in ChunkContainer.Chunks)
             {
-                Matrix4x4 mat = chunk.WorldMatrix * View;
+                Matrix4x4 mat = chunk.WorldMatrix * Renderer.View;
 
                 Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
                 Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
@@ -110,7 +110,7 @@ public partial class ViewerDisplay
         {
             foreach (PhysicsObject physicsObject in ChunkContainer.PhysicsObjects)
             {
-                Matrix4x4 mat = physicsObject.WorldMatrix * View;
+                Matrix4x4 mat = physicsObject.WorldMatrix * Renderer.View;
 
                 Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
                 Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
@@ -125,7 +125,7 @@ public partial class ViewerDisplay
         {
             foreach (PixelScene pixelScene in WorldPixelScenes.PixelScenes)
             {
-                Matrix4x4 mat = pixelScene.WorldMatrix * View;
+                Matrix4x4 mat = pixelScene.WorldMatrix * Renderer.View;
 
                 Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
                 Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
@@ -138,11 +138,11 @@ public partial class ViewerDisplay
 
         if (DebugDrawPixelSpriteComponentBorders)
         {
-            foreach (PixelSpriteComponent pixelSprite in Entities.PixelSprites)
+            foreach (PixelSpriteComponent pixelSprite in EntityContainer.PixelSprites)
             {
                 if (pixelSprite.Enabled)
                 {
-                    Matrix4x4 mat = pixelSprite.WorldMatrix * View;
+                    Matrix4x4 mat = pixelSprite.WorldMatrix * Renderer.View;
 
                     Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
                     Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);

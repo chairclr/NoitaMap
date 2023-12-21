@@ -24,7 +24,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
     protected override List<int> InstancesPerAtlas { get; } = new List<int>();
 
-    public ChunkAtlasBuffer(ViewerDisplay viewerDisplay)
+    public ChunkAtlasBuffer(Renderer viewerDisplay)
         : base(viewerDisplay)
     {
         CurrentX = 0;

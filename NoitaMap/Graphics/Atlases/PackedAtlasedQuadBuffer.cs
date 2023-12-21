@@ -17,8 +17,8 @@ public abstract class PackedAtlasedQuadBuffer : AtlasedQuadBuffer
 
     private int CurrentAtlasY = 0;
 
-    public PackedAtlasedQuadBuffer(ViewerDisplay viewerDisplay)
-        : base(viewerDisplay)
+    public PackedAtlasedQuadBuffer(Renderer renderer)
+        : base(renderer)
     {
         CurrentAtlasTexture = CreateNewAtlas(SingleAtlasSize, SingleAtlasSize);
 

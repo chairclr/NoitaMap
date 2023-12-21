@@ -1,12 +1,12 @@
 ﻿using System.Numerics;
 using ImGuiNET;
-using NoitaMap.Graphics;
 using NoitaMap.Logging;
+using NoitaMap.Viewer;
 using Veldrid;
 
-namespace NoitaMap.Viewer;
+namespace NoitaMap.Graphics;
 
-public class ImGuiRenderer : IDisposable
+public class ImGuiRenderer : IRenderable
 {
     private readonly GraphicsDevice GraphicsDevice;
 
@@ -95,6 +95,11 @@ public class ImGuiRenderer : IDisposable
         io.Fonts.ClearTexData();
     }
 
+    public void Update()
+    {
+
+    }
+
     public void BeginFrame(float deltaTime)
     {
         if (FrameBegun)
@@ -117,7 +122,7 @@ public class ImGuiRenderer : IDisposable
         ImGui.NewFrame();
     }
 
-    public void EndFrame(CommandList commandList)
+    public void Render(CommandList commandList)
     {
         if (!FrameBegun)
             throw new InvalidOperationException("Frame not begun");
@@ -264,10 +269,7 @@ public class ImGuiRenderer : IDisposable
                 -1.0f,
                 1.0f);
 
-            Logger.LogInformation($"{mvp}");
-
             cl.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
-            //GraphicsDevice.UpdateBuffer(ProjectionConstantBuffer, 0, ref mvp);
         }
 
         cl.SetVertexBuffer(0, VertexBuffer);

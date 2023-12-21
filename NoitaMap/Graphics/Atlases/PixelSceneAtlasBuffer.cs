@@ -11,7 +11,7 @@ public class PixelSceneAtlasBuffer : PackedAtlasedQuadBuffer
 
     private readonly ConcurrentQueue<PixelScene> ThreadedPixelSceneQueue = new ConcurrentQueue<PixelScene>();
 
-    public PixelSceneAtlasBuffer(ViewerDisplay viewerDisplay)
+    public PixelSceneAtlasBuffer(Renderer viewerDisplay)
         : base(viewerDisplay)
     {
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using NoitaMap.Graphics;
 using NoitaMap.Graphics.Atlases;
 using NoitaMap.Logging;
 using NoitaMap.Map.Components;
@@ -36,7 +37,7 @@ namespace NoitaMap.Map.Entities;
 // string tags
 // Fields (see schema files)
 
-public class EntityContainer : IDisposable
+public class EntityContainer : IRenderable
 {
     private readonly ConcurrentQueue<Entity> ThreadedEntityQueue = new ConcurrentQueue<Entity>();
 
@@ -48,9 +49,9 @@ public class EntityContainer : IDisposable
 
     private bool Disposed;
 
-    public EntityContainer(ViewerDisplay viewerDisplay)
+    public EntityContainer(Renderer renderer)
     {
-        PixelSpriteAtlas = new PixelSpriteAtlasBuffer(viewerDisplay);
+        PixelSpriteAtlas = new PixelSpriteAtlasBuffer(renderer);
     }
 
     public void LoadEntities(string path)
@@ -115,7 +116,7 @@ public class EntityContainer : IDisposable
         PixelSpriteAtlas.Update();
     }
 
-    public void Draw(CommandList commandList)
+    public void Render(CommandList commandList)
     {
         PixelSpriteAtlas.Draw(commandList);
     }

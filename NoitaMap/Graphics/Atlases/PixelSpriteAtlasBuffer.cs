@@ -11,7 +11,7 @@ public class PixelSpriteAtlasBuffer : PackedAtlasedQuadBuffer
 
     private readonly ConcurrentQueue<PixelSpriteComponent> ThreadedPixelSpriteQueue = new ConcurrentQueue<PixelSpriteComponent>();
 
-    public PixelSpriteAtlasBuffer(ViewerDisplay viewerDisplay)
+    public PixelSpriteAtlasBuffer(Renderer viewerDisplay)
         : base(viewerDisplay)
     {
 

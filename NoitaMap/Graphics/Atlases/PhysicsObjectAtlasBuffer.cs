@@ -11,7 +11,7 @@ public class PhysicsObjectAtlasBuffer : PackedAtlasedQuadBuffer
 
     private readonly ConcurrentQueue<PhysicsObject> ThreadedPhysicsObjectsQueue = new ConcurrentQueue<PhysicsObject>();
 
-    public PhysicsObjectAtlasBuffer(ViewerDisplay viewerDisplay) : base(viewerDisplay)
+    public PhysicsObjectAtlasBuffer(Renderer Renderer) : base(Renderer)
     {
 
     }

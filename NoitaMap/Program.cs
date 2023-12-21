@@ -9,6 +9,6 @@ internal class Program
         PathService.SetPaths(args);
 
         using ViewerDisplay viewer = new ViewerDisplay();
-        viewer.StartLoading();
+        // viewer.StartLoading();
     }
 }

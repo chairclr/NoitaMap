@@ -18,43 +18,23 @@ public partial class ViewerDisplay : IDisposable
 
     public GraphicsDevice GraphicsDevice;
 
-    private CommandList MainCommandList;
-
-    private Framebuffer MainFrameBuffer;
-
-    private Pipeline MainPipeline;
-
-    private ResourceLayout VertexResourceLayout;
-
-    private ResourceLayout PixelSamplerResourceLayout;
-
-    private ResourceLayout PixelTextureResourceLayout;
-
-    private ResourceSet VertexResourceSet;
-
-    private ResourceSet PixelSamplerResourceSet;
-
-    public MaterialProvider MaterialProvider;
-
-    public ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
+    public Renderer Renderer;
 
     private ChunkContainer ChunkContainer;
+    
+    private WorldPixelScenes WorldPixelScenes;
+
+    private EntityContainer EntityContainer;
 
     private int TotalChunkCount = 0;
 
     private int LoadedChunks = 0;
 
-    private WorldPixelScenes WorldPixelScenes;
-
-    private EntityContainer Entities;
-
-    public ImGuiRenderer ImGuiRenderer;
-
     private bool Disposed;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable CS8618
     public ViewerDisplay()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore CS8618
     {
         WindowOptions windowOptions = new WindowOptions()
         {
@@ -72,8 +52,6 @@ public partial class ViewerDisplay : IDisposable
 
         Window.Load += Load;
 
-        Window.Resize += HandleResize;
-
         Window.Render += (double d) => 
         {
             DeltaTimeWatch.Stop();
@@ -84,11 +62,13 @@ public partial class ViewerDisplay : IDisposable
 
             InputSystem.Update(Window);
 
-            ImGuiRenderer!.BeginFrame(deltaTime);
+            Renderer!.ImGuiRenderer.BeginFrame(deltaTime);
 
-            Update();
+            Renderer!.Update();
 
-            Render();
+            DrawUI();
+
+            Renderer!.Render();
         };
 
         Window.Run();
@@ -105,62 +85,19 @@ public partial class ViewerDisplay : IDisposable
             HasMainSwapchain = true
         };
 
-        VeldridWindow.CreateWindowAndGraphicsDevice(Window, graphicsOptions, out GraphicsDevice);
+        VeldridWindow.CreateGraphicsDevice(Window, graphicsOptions, out GraphicsDevice);
 
-        MainCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
+        Renderer = new Renderer(Window, GraphicsDevice);
 
-        MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
+        IRenderable[] renderables =
+        [
+            WorldPixelScenes = new WorldPixelScenes(Renderer),
+            EntityContainer = new EntityContainer(Renderer),
+            ChunkContainer = new ChunkContainer(Renderer),
+            Renderer.ImGuiRenderer
+        ];
 
-        Shader[] shaders = ShaderLoader.Load(GraphicsDevice, "Map/PixelShader", "Map/VertexShader");
-
-        VertexResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
-        {
-            Elements =
-            [
-                new ResourceLayoutElementDescription("VertexShaderBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex)
-            ]
-        });
-
-        PixelSamplerResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
-        {
-            Elements =
-            [
-                new ResourceLayoutElementDescription("PointSamplerView", ResourceKind.Sampler, ShaderStages.Fragment)
-            ]
-        });
-
-        PixelTextureResourceLayout = GraphicsDevice.ResourceFactory.CreateResourceLayout(new ResourceLayoutDescription()
-        {
-            Elements =
-            [
-                new ResourceLayoutElementDescription("MainTextureView", ResourceKind.TextureReadOnly, ShaderStages.Fragment)
-            ]
-        });
-
-        MainPipeline = CreatePipeline(shaders);
-
-        foreach (Shader shader in shaders)
-        {
-            shader.Dispose();
-        }
-
-        MaterialProvider = new MaterialProvider();
-
-        ConstantBuffer = new ConstantBuffer<VertexConstantBuffer>(GraphicsDevice);
-
-        ConstantBuffer.Data.ViewProjection = Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
-
-        VertexResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(VertexResourceLayout, ConstantBuffer.DeviceBuffer));
-
-        PixelSamplerResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(PixelSamplerResourceLayout, GraphicsDevice.PointSampler));
-
-        ChunkContainer = new ChunkContainer(this);
-
-        WorldPixelScenes = new WorldPixelScenes(this);
-
-        Entities = new EntityContainer(this);
-
-        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
+        Renderer.Renderables.AddRange<IRenderable>(renderables);
 
         StartLoading();
     }
@@ -173,7 +110,7 @@ public partial class ViewerDisplay : IDisposable
 
             TotalChunkCount = chunkPaths.Length;
 
-            int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)Math.Max(Environment.ProcessorCount - 2, 1));
+            int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)(Environment.ProcessorCount - 2));
 
             // Split up all of the paths into a collection of (at most) ChunksPerThread paths for each thread to process
             // This is so that each thread can process ChunksPerThread chunks at once, rather than having too many threads
@@ -198,10 +135,9 @@ public partial class ViewerDisplay : IDisposable
                 for (int i = 0; i < chunkPaths.Length; i++)
                 {
                     ChunkContainer.LoadChunk(chunkPaths[i]);
-
-                    LoadedChunks++;
                 }
             });
+
         });
 
         Task.Run(() =>
@@ -225,9 +161,10 @@ public partial class ViewerDisplay : IDisposable
             foreach (string path in entityPaths)
             {
                 StatisticTimer timer = new StatisticTimer("Load Entity").Begin();
+
                 try
                 {
-                    Entities.LoadEntities(path);
+                    EntityContainer.LoadEntities(path);
                 }
                 catch (Exception ex)
                 {
@@ -240,196 +177,23 @@ public partial class ViewerDisplay : IDisposable
 #endif
 
                     Logger.LogWarning($"Error decoding entity at path \"{path}\":");
-                    Logger.LogWarning(ex); 
+                    Logger.LogWarning(ex);
                 }
+
                 timer.End(StatisticMode.Sum);
             }
         });
     }
 
-    private Vector2 MouseTranslateOrigin = Vector2.Zero;
-
-    public Vector2 ViewScale { get; private set; } = Vector2.One;
-
-    public Vector2 ViewOffset { get; private set; } = Vector2.Zero;
-
-    public Matrix4x4 View =>
-            Matrix4x4.CreateTranslation(new Vector3(-ViewOffset, 0f)) *
-            Matrix4x4.CreateScale(new Vector3(ViewScale, 1f));
-
-    public Matrix4x4 Projection =>
-        Matrix4x4.CreateOrthographic(Window.Size.X, Window.Size.Y, 0f, 1f);
-
     public Stopwatch DeltaTimeWatch = Stopwatch.StartNew();
-
-    private void Update()
-    {
-        Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
-
-        ViewScale += new Vector2(InputSystem.ScrollDelta) * (ViewScale / 10f);
-        ViewScale = Vector2.Clamp(ViewScale, new Vector2(0.01f, 0.01f), new Vector2(20f, 20f));
-
-        Vector2 currentScaledMouse = ScalePosition(InputSystem.MousePosition);
-
-        // Zoom in on where the mouse is
-        ViewOffset += originalScaledMouse - currentScaledMouse;
-
-        if (InputSystem.LeftMousePressed)
-        {
-            MouseTranslateOrigin = ScalePosition(InputSystem.MousePosition) + ViewOffset;
-        }
-
-        if (InputSystem.LeftMouseDown)
-        {
-            Vector2 currentMousePosition = ScalePosition(InputSystem.MousePosition) + ViewOffset;
-
-            ViewOffset += MouseTranslateOrigin - currentMousePosition;
-        }
-
-        ChunkContainer.Update();
-
-        WorldPixelScenes.Update();
-
-        Entities.Update();
-    }
-
-    private Vector2 ScalePosition(Vector2 position)
-    {
-        return position / ViewScale;
-    }
-
-    private void Render()
-    {
-        ConstantBuffer.Data.ViewProjection =
-            View *
-            Projection *
-            Matrix4x4.CreateTranslation(-1f, -1f, 0f);
-
-        ConstantBuffer.Update();
-
-        MainCommandList.Begin();
-
-        MainCommandList.SetFramebuffer(MainFrameBuffer);
-
-        MainCommandList.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
-
-        MainCommandList.SetPipeline(MainPipeline);
-
-        MainCommandList.SetGraphicsResourceSet(0, VertexResourceSet);
-
-        MainCommandList.SetGraphicsResourceSet(1, PixelSamplerResourceSet);
-
-        Entities.Draw(MainCommandList);
-
-        WorldPixelScenes.Draw(MainCommandList);
-
-        ChunkContainer.Draw(MainCommandList);
-
-        DrawUI();
-
-        ImGuiRenderer.EndFrame(MainCommandList);
-
-        MainCommandList.End();
-
-        GraphicsDevice.SubmitCommands(MainCommandList);
-
-        GraphicsDevice.SwapBuffers();
-    }
-
-
-    private Pipeline CreatePipeline(Shader[] shaders)
-    {
-        return GraphicsDevice.ResourceFactory.CreateGraphicsPipeline(new GraphicsPipelineDescription()
-        {
-            BlendState = BlendStateDescription.SingleAlphaBlend,
-            DepthStencilState = new DepthStencilStateDescription()
-            {
-                DepthComparison = ComparisonKind.Less,
-                DepthTestEnabled = true,
-                DepthWriteEnabled = true
-            },
-            Outputs = MainFrameBuffer.OutputDescription,
-            PrimitiveTopology = PrimitiveTopology.TriangleList,
-            RasterizerState = new RasterizerStateDescription()
-            {
-                CullMode = FaceCullMode.None,
-                FillMode = PolygonFillMode.Solid,
-                FrontFace = FrontFace.Clockwise,
-            },
-            ShaderSet = new ShaderSetDescription()
-            {
-                Shaders = shaders,
-                VertexLayouts =
-                [
-                    new VertexLayoutDescription
-                    (
-                        new VertexElementDescription("position",    VertexElementFormat.Float3, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("uv",          VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
-                    ),
-                    new VertexLayoutDescription
-                    (
-                        stride: 80,
-                        instanceStepRate: 6,
-                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("texPos",      VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("texSize",     VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
-                    ),
-                ],
-            },
-            ResourceLayouts = [VertexResourceLayout, PixelSamplerResourceLayout, PixelTextureResourceLayout],
-        });
-    }
-
-    public ResourceSet CreateTextureBinding(Texture texture)
-    {
-        return GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription()
-        {
-            BoundResources = [texture],
-            Layout = PixelTextureResourceLayout
-        });
-    }
-
-    private void HandleResize(Vector2D<int> size)
-    {
-        GraphicsDevice.ResizeMainWindow((uint)size.X, (uint)size.Y);
-
-        MainFrameBuffer = GraphicsDevice.MainSwapchain.Framebuffer;
-
-        ChunkContainer.HandleResize();
-
-        ImGuiRenderer.HandleResize(size.X, size.Y);
-    }
 
     protected virtual void Dispose(bool disposing)
     {
         if (!Disposed)
         {
             GraphicsDevice.WaitForIdle();
-            
-            ImGuiRenderer.Dispose();
 
-            MainFrameBuffer.Dispose();
-
-            ConstantBuffer.Dispose();
-
-            MainPipeline.Dispose();
-
-            ChunkContainer.Dispose();
-
-            Entities.Dispose();
-
-            WorldPixelScenes.Dispose();
-
-            VertexResourceLayout.Dispose();
-
-            PixelSamplerResourceLayout.Dispose();
-
-            PixelTextureResourceLayout.Dispose();
-
-            MainCommandList.Dispose();
+            Renderer.Dispose();
 
             GraphicsDevice.Dispose();
 

@@ -7,12 +7,12 @@ namespace NoitaMap.Startup;
 
 public class VeldridWindow
 {
-    public static void CreateWindowAndGraphicsDevice(IWindow window, GraphicsDeviceOptions deviceOptions, out GraphicsDevice graphicsDevice)
+    public static void CreateGraphicsDevice(IWindow window, GraphicsDeviceOptions deviceOptions, out GraphicsDevice graphicsDevice)
     {
         graphicsDevice = CreateGraphicsDevice(window, deviceOptions, GetPlatformDefaultBackend());
     }
 
-    public static void CreateWindowAndGraphicsDevice(IWindow window, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out GraphicsDevice graphicsDevice)
+    public static void CreateGraphicsDevice(IWindow window, GraphicsDeviceOptions deviceOptions, GraphicsBackend preferredBackend, out GraphicsDevice graphicsDevice)
     {
         graphicsDevice = CreateGraphicsDevice(window, deviceOptions, preferredBackend);
     }
@@ -25,10 +25,9 @@ public class VeldridWindow
                 return CreateDefaultD3D11GraphicsDevice(options, window);
             case GraphicsBackend.Vulkan:
                 return CreateVulkanGraphicsDevice(options, window);
-            case GraphicsBackend.OpenGL:
-                break;
             case GraphicsBackend.Metal:
                 return CreateMetalGraphicsDevice(options, window);
+            case GraphicsBackend.OpenGL:
             case GraphicsBackend.OpenGLES:
                 break;
         }
@@ -61,10 +60,8 @@ public class VeldridWindow
         return GraphicsDevice.CreateMetal(options, GetSwapchainDesc(options, window));
     }
 
-    public static unsafe SwapchainSource GetSwapchainSource(IWindow window)
+    public static SwapchainSource GetSwapchainSource(IWindow window)
     {
-        Logger.LogInformation(window.Native?.ToString());
-
         if (window.Native?.Win32 is not null)
         {
             return SwapchainSource.CreateWin32(window.Native.Win32.Value.Hwnd, window.Native.Win32.Value.HInstance);
@@ -82,16 +79,23 @@ public class VeldridWindow
             return SwapchainSource.CreateNSWindow(window.Native.Cocoa.Value);
         }
 
-        throw new Exception("motherfucker");
+        Logger.LogCritical($"Failed to create swapchain for {window.Native}");
+
+        throw new Exception();
     }
 
     public static GraphicsBackend GetPlatformDefaultBackend()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (GraphicsDevice.IsBackendSupported(GraphicsBackend.Vulkan))
+        {
+            return GraphicsBackend.Vulkan;
+        }
+
+        if (OperatingSystem.IsWindows())
         {
             return GraphicsDevice.IsBackendSupported(GraphicsBackend.Direct3D11) ? GraphicsBackend.Direct3D11 : GraphicsBackend.OpenGL;
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        else if (OperatingSystem.IsMacOS())
         {
             return GraphicsDevice.IsBackendSupported(GraphicsBackend.Metal) ? GraphicsBackend.Metal : GraphicsBackend.OpenGL;
         }

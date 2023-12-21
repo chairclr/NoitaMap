@@ -1,4 +1,5 @@
-﻿using NoitaMap.Graphics.Atlases;
+﻿using NoitaMap.Graphics;
+using NoitaMap.Graphics.Atlases;
 using NoitaMap.Viewer;
 using Veldrid;
 
@@ -29,9 +30,9 @@ namespace NoitaMap.Map;
 // int length
 // PixelScene[length] scenes
 
-public class WorldPixelScenes : IDisposable
+public class WorldPixelScenes : IRenderable
 {
-    private readonly ViewerDisplay ViewerDisplay;
+    private readonly Renderer Renderer;
 
     private readonly PixelSceneAtlasBuffer PixelScenesAtlas;
 
@@ -39,11 +40,11 @@ public class WorldPixelScenes : IDisposable
     
     private bool Disposed;
 
-    public WorldPixelScenes(ViewerDisplay viewerDisplay)
+    public WorldPixelScenes(Renderer renderer)
     {
-        ViewerDisplay = viewerDisplay;
+        Renderer = renderer;
 
-        PixelScenesAtlas = new PixelSceneAtlasBuffer(ViewerDisplay);
+        PixelScenesAtlas = new PixelSceneAtlasBuffer(Renderer);
     }
 
     public void Load(string path)
@@ -94,7 +95,7 @@ public class WorldPixelScenes : IDisposable
         PixelScenesAtlas.Update();
     }
 
-    public void Draw(CommandList commandList)
+    public void Render(CommandList commandList)
     {
         PixelScenesAtlas.Draw(commandList);
     }
