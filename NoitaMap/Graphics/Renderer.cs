@@ -46,7 +46,7 @@ public class Renderer : IDisposable
 
     private bool PendingResize = false;
 
-    private Vector2D<int> NewPendingResize;
+    private Vector2D<int> PendingNewSize;
 
     private bool Disposed;
 
@@ -107,7 +107,7 @@ public class Renderer : IDisposable
 
         Window.FramebufferResize += (Vector2D<int> newSize) => 
         {
-            NewPendingResize = newSize;
+            PendingNewSize = newSize;
             PendingResize = true;
         };
     }
@@ -175,7 +175,7 @@ public class Renderer : IDisposable
     {
         if (PendingResize)
         {
-            HandleResize(NewPendingResize);
+            HandleResize(PendingNewSize);
 
             PendingResize = false;
         }
@@ -224,7 +224,7 @@ public class Renderer : IDisposable
 
         MainCommandList.Begin();
 
-        MainCommandList.SetFramebuffer(MainFrameBuffer);
+        MainCommandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
 
         MainCommandList.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
 

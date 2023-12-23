@@ -20,19 +20,65 @@ public unsafe static class InputSystem
     public static void Update(IWindow window)
     {
         InputContext ??= window.CreateInput();
+
+        bool setMouse = Mouse is null;
         Mouse ??= InputContext.Mice[0];
+
+        bool setKeys = Keyboard is null;
         Keyboard ??= InputContext.Keyboards[0];
+
+        if (Mouse is not null && setMouse)
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+
+            Mouse.MouseDown += (_, button) =>
+            {
+                io.AddMouseButtonEvent(((int)button), true);
+            };
+
+            Mouse.MouseUp += (_, button) =>
+            {
+                io.AddMouseButtonEvent(((int)button), false);
+            };
+
+            Mouse.Scroll += (_, wheel) =>
+            {
+                io.AddMouseWheelEvent(wheel.X, wheel.Y);
+            };
+        }
+
+        if (Keyboard is not null && setKeys)
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+
+            Keyboard.KeyChar += (_, character) =>
+            {
+                io.AddInputCharacter(character);
+            };
+
+            Keyboard.KeyDown += (_, key, y) =>
+            {
+                io.AddKeyEvent(KeyTranslator.GetKey(key), true);
+            };
+
+            Keyboard.KeyUp += (_, key, y) =>
+            {
+                io.AddKeyEvent(KeyTranslator.GetKey(key), false);
+            };
+        }
 
         LastMouseState = CurrentMouseState;
 
-        // We use GetMouseState to be more responsive
-        CurrentMouseState.Position = Mouse.Position;
+        if (Mouse is not null)
+        {
+            CurrentMouseState.Position = Mouse.Position;
 
-        CurrentMouseState.LeftDown = Mouse.IsButtonPressed(MouseButton.Left); 
-        CurrentMouseState.RightDown = Mouse.IsButtonPressed(MouseButton.Right);
-        CurrentMouseState.MiddleDown = Mouse.IsButtonPressed(MouseButton.Middle);
+            CurrentMouseState.LeftDown = Mouse.IsButtonPressed(MouseButton.Left);
+            CurrentMouseState.RightDown = Mouse.IsButtonPressed(MouseButton.Right);
+            CurrentMouseState.MiddleDown = Mouse.IsButtonPressed(MouseButton.Middle);
 
-        CurrentMouseState.Scroll += Mouse.ScrollWheels[0].Y;
+            CurrentMouseState.Scroll += Mouse.ScrollWheels[0].Y;
+        }
     }
 
     public static bool LeftMouseDown => !ImGui.GetIO().WantCaptureMouse && CurrentMouseState.LeftDown;

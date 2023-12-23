@@ -1,7 +1,7 @@
 ﻿using ImGuiNET;
 using Silk.NET.Input;
 
-namespace NoitaMap;
+namespace NoitaMap.Viewer;
 
 public static class KeyTranslator
 {

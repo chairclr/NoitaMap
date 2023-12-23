@@ -116,10 +116,6 @@ public class ImGuiRenderer : IRenderable
 
         io.MousePos = InputSystem.MousePosition;
 
-        io.MouseDown[(int)ImGuiMouseButton.Left] = InputSystem.LeftMouseDown;
-        io.MouseDown[(int)ImGuiMouseButton.Right] = InputSystem.RightMouseDown;
-        io.MouseDown[(int)ImGuiMouseButton.Middle] = InputSystem.MiddleMouseDown;
-
         ImGui.NewFrame();
     }
 
@@ -133,6 +129,16 @@ public class ImGuiRenderer : IRenderable
         ImGui.Render();
         RenderImDrawData(ImGui.GetDrawData(), commandList);
 
+        FrameBegun = false;
+    }
+
+    public void ForceEndFrame()
+    {
+        if (!FrameBegun)
+            throw new InvalidOperationException("Frame not begun");
+
+        ImGui.EndFrame();
+        
         FrameBegun = false;
     }
 
