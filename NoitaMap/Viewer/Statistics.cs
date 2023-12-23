@@ -1,12 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace NoitaMap.Viewer;
 
 public class Statistics
 {
-    public static readonly Dictionary<string, TimeSpan> OncePerFrameTimeStats = new Dictionary<string, TimeSpan>();
+    public static readonly ConcurrentDictionary<string, TimeSpan> OncePerFrameTimeStats = new ConcurrentDictionary<string, TimeSpan>();
 
-    public static readonly Dictionary<string, TimeSpan> SummedTimeStats = new Dictionary<string, TimeSpan>();
+    public static readonly ConcurrentDictionary<string, TimeSpan> SummedTimeStats = new ConcurrentDictionary<string, TimeSpan>();
 
     public static readonly Dictionary<string, TimeSpan> SingleTimeStats = new Dictionary<string, TimeSpan>();
 
@@ -48,20 +49,17 @@ public class StatisticTimer
         {
             case StatisticMode.OncePerFrame:
                 {
-                    lock (Statistics.OncePerFrameTimeStats)
+                    if (!Statistics.OncePerFrameTimeStats.TryAdd(Name, sw.Elapsed))
                     {
-                        if (!Statistics.OncePerFrameTimeStats.TryAdd(Name, sw.Elapsed))
-                        {
-                            Statistics.OncePerFrameTimeStats[Name] = sw.Elapsed;
-                        }
+                        Statistics.OncePerFrameTimeStats[Name] = sw.Elapsed;
                     }
                 }
                 break;
             case StatisticMode.Sum:
                 {
-                    lock (Statistics.SummedTimeStats)
+                    if (!Statistics.SummedTimeStats.TryAdd(Name, sw.Elapsed))
                     {
-                        if (!Statistics.SummedTimeStats.TryAdd(Name, sw.Elapsed))
+                        lock (Statistics.SummedTimeStats)
                         {
                             Statistics.SummedTimeStats[Name] += sw.Elapsed;
                         }
@@ -70,7 +68,7 @@ public class StatisticTimer
                 break;
             case StatisticMode.Single:
                 {
-                    Statistics.SingleTimeStats.Add(Name, sw.Elapsed);
+                    Statistics.SingleTimeStats.TryAdd(Name, sw.Elapsed);
                 }
                 break;
         }
