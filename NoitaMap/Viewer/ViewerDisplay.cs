@@ -82,7 +82,7 @@ public partial class ViewerDisplay : IDisposable
             Debug = true,
 #endif
             SyncToVerticalBlank = true,
-            HasMainSwapchain = true
+            HasMainSwapchain = true,
         };
 
         VeldridWindow.CreateGraphicsDevice(Window, graphicsOptions, out GraphicsDevice);
@@ -135,6 +135,8 @@ public partial class ViewerDisplay : IDisposable
                 for (int i = 0; i < chunkPaths.Length; i++)
                 {
                     ChunkContainer.LoadChunk(chunkPaths[i]);
+
+                    Interlocked.Increment(ref LoadedChunks);
                 }
             });
 

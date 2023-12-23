@@ -44,6 +44,8 @@ public class Renderer : IDisposable
 
     public List<IRenderable> Renderables = new List<IRenderable>();
 
+    private Fence CommandListFence;
+
     private bool PendingResize = false;
 
     private Vector2D<int> PendingNewSize;
@@ -110,6 +112,8 @@ public class Renderer : IDisposable
             PendingNewSize = newSize;
             PendingResize = true;
         };
+
+        CommandListFence = GraphicsDevice.ResourceFactory.CreateFence(false);
     }
 
     private Pipeline CreatePipeline(Shader[] shaders)
@@ -222,6 +226,8 @@ public class Renderer : IDisposable
 
         ConstantBuffer.Update();
 
+        GraphicsDevice.ResetFence(CommandListFence);
+
         MainCommandList.Begin();
 
         MainCommandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
@@ -241,7 +247,9 @@ public class Renderer : IDisposable
 
         MainCommandList.End();
 
-        GraphicsDevice.SubmitCommands(MainCommandList);
+        GraphicsDevice.SubmitCommands(MainCommandList, CommandListFence);
+
+        GraphicsDevice.WaitForFence(CommandListFence);
 
         GraphicsDevice.SwapBuffers();
     }
