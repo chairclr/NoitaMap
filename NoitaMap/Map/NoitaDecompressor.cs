@@ -4,7 +4,7 @@ namespace NoitaMap.Map;
 
 public static class NoitaDecompressor
 {
-    public static byte[] ReadAndDecompressChunk(string filePath)
+    public static byte[] LoadCompressedFile(string filePath)
     {
         byte[] inputBuffer;
         byte[] outputBuffer;
@@ -16,11 +16,10 @@ public static class NoitaDecompressor
             int compressedSize = fileReader.ReadInt32();
             int uncompressedSize = fileReader.ReadInt32();
 
-
             // We can be sure that we will fill both of these buffers completely
             inputBuffer = GC.AllocateUninitializedArray<byte>(compressedSize);
 
-            fileReader.Read(inputBuffer);
+            fs.Read(inputBuffer);
 
             // If the compressed size is equal to the uncompressed size, then the file isn't compressed
             if (compressedSize == uncompressedSize)

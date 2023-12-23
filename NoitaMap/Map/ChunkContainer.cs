@@ -104,7 +104,7 @@ public partial class ChunkContainer : IRenderable
 
         StatisticTimer loadChunkTimer = new StatisticTimer("Load Chunk").Begin();
 
-        byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(chunkFilePath);
+        byte[]? decompressedData = NoitaDecompressor.LoadCompressedFile(chunkFilePath);
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
         {

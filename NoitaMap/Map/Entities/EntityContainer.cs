@@ -56,7 +56,7 @@ public class EntityContainer : IRenderable
 
     public void LoadEntities(string path)
     {
-        byte[]? decompressedData = NoitaDecompressor.ReadAndDecompressChunk(path);
+        byte[]? decompressedData = NoitaDecompressor.LoadCompressedFile(path);
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
         {
