@@ -193,8 +193,6 @@ public partial class ViewerDisplay : IDisposable
     {
         if (!Disposed)
         {
-            GraphicsDevice.WaitForIdle();
-
             Renderer.Dispose();
 
             GraphicsDevice.Dispose();

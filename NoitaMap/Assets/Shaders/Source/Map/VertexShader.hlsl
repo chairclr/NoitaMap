@@ -12,6 +12,10 @@ PS_INPUT VSMain(VS_INPUT input)
     
     // We need to calculate where on the atlas this instance lies
     output.uv = input.texPos + (input.texSize * input.uv);
+
+    // Clamp to a small amount inside the part of the atlas where the instance lies
+    float2 iHateIEE754 = 1e-6;
+    output.uv = clamp(output.uv, input.texPos + iHateIEE754, input.texPos + input.texSize - iHateIEE754);
     
     float4 worldPosition = mul(float4(input.position, 1.0), input.worldMatrix);
     

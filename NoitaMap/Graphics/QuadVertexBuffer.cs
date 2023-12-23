@@ -68,6 +68,7 @@ public unsafe class QuadVertexBuffer<TVert> : QuadVertexBuffer, IDisposable
         verts[4] = constructVert(new Vector2(0f, 1f), Vector2.UnitY);
 
         using CommandList copyCommandList = GraphicsDevice.ResourceFactory.CreateCommandList();
+        using Fence fence = GraphicsDevice.ResourceFactory.CreateFence(false);
 
         copyCommandList.Begin();
 
@@ -75,9 +76,9 @@ public unsafe class QuadVertexBuffer<TVert> : QuadVertexBuffer, IDisposable
 
         copyCommandList.End();
 
-        GraphicsDevice.SubmitCommands(copyCommandList);
+        GraphicsDevice.SubmitCommands(copyCommandList, fence);
 
-        GraphicsDevice.WaitForIdle();
+        GraphicsDevice.WaitForFence(fence);
 
         InstanceBuffers.AddRange(instanceBuffers);
     }

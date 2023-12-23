@@ -24,5 +24,5 @@ public struct VertexInstance
 [StructLayout(LayoutKind.Sequential)]
 public struct VertexConstantBuffer
 {
-    public Matrix4x4 ViewProjection; // 64 bytes
+    public Matrix4x4 ViewProjection;    // 64 bytes
 }

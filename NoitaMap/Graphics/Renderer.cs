@@ -123,9 +123,9 @@ public class Renderer : IDisposable
             BlendState = BlendStateDescription.SingleAlphaBlend,
             DepthStencilState = new DepthStencilStateDescription()
             {
-                DepthComparison = ComparisonKind.Less,
-                DepthTestEnabled = true,
-                DepthWriteEnabled = true
+                DepthComparison = ComparisonKind.Never,
+                DepthTestEnabled = false,
+                DepthWriteEnabled = false
             },
             Outputs = MainFrameBuffer.OutputDescription,
             PrimitiveTopology = PrimitiveTopology.TriangleList,
@@ -164,6 +164,8 @@ public class Renderer : IDisposable
 
     private Vector2 MouseTranslateOrigin = Vector2.Zero;
 
+    private Vector2 DesiredViewScale = Vector2.One;
+
     public Vector2 ViewScale { get; private set; } = Vector2.One;
 
     public Vector2 ViewOffset { get; private set; } = Vector2.Zero;
@@ -186,8 +188,9 @@ public class Renderer : IDisposable
 
         Vector2 originalScaledMouse = ScalePosition(InputSystem.MousePosition);
 
-        ViewScale += new Vector2(InputSystem.ScrollDelta) * (ViewScale / 5f);
-        ViewScale = Vector2.Clamp(ViewScale, new Vector2(0.01f, 0.01f), new Vector2(20f, 20f));
+        DesiredViewScale += new Vector2(InputSystem.ScrollDelta) * (DesiredViewScale / 5f);
+        DesiredViewScale = Vector2.Clamp(DesiredViewScale, new Vector2(0.01f, 0.01f), new Vector2(20f, 20f));
+        ViewScale = Vector2.Lerp(ViewScale, DesiredViewScale, ImGui.GetIO().DeltaTime * 25);
 
         Vector2 currentScaledMouse = ScalePosition(InputSystem.MousePosition);
 
@@ -279,6 +282,10 @@ public class Renderer : IDisposable
     {
         if (!Disposed)
         {
+            GraphicsDevice.WaitForFence(CommandListFence);
+
+            CommandListFence.Dispose();
+
             MainFrameBuffer.Dispose();
 
             ConstantBuffer.Dispose();
