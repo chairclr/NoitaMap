@@ -4,7 +4,7 @@ using NoitaMap.Graphics;
 
 namespace NoitaMap.Map.Components;
 
-public class PixelSpriteComponent : Component
+public class PixelSpriteComponent(string name) : Component(name), IAtlasObject
 {
     public string? ImageFile;
 
@@ -26,21 +26,15 @@ public class PixelSpriteComponent : Component
 
     public Vector2 Scale;
 
-    public int TextureWidth;
+    public Matrix4x4 WorldMatrix { get; set; }
 
-    public int TextureHeight;
+    public Rgba32[,]? WorkingTextureData { get; set; }
 
-    public Rgba32[,]? WorkingTextureData;
+    public int TextureWidth { get; set; }
 
-    public int TextureHash;
+    public int TextureHeight { get; set; }
 
-    public Matrix4x4 WorldMatrix;
-
-    public PixelSpriteComponent(string name)
-        : base(name)
-    {
-
-    }
+    public int TextureHash { get; set; }
 
     public override void Deserialize(BinaryReader reader)
     {

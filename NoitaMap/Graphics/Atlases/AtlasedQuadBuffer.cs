@@ -53,7 +53,7 @@ public abstract class AtlasedQuadBuffer : IDisposable
             ResourceSet resourceSet = ResourceAtlases[i];
             commandList.SetGraphicsResourceSet(2, resourceSet);
 
-            DrawBuffer.Draw(commandList, instanceCount * 6, instacesDrawn);
+            DrawBuffer.Draw(commandList, instanceCount, instacesDrawn);
 
             instacesDrawn += instanceCount;
         }

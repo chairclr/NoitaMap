@@ -4,7 +4,7 @@ using NoitaMap.Graphics;
 
 namespace NoitaMap.Map;
 
-public class PixelScene
+public class PixelScene : IAtlasObject
 {
     public int X;
 
@@ -38,15 +38,15 @@ public class PixelScene
 
     public ulong ExtraUnknown;
 
-    public int TextureWidth;
+    public Matrix4x4 WorldMatrix { get; set; }
 
-    public int TextureHeight;
+    public Rgba32[,]? WorkingTextureData { get; set; }
 
-    public Rgba32[,]? WorkingTextureData;
+    public int TextureWidth { get; set; }
 
-    public int TextureHash;
+    public int TextureHeight { get; set; }
 
-    public Matrix4x4 WorldMatrix;
+    public int TextureHash { get; set; }
 
     public PixelScene()
     {

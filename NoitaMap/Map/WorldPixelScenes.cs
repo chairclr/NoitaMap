@@ -34,9 +34,9 @@ public class WorldPixelScenes : IRenderable
 {
     private readonly Renderer Renderer;
 
-    private readonly PixelSceneAtlasBuffer PixelScenesAtlas;
+    private readonly QuadObjectAtlasBuffer<PixelScene> PixelScenesAtlas;
 
-    public IReadOnlyList<PixelScene> PixelScenes => PixelScenesAtlas.PixelScenes;
+    public IReadOnlyList<PixelScene> PixelScenes => PixelScenesAtlas.AtlasObjects;
     
     private bool Disposed;
 
@@ -44,7 +44,7 @@ public class WorldPixelScenes : IRenderable
     {
         Renderer = renderer;
 
-        PixelScenesAtlas = new PixelSceneAtlasBuffer(Renderer);
+        PixelScenesAtlas = new QuadObjectAtlasBuffer<PixelScene>(Renderer);
     }
 
     public void Load(string path)
@@ -72,7 +72,7 @@ public class WorldPixelScenes : IRenderable
 
                 pixelScene.Deserialize(reader);
 
-                PixelScenesAtlas.AddPixelScene(pixelScene);
+                PixelScenesAtlas.AddAtlasObject(pixelScene);
             }
 
             int length2 = reader.ReadBEInt32();
@@ -83,7 +83,7 @@ public class WorldPixelScenes : IRenderable
 
                 pixelScene.Deserialize(reader);
 
-                PixelScenesAtlas.AddPixelScene(pixelScene);
+                PixelScenesAtlas.AddAtlasObject(pixelScene);
             }
         }
 

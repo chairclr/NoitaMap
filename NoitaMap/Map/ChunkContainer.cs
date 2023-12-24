@@ -23,9 +23,9 @@ public partial class ChunkContainer : IRenderable
 
     public IReadOnlyList<Chunk> Chunks => ChunkAtlas.Chunks;
 
-    private readonly PhysicsObjectAtlasBuffer PhysicsObjectAtlas;
+    private readonly QuadObjectAtlasBuffer<PhysicsObject> PhysicsObjectAtlas;
 
-    public IReadOnlyList<PhysicsObject> PhysicsObjects => PhysicsObjectAtlas.PhysicsObjects;
+    public IReadOnlyList<PhysicsObject> PhysicsObjects => PhysicsObjectAtlas.AtlasObjects;
 
     private Framebuffer PhysicsObjectFramebuffer;
 
@@ -49,7 +49,7 @@ public partial class ChunkContainer : IRenderable
 
         ChunkAtlas = new ChunkAtlasBuffer(Renderer);
 
-        PhysicsObjectAtlas = new PhysicsObjectAtlasBuffer(Renderer);
+        PhysicsObjectAtlas = new QuadObjectAtlasBuffer<PhysicsObject>(Renderer);
 
         PhysicsObjectFramebufferTexture = Renderer.GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
         {
@@ -128,7 +128,7 @@ public partial class ChunkContainer : IRenderable
 
         ChunkAtlas.AddChunk(chunk);
 
-        PhysicsObjectAtlas.AddPhysicsObjects(chunk.PhysicsObjects!);
+        PhysicsObjectAtlas.AddAtlasObjects(chunk.PhysicsObjects!);
     }
 
     public void Update()

@@ -2,21 +2,19 @@
 
 namespace NoitaMap.Map;
 
-public class PhysicsObject
+public class PhysicsObject : IAtlasObject
 {
     public Vector2 Position;
 
     public float Rotation;
 
-    public int Width;
+    public Matrix4x4 WorldMatrix { get; private set; }
 
-    public int Height;
+    public Rgba32[,]? WorkingTextureData { get; set; }
 
-    public Matrix4x4 WorldMatrix = Matrix4x4.Identity;
+    public int TextureWidth { get; private set; }
 
-    public Rgba32[,]? WorkingTextureData;
-
-    public bool ReadyToBeAddedToAtlas = false;
+    public int TextureHeight { get; private set; }
 
     public int TextureHash { get; private set; }
 
@@ -38,14 +36,14 @@ public class PhysicsObject
         reader.ReadBoolean();
         reader.ReadBoolean();
         reader.ReadBESingle();
-        Width = reader.ReadBEInt32();
-        Height = reader.ReadBEInt32();
+        TextureWidth = reader.ReadBEInt32();
+        TextureHeight = reader.ReadBEInt32();
 
-        WorkingTextureData = new Rgba32[Width, Height];
+        WorkingTextureData = new Rgba32[TextureWidth, TextureHeight];
 
-        for (int x = 0; x < Width; x++)
+        for (int x = 0; x < TextureWidth; x++)
         {
-            for (int y = 0; y < Height; y++)
+            for (int y = 0; y < TextureHeight; y++)
             {
                 uint value = reader.ReadBEUInt32();
                 WorkingTextureData[x, y].PackedValue = value;
@@ -53,8 +51,6 @@ public class PhysicsObject
             }
         }
 
-        WorldMatrix = Matrix4x4.CreateScale(Width, Height, 1f) * (Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f)));
-
-        ReadyToBeAddedToAtlas = true;
+        WorldMatrix = Matrix4x4.CreateScale(TextureWidth, TextureHeight, 1f) * (Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f)));
     }
 }

@@ -43,15 +43,15 @@ public class EntityContainer : IRenderable
 
     private readonly List<Entity> Entities = new List<Entity>();
 
-    private readonly PixelSpriteAtlasBuffer PixelSpriteAtlas;
+    private readonly QuadObjectAtlasBuffer<PixelSpriteComponent> PixelSpriteAtlas;
 
-    public IReadOnlyList<PixelSpriteComponent> PixelSprites => PixelSpriteAtlas.PixelSprites;
+    public IReadOnlyList<PixelSpriteComponent> PixelSprites => PixelSpriteAtlas.AtlasObjects;
 
     private bool Disposed;
 
     public EntityContainer(Renderer renderer)
     {
-        PixelSpriteAtlas = new PixelSpriteAtlasBuffer(renderer);
+        PixelSpriteAtlas = new QuadObjectAtlasBuffer<PixelSpriteComponent>(renderer);
     }
 
     public void LoadEntities(string path)
@@ -85,7 +85,7 @@ public class EntityContainer : IRenderable
                 {
                     if (component is PixelSpriteComponent pixelSprite)
                     {
-                        PixelSpriteAtlas.AddPixelSprite(pixelSprite);
+                        PixelSpriteAtlas.AddAtlasObject(pixelSprite);
                     }
                 }
 
