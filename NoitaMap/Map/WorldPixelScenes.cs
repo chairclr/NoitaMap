@@ -59,7 +59,7 @@ public class WorldPixelScenes : IRenderable
 
             if (version != 3)
             {
-                throw new Exception($"Burger wasn't 3 (it was {version})");
+                throw new Exception($"Version wasn't 3 (it was {version})");
             }
 
             short unknown1 = reader.ReadBEInt16();
