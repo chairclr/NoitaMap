@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
+using NoitaMap.Map.Entities;
 
 namespace NoitaMap.Map.Components;
 
-public class PixelSpriteComponent(string name) : Component(name), IAtlasObject
+public class PixelSpriteComponent(Entity entity, string name) : Component(entity, name), IAtlasObject
 {
     public string? ImageFile;
 

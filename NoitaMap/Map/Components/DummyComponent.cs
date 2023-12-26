@@ -1,4 +1,5 @@
 ﻿using NoitaMap.Logging;
+using NoitaMap.Map.Entities;
 using NoitaMap.Map.Schemas;
 
 namespace NoitaMap.Map.Components;
@@ -7,8 +8,8 @@ public class DummyComponent : Component
 {
     private readonly ComponentSchema Schema;
 
-    public DummyComponent(string name, ComponentSchema schema)
-        : base(name)
+    public DummyComponent(Entity entity, string name, ComponentSchema schema)
+        : base(entity, name)
     {
         Schema = schema;
     }
@@ -114,6 +115,9 @@ public class DummyComponent : Component
                     break;
                 case "struct ceng::math::CXForm<float>":
                     reader.BaseStream.Position += 20;
+                    break;
+                case "class ConfigLaser":
+                    reader.BaseStream.Position += 41;
                     break;
                 case "unsigned short":
                 case "short":

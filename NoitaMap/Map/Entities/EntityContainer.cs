@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using NoitaMap.Graphics;
 using NoitaMap.Graphics.Atlases;
 using NoitaMap.Logging;
@@ -45,13 +46,19 @@ public class EntityContainer : IRenderable
 
     private readonly QuadObjectAtlasBuffer<PixelSpriteComponent> PixelSpriteAtlas;
 
+    private readonly QuadObjectAtlasBuffer<SpriteComponent> RegularSpriteAtlas;
+
     public IReadOnlyList<PixelSpriteComponent> PixelSprites => PixelSpriteAtlas.AtlasObjects;
+    
+    public IReadOnlyList<SpriteComponent> RegularSprites => RegularSpriteAtlas.AtlasObjects;
 
     private bool Disposed;
 
     public EntityContainer(Renderer renderer)
     {
         PixelSpriteAtlas = new QuadObjectAtlasBuffer<PixelSpriteComponent>(renderer);
+
+        RegularSpriteAtlas = new QuadObjectAtlasBuffer<SpriteComponent>(renderer);
     }
 
     public void LoadEntities(string path)
@@ -75,7 +82,7 @@ public class EntityContainer : IRenderable
 
             int entityCount = reader.ReadBEInt32();
 
-            for (int i = 0; i < entityCount; i++)
+            while (ms.Position < ms.Length)
             {
                 Entity entity = new Entity(schema);
 
@@ -87,12 +94,19 @@ public class EntityContainer : IRenderable
                     {
                         PixelSpriteAtlas.AddAtlasObject(pixelSprite);
                     }
+
+                    if (component is SpriteComponent sprite)
+                    {
+                        if (sprite.Visible && !sprite.Tags.Contains("item_unidentified"))
+                        {
+                            RegularSpriteAtlas.AddAtlasObject(sprite);
+                        }
+                    }
                 }
 
                 ThreadedEntityQueue.Enqueue(entity);
 
-                // + 4 bytes for funny
-                reader.BaseStream.Position += 4;
+                int thoseFourBytes = reader.ReadBEInt32();
             }
 
             if (ms.Position != ms.Length)
@@ -114,11 +128,15 @@ public class EntityContainer : IRenderable
         }
 
         PixelSpriteAtlas.Update();
+
+        RegularSpriteAtlas.Update();
     }
 
     public void Render(CommandList commandList)
     {
         PixelSpriteAtlas.Draw(commandList);
+
+        RegularSpriteAtlas.Draw(commandList);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -126,7 +144,9 @@ public class EntityContainer : IRenderable
         if (!Disposed)
         {
             PixelSpriteAtlas.Dispose();
-            
+
+            RegularSpriteAtlas.Dispose();
+
             Disposed = true;
         }
     }

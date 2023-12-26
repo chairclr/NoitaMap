@@ -1,15 +1,21 @@
-﻿namespace NoitaMap.Map.Components;
+﻿using NoitaMap.Map.Entities;
+
+namespace NoitaMap.Map.Components;
 
 public abstract class Component
 {
+    public Entity Entity;
+
     public readonly string ComponentName;
 
     public bool Enabled;
 
     public string Tags = "";
 
-    public Component(string name)
+    public Component(Entity entity, string name)
     {
+        Entity = entity;
+
         ComponentName = name;
     }
 

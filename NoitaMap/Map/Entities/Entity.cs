@@ -65,7 +65,7 @@ public class Entity
 
             if (type is null)
             {
-                DummyComponent component = new DummyComponent(componentName, Schema);
+                DummyComponent component = new DummyComponent(this, componentName, Schema);
 
                 component.Deserialize(reader);
 
@@ -73,7 +73,7 @@ public class Entity
             }
             else
             {
-                Component component = (Component)Activator.CreateInstance(type, componentName)!;
+                Component component = (Component)Activator.CreateInstance(type, this, componentName)!;
 
                 component.Deserialize(reader);
 

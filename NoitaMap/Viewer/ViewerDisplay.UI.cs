@@ -19,6 +19,8 @@ public partial class ViewerDisplay
 
     private bool DebugDrawPixelSpriteComponentBorders = false;
 
+    private bool DebugDrawSpriteComponentBorders = false;
+
     private void DrawUI()
     {
         ImGui.SetNextWindowPos(Vector2.Zero);
@@ -79,6 +81,7 @@ public partial class ViewerDisplay
                     ImGui.Checkbox("Draw PhysicsObject borders", ref DebugDrawPhysicsObjectBorders);
                     ImGui.Checkbox("Draw PixelScene borders", ref DebugDrawPixelSceneBorders);
                     ImGui.Checkbox("Draw PixelSpriteComponent borders", ref DebugDrawPixelSpriteComponentBorders);
+                    ImGui.Checkbox("Draw SpriteComponent borders", ref DebugDrawSpriteComponentBorders);
 
                     ImGui.Checkbox("Force PhysicsObject no framebuffer", ref ChunkContainer.ForceNoFrambuffer);
 
@@ -157,6 +160,24 @@ public partial class ViewerDisplay
                     {
                         drawList.AddQuad(p0, p1, p2, p3, Color.Lime.ToPixel<Rgba32>().PackedValue, 4f);
                     }
+                }
+            }
+        }
+
+        if (DebugDrawSpriteComponentBorders)
+        {
+            foreach (SpriteComponent sprite in EntityContainer.RegularSprites)
+            {
+                if (true)
+                {
+                    Matrix4x4 mat = sprite.WorldMatrix * Renderer.View;
+
+                    Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
+                    Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
+                    Vector2 p2 = Vector2.Transform(Vector2.One, mat);
+                    Vector2 p3 = Vector2.Transform(Vector2.UnitX, mat);
+
+                    drawList.AddQuad(p0, p1, p2, p3, Color.Orange.ToPixel<Rgba32>().PackedValue, 4f);
                 }
             }
         }
