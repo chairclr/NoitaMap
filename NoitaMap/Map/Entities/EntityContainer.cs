@@ -42,7 +42,7 @@ public class EntityContainer : IRenderable
 {
     private readonly ConcurrentQueue<Entity> ThreadedEntityQueue = new ConcurrentQueue<Entity>();
 
-    private readonly List<Entity> Entities = new List<Entity>();
+    public readonly List<Entity> Entities = new List<Entity>();
 
     private readonly QuadObjectAtlasBuffer<PixelSpriteComponent> PixelSpriteAtlas;
 

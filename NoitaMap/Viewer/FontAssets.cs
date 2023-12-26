@@ -15,13 +15,21 @@ public unsafe class FontAssets
         ImGuiIOPtr io = ImGui.GetIO();
 
         // Clear the default font that Veldrid.ImGui adds
-        FontData fontData = LoadFontData();
+        // FontData fontData = LoadFontData();
 
-        using Image<Rgba32> image = LoadFontImage();
+        // using Image<Rgba32> image = LoadFontImage();
 
-        OverwriteImGuiFont(io, fontData, image);
+        // OverwriteImGuiFont(io, fontData, image);
 
-        SetFontParameters(io, image);
+        // SetFontParameters(io, image);
+
+        io.Fonts.Clear();
+
+        ImFontConfigPtr font = ImGuiNative.ImFontConfig_ImFontConfig();
+        font.SizePixels = 13f * 2f;
+        io.Fonts.AddFontDefault(font);
+
+        ImGui.GetStyle().ScaleAllSizes(2f);
     }
 
     private static FontData LoadFontData()
@@ -151,7 +159,7 @@ public unsafe class FontAssets
         io.Fonts.TexReady = true;
 
         // 2x the font size for more readability
-        io.FontGlobalScale = 2f;
+        // io.FontGlobalScale = 2f;
 
         // Scale everything else up
         ImGui.GetStyle().ScaleAllSizes(2f);

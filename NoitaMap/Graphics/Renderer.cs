@@ -164,11 +164,11 @@ public class Renderer : IDisposable
 
     private Vector2 MouseTranslateOrigin = Vector2.Zero;
 
-    private Vector2 DesiredViewScale = Vector2.One;
+    public Vector2 DesiredViewScale = Vector2.One;
 
     public Vector2 ViewScale { get; private set; } = Vector2.One;
 
-    public Vector2 ViewOffset { get; private set; } = Vector2.Zero;
+    public Vector2 ViewOffset { get; set; } = Vector2.Zero;
 
     public Matrix4x4 View =>
             Matrix4x4.CreateTranslation(new Vector3(-ViewOffset, 0f)) *

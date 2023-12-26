@@ -2,6 +2,7 @@
 using ImGuiNET;
 using NoitaMap.Map;
 using NoitaMap.Map.Components;
+using NoitaMap.Map.Entities;
 
 namespace NoitaMap.Viewer;
 
@@ -21,7 +22,20 @@ public partial class ViewerDisplay
 
     private bool DebugDrawSpriteComponentBorders = false;
 
+    private bool ShowSearch = false;
+
+    private string SearchText = "";
+
     private void DrawUI()
+    {
+        DrawMetricsUI();
+
+        DrawDebugUI();
+
+        DrawSearchUI();
+    }
+
+    private void DrawMetricsUI()
     {
         ImGui.SetNextWindowPos(Vector2.Zero);
         ImGui.Begin("##StatusWindow", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize);
@@ -65,7 +79,10 @@ public partial class ViewerDisplay
         }
 
         ImGui.End();
+    }
 
+    private void DrawDebugUI()
+    {
         if (ImGui.IsKeyPressed(ImGuiKey.F12, false))
         {
             ShowDebugger = !ShowDebugger;
@@ -73,6 +90,8 @@ public partial class ViewerDisplay
 
         if (ShowDebugger)
         {
+            ImGui.Begin("Debug", ref ShowDebugger);
+
             if (ImGui.BeginTabBar("MainBar"))
             {
                 if (ImGui.BeginTabItem("Draw Settings"))
@@ -90,6 +109,8 @@ public partial class ViewerDisplay
 
                 ImGui.EndTabBar();
             }
+
+            ImGui.End();
         }
 
         ImDrawListPtr drawList = ImGui.GetBackgroundDrawList();
@@ -177,6 +198,102 @@ public partial class ViewerDisplay
                 drawList.AddQuad(p0, p1, p2, p3, color.ToPixel<Rgba32>().PackedValue, 4f);
             }
         }
+    }
+
+    private void DrawSearchUI()
+    {
+        if ((ImGui.IsKeyDown(ImGuiKey.LeftCtrl) || ImGui.IsKeyDown(ImGuiKey.RightCtrl)) && ImGui.IsKeyPressed(ImGuiKey.F, false))
+        {
+            ShowSearch = !ShowSearch;
+        }
+
+        if (!ShowSearch)
+        {
+            return;
+        }
+
+        ImGui.Begin("Search", ref ShowSearch);
+
+        ImGui.Text("Search:");
+
+        ImGui.InputText("##search", ref SearchText, 2048);
+
+        if (ImGui.BeginChild("SearchScrollableChild"))
+        {
+            ImGui.Text("Results for PixelScene:");
+            ImGui.Indent(6f);
+            for (int i = 0; i < WorldPixelScenes.PixelScenes.Count; i++)
+            {
+                PixelScene pixelScene = WorldPixelScenes.PixelScenes[i];
+
+                if (SearchText.Length == 0)
+                {
+                    break;
+                }
+
+                bool found = 
+                (pixelScene.BackgroundFilename?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (pixelScene.ColorsFilename?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (pixelScene.MaterialFilename?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
+
+                if (found)
+                {
+                    if (ImGui.Selectable(
+                        $"""
+                        PixelScene:
+                            BackgroundFilename: {pixelScene.BackgroundFilename}
+                            ColorsFilename: {pixelScene.ColorsFilename}
+                            MaterialFilename: {pixelScene.MaterialFilename}
+                        ###pixelscene{i}
+                        """))
+                    {
+                        Renderer.ViewOffset = 
+                            new Vector2(pixelScene.X, pixelScene.Y)
+                            - (ImGui.GetIO().DisplaySize / 2f) / Renderer.ViewScale
+                            + (new Vector2(pixelScene.TextureWidth, pixelScene.TextureHeight) / 2f);
+                    }
+                }
+            }
+            ImGui.Unindent(6f);
+
+            ImGui.Text("Results for Entities:");
+            ImGui.Indent(6f);
+            for (int i = 0; i < EntityContainer.Entities.Count; i++)
+            {
+                Entity entity = EntityContainer.Entities[i];
+
+                if (SearchText.Length == 0)
+                {
+                    break;
+                }
+
+                bool found =
+                (entity.Name?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (entity.Tags?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (entity.FileName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
+
+                if (found)
+                {
+                    if (ImGui.Selectable(
+                        $"""
+                        Entity:
+                            Name: {entity.Name}
+                            Tags: {entity.Tags}
+                            FileName: {entity.FileName}
+                        ###entity{i}
+                        """))
+                    {
+                        Renderer.ViewOffset =
+                            entity.Position
+                            - (ImGui.GetIO().DisplaySize / 2f) / Renderer.ViewScale;
+                    }
+                }
+            }
+            ImGui.Unindent(6f);
+            ImGui.EndChild();
+        }
+
+        ImGui.End();
     }
 
     private static bool IsPointInQuad(Vector2 point, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
