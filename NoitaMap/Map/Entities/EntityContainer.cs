@@ -97,7 +97,7 @@ public class EntityContainer : IRenderable
 
                     if (component is SpriteComponent sprite)
                     {
-                        if (sprite.Visible && !sprite.Tags.Contains("item_unidentified"))
+                        if (!sprite.Tags.Contains("item_unidentified"))
                         {
                             RegularSpriteAtlas.AddAtlasObject(sprite);
                         }

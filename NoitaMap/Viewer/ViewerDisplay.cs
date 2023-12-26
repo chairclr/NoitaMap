@@ -195,8 +195,6 @@ public partial class ViewerDisplay : IDisposable
         {
             Renderer.Dispose();
 
-            GraphicsDevice.Dispose();
-
             Disposed = true;
         }
     }

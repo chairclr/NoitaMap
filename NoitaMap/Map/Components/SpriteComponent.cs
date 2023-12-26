@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Xml.Serialization;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
+using NoitaMap.Logging;
 using NoitaMap.Map.Entities;
 using Vortice.DXGI;
 
@@ -119,81 +120,7 @@ public class SpriteComponent(Entity entity, string name) : Component(entity, nam
 
         NeverRagdollifyOnDeath = reader.ReadBoolean();
 
-        if (ImageFile is not null && PathService.DataPath is not null)
-        {
-            ImageFile = ImageFile.ToLower();
-
-            string? path = null;
-            if (ImageFile.StartsWith("data/"))
-            {
-                path = Path.Combine(PathService.DataPath!, ImageFile.Remove(0, 5));
-            }
-
-            if (path is not null && File.Exists(path))
-            {
-                if (path.EndsWith(".xml"))
-                {
-                    if (RectAnimation is not null)
-                    {
-                        string text = File.ReadAllText(path);
-
-                        XmlSerializer serializer = new XmlSerializer(typeof(SpriteData));
-                        using StringReader xmlText = new StringReader(text);
-
-                        SpriteData spriteData = (SpriteData)serializer.Deserialize(xmlText)!;
-
-                        string? imagePath = spriteData.Filename;
-
-                        if (imagePath is not null)
-                        {
-                            if (imagePath.StartsWith("data/"))
-                            {
-                                imagePath = Path.Combine(PathService.DataPath!, imagePath.Remove(0, 5));
-                            }
-
-                            using Image<Rgba32> image = ImageUtility.LoadImage(imagePath);
-
-                            foreach (SpriteRectAnimation sra in spriteData.RectAnimation!)
-                            {
-                                if (RectAnimation == sra.Name)
-                                {
-                                    WorkingTextureData = new Rgba32[sra.FrameWidth, sra.FrameHeight];
-
-                                    TextureWidth = sra.FrameWidth;
-                                    TextureHeight = sra.FrameHeight;
-
-                                    for (int x = 0; x < sra.FrameWidth; x++)
-                                    {
-                                        for (int y = 0; y < sra.FrameHeight; y++)
-                                        {
-                                            Rgba32 col = image[x + sra.PosX, y + sra.PosY];
-                                            WorkingTextureData[x, y].PackedValue = col.PackedValue;
-                                            TextureHash = HashCode.Combine(TextureHash, col.PackedValue);
-                                        }
-                                    }
-
-                                    OffsetX += spriteData.OffsetX;
-                                    OffsetY += spriteData.OffsetY;
-
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    using Image<Rgba32> image = ImageUtility.LoadImage(path);
-                    WorkingTextureData = new Rgba32[image.Width, image.Height];
-
-                    TextureWidth = image.Width;
-                    TextureHeight = image.Height;
-                    TextureHash = path.GetHashCode();
-
-                    image.CopyPixelDataTo(WorkingTextureData.AsSpan());
-                }
-            }
-        }
+        LoadImage();
 
         Vector2 scale = Vector2.One;
 
@@ -202,7 +129,102 @@ public class SpriteComponent(Entity entity, string name) : Component(entity, nam
             scale = new Vector2(SpecialScaleX, SpecialScaleY);
         }
 
-        WorldMatrix = Matrix4x4.CreateScale(TextureWidth * scale.X, TextureHeight * scale.Y, 1f) * Matrix4x4.CreateRotationZ(Entity.Rotation) * Matrix4x4.CreateTranslation(Entity.Position.X - TransformOffset.X - OffsetX, Entity.Position.Y - TransformOffset.Y - OffsetY, 0f);
+        WorldMatrix =
+            Matrix4x4.CreateScale(TextureWidth * scale.X, TextureHeight * scale.Y, 1f)
+            * Matrix4x4.CreateTranslation(-TransformOffset.X - OffsetX, -TransformOffset.Y - OffsetY, 0f)
+            * Matrix4x4.CreateRotationZ(Entity.Rotation)
+            * Matrix4x4.CreateTranslation(Entity.Position.X, Entity.Position.Y, 0f);
+    }
+
+    private void LoadImage()
+    {
+        if (ImageFile is null || PathService.DataPath is null)
+        {
+            return;
+        }
+
+        string caselessImageFile = ImageFile.ToLower();
+
+        string? path = null;
+        if (caselessImageFile.StartsWith("data/"))
+        {
+            path = Path.Combine(PathService.DataPath, caselessImageFile.Remove(0, 5));
+        }
+
+        if (path is null || !File.Exists(path))
+        {
+            return;
+        }
+
+        if (path.EndsWith(".xml"))
+        {
+            if (RectAnimation is null)
+            {
+                return;
+            }
+
+            string text = File.ReadAllText(path);
+
+            XmlSerializer serializer = new XmlSerializer(typeof(SpriteData));
+            using StringReader xmlText = new StringReader(text);
+
+            SpriteData spriteData = (SpriteData)serializer.Deserialize(xmlText)!;
+
+            string? imagePath = spriteData.Filename?.ToLower();
+
+            if (imagePath is null)
+            {
+                return;
+            }
+
+            if (imagePath.StartsWith("data/"))
+            {
+                imagePath = Path.Combine(PathService.DataPath!, imagePath.Remove(0, 5));
+            }
+
+            using Image<Rgba32> image = ImageUtility.LoadImage(imagePath);
+
+            SpriteRectAnimation? rectAnimation = 
+                spriteData.RectAnimation!.FirstOrDefault(x => RectAnimation == x.Name)
+                ?? spriteData.RectAnimation!.Single(x => spriteData.DefaultAnimation == x.Name);
+
+            if (rectAnimation is null)
+            {
+                return;
+            }
+
+            int width = rectAnimation.FrameWidth;
+            int height = rectAnimation.FrameHeight;
+
+            WorkingTextureData = new Rgba32[height, width];
+
+            TextureWidth = width;
+            TextureHeight = height;
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    Rgba32 col = image[x + rectAnimation.PosX, y + rectAnimation.PosY];
+                    WorkingTextureData[y, x] = col;
+                    TextureHash = HashCode.Combine(TextureHash, col.PackedValue);
+                }
+            }
+
+            OffsetX += spriteData.OffsetX;
+            OffsetY += spriteData.OffsetY;
+        }
+        else
+        {
+            using Image<Rgba32> image = ImageUtility.LoadImage(path);
+            WorkingTextureData = new Rgba32[image.Width, image.Height];
+
+            TextureWidth = image.Width;
+            TextureHeight = image.Height;
+            TextureHash = path.GetHashCode();
+
+            image.CopyPixelDataTo(WorkingTextureData.AsSpan());
+        }
     }
 }
 

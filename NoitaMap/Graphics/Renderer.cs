@@ -283,9 +283,7 @@ public class Renderer : IDisposable
         if (!Disposed)
         {
             GraphicsDevice.WaitForFence(CommandListFence);
-
-            CommandListFence.Dispose();
-
+        
             MainFrameBuffer.Dispose();
 
             ConstantBuffer.Dispose();
@@ -302,6 +300,8 @@ public class Renderer : IDisposable
             PixelSamplerResourceLayout.Dispose();
 
             PixelTextureResourceLayout.Dispose();
+
+            CommandListFence.Dispose();
 
             MainCommandList.Dispose();
 

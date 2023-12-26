@@ -143,23 +143,20 @@ public partial class ViewerDisplay
         {
             foreach (PixelSpriteComponent pixelSprite in EntityContainer.PixelSprites)
             {
-                if (pixelSprite.Enabled)
+                Matrix4x4 mat = pixelSprite.WorldMatrix * Renderer.View;
+
+                Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
+                Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
+                Vector2 p2 = Vector2.Transform(Vector2.One, mat);
+                Vector2 p3 = Vector2.Transform(Vector2.UnitX, mat);
+
+                if (pixelSprite.ImageFile is null)
                 {
-                    Matrix4x4 mat = pixelSprite.WorldMatrix * Renderer.View;
-
-                    Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
-                    Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
-                    Vector2 p2 = Vector2.Transform(Vector2.One, mat);
-                    Vector2 p3 = Vector2.Transform(Vector2.UnitX, mat);
-
-                    if (pixelSprite.ImageFile is null)
-                    {
-                        drawList.AddQuad(p0, p1, p2, p3, Color.Red.ToPixel<Rgba32>().PackedValue, 4f);
-                    }
-                    else
-                    {
-                        drawList.AddQuad(p0, p1, p2, p3, Color.Lime.ToPixel<Rgba32>().PackedValue, 4f);
-                    }
+                    drawList.AddQuad(p0, p1, p2, p3, Color.Red.ToPixel<Rgba32>().PackedValue, 4f);
+                }
+                else
+                {
+                    drawList.AddQuad(p0, p1, p2, p3, Color.Lime.ToPixel<Rgba32>().PackedValue, 4f);
                 }
             }
         }
@@ -168,18 +165,37 @@ public partial class ViewerDisplay
         {
             foreach (SpriteComponent sprite in EntityContainer.RegularSprites)
             {
-                if (true)
-                {
-                    Matrix4x4 mat = sprite.WorldMatrix * Renderer.View;
+                Matrix4x4 mat = sprite.WorldMatrix * Renderer.View;
 
-                    Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
-                    Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
-                    Vector2 p2 = Vector2.Transform(Vector2.One, mat);
-                    Vector2 p3 = Vector2.Transform(Vector2.UnitX, mat);
+                Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
+                Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
+                Vector2 p2 = Vector2.Transform(Vector2.One, mat);
+                Vector2 p3 = Vector2.Transform(Vector2.UnitX, mat);
 
-                    drawList.AddQuad(p0, p1, p2, p3, Color.Orange.ToPixel<Rgba32>().PackedValue, 4f);
-                }
+                Color color = Color.Orange;
+
+                drawList.AddQuad(p0, p1, p2, p3, color.ToPixel<Rgba32>().PackedValue, 4f);
             }
         }
+    }
+
+    private static bool IsPointInQuad(Vector2 point, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+    {
+        Vector2 e0 = p1 - p0;
+        Vector2 e1 = p2 - p1;
+        Vector2 e2 = p3 - p2;
+        Vector2 e3 = p0 - p3;
+
+        Vector2 v0 = point - p0;
+        Vector2 v1 = point - p1;
+        Vector2 v2 = point - p2;
+        Vector2 v3 = point - p3;
+
+        float dot0 = Vector2.Dot(e0, v0);
+        float dot1 = Vector2.Dot(e1, v1);
+        float dot2 = Vector2.Dot(e2, v2);
+        float dot3 = Vector2.Dot(e3, v3);
+
+        return (dot0 >= 0 && dot1 >= 0 && dot2 >= 0 && dot3 >= 0) || (dot0 <= 0 && dot1 <= 0 && dot2 <= 0 && dot3 <= 0);
     }
 }

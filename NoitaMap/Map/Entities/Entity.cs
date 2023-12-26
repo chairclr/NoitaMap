@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Reflection;
+using NoitaMap.Logging;
 using NoitaMap.Map.Components;
 
 namespace NoitaMap.Map.Entities;
