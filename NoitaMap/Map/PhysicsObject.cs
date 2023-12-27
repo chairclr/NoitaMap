@@ -18,8 +18,11 @@ public class PhysicsObject : IAtlasObject
 
     public int TextureHash { get; private set; }
 
+    private byte[]? SerializationData;
+
     public void Deserialize(BinaryReader reader)
     {
+        long pos = reader.BaseStream.Position;
         reader.ReadBEUInt64();
         reader.ReadBEUInt32();
         Position.X = reader.ReadBESingle();
@@ -51,6 +54,18 @@ public class PhysicsObject : IAtlasObject
             }
         }
 
+        long len = reader.BaseStream.Position - pos;
+
+        // Rereading everything but uh
+        SerializationData = new byte[len];
+        reader.BaseStream.Position = pos;
+        reader.Read(SerializationData);
+
         WorldMatrix = Matrix4x4.CreateScale(TextureWidth, TextureHeight, 1f) * (Matrix4x4.CreateRotationZ(Rotation) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f)));
+    }
+
+    public void Serialize(BinaryWriter writer)
+    {
+        writer.Write(SerializationData!);
     }
 }

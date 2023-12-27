@@ -19,6 +19,8 @@ public class Material
 
     public readonly bool IsMissing;
 
+    public int Index;
+
     public Material(string pathToMaterialFile)
     {
         Name = Path.GetFileNameWithoutExtension(pathToMaterialFile);

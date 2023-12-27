@@ -1,8 +1,9 @@
-﻿using NoitaMap.Compression;
+﻿using System.Runtime.CompilerServices;
+using NoitaMap.Compression;
 
 namespace NoitaMap.Map;
 
-public static class NoitaDecompressor
+public static class NoitaFile
 {
     public static byte[] LoadCompressedFile(string filePath)
     {
@@ -38,5 +39,20 @@ public static class NoitaDecompressor
         }
 
         return outputBuffer;
+    }
+
+    public static void WriteCompressedFile(string filePath, Span<byte> data)
+    {
+        using FileStream fs = File.OpenWrite(filePath);
+        using BinaryWriter bw = new BinaryWriter(fs);
+
+        Span<byte> compressedData = FastLZ.Compress(1, data);
+
+        fs.Position = 0;
+
+        bw.Write(compressedData.Length);
+        bw.Write(data.Length);
+        bw.Write(compressedData);
+        fs.SetLength(fs.Position);
     }
 }

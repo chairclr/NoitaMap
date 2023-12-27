@@ -80,6 +80,20 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
         }
     }
 
+    public void ReplaceChunk(Chunk chunk)
+    {
+        if (!chunk.ReadyToBeAddedToAtlas)
+        {
+            throw new InvalidOperationException("Chunk not ready to be processed");
+        }
+
+        chunk.ReadyToBeAddedToAtlas = false;
+
+        Texture containingAtlas = Textures[chunk.ContainingAtlas];
+
+        GraphicsDevice.UpdateTexture(containingAtlas, chunk.WorkingTextureData.AsSpan(), (uint)chunk.AtlasX, (uint)chunk.AtlasY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
+    }
+
     private StatisticTimer AddChunkToAtlasTimer = new StatisticTimer("Add Chunk to Atlas");
 
     private void ProcessChunk(Chunk chunk)
@@ -111,6 +125,12 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
             AddAtlas(CurrentAtlasTexture);
         }
+
+        chunk.AtlasX = CurrentX;
+
+        chunk.AtlasY = CurrentY;
+
+        chunk.ContainingAtlas = Textures.Count - 1;
 
         Vector2 pos = new Vector2(CurrentX, CurrentY) / new Vector2(SingleAtlasSize);
         Vector2 size = new Vector2(0.0625f);

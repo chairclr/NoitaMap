@@ -1,5 +1,8 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using ImGuiNET;
+using NoitaMap.Compression;
+using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Map.Components;
 using NoitaMap.Map.Entities;
@@ -21,6 +24,8 @@ public partial class ViewerDisplay
     private bool DebugDrawPixelSpriteComponentBorders = false;
 
     private bool DebugDrawSpriteComponentBorders = false;
+
+    private bool DebugDrawCurrentCell = false;
 
     private bool ShowSearch = false;
 
@@ -101,6 +106,7 @@ public partial class ViewerDisplay
                     ImGui.Checkbox("Draw PixelScene borders", ref DebugDrawPixelSceneBorders);
                     ImGui.Checkbox("Draw PixelSpriteComponent borders", ref DebugDrawPixelSpriteComponentBorders);
                     ImGui.Checkbox("Draw SpriteComponent borders", ref DebugDrawSpriteComponentBorders);
+                    ImGui.Checkbox("Draw hovered cell", ref DebugDrawCurrentCell);
 
                     ImGui.Checkbox("Force PhysicsObject no framebuffer", ref ChunkContainer.ForceNoFrambuffer);
 
@@ -109,6 +115,27 @@ public partial class ViewerDisplay
 
                 if (ImGui.BeginTabItem("Test"))
                 {
+                    if (ImGui.Button("Test edit chunk"))
+                    {
+                        Chunk chunk = ChunkContainer.Chunks.Single(x => x.Position == Vector2.Zero);
+
+                        Material mat = ChunkContainer.MaterialProvider.GetMaterial("lava");
+
+                        for (int x = 0; x < 100; x++)
+                            for (int y = 0; y < 100; y++)
+                            {
+                                chunk.SetPixel(x, y, mat);
+                            }
+
+                        ChunkContainer.InvalidateChunk(chunk);
+
+                        using MemoryStream ms = new MemoryStream();
+                        using BinaryWriter writer = new BinaryWriter(ms);
+                        chunk.Serialize(writer);
+
+                        NoitaFile.WriteCompressedFile($"{PathService.WorldPath}/world_0_0.png_petri", ms.GetBuffer()[..(int)ms.Position]);
+                    }
+
                     ImGui.EndTabItem();
                 }
 
@@ -201,6 +228,26 @@ public partial class ViewerDisplay
                 Color color = Color.Orange;
 
                 drawList.AddQuad(p0, p1, p2, p3, color.ToPixel<Rgba32>().PackedValue, 4f);
+            }
+        }
+
+        if (DebugDrawCurrentCell)
+        {
+            Matrix4x4.Invert(Renderer.View, out Matrix4x4 inverse);
+            Vector2 v = Vector2.Transform(InputSystem.MousePosition, inverse);
+
+            Vector2 cv = new Vector2(float.Floor(v.X / 512f), float.Floor(v.Y / 512f));
+
+            Chunk? chunk = ChunkContainer.Chunks.FirstOrDefault(x => x.Position == cv);
+
+            if (chunk is not null)
+            {
+                int x = ((int)v.X) % 512;
+                int y = ((int)v.Y) % 512;
+
+                Material mat = chunk.GetPixel(y, x);
+
+                drawList.AddText(InputSystem.MousePosition, Color.White.ToPixel<Rgba32>().PackedValue, $"({x}, {y}) {mat.Name}");
             }
         }
     }

@@ -49,7 +49,7 @@ public class WorldPixelScenes : IRenderable
 
     public void Load(string path)
     {
-        byte[]? decompressedData = NoitaDecompressor.LoadCompressedFile(path);
+        byte[]? decompressedData = NoitaFile.LoadCompressedFile(path);
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
         {

@@ -104,7 +104,7 @@ public partial class ChunkContainer : IRenderable
 
         StatisticTimer loadChunkTimer = new StatisticTimer("Load Chunk").Begin();
 
-        byte[]? decompressedData = NoitaDecompressor.LoadCompressedFile(chunkFilePath);
+        byte[]? decompressedData = NoitaFile.LoadCompressedFile(chunkFilePath);
 
         using (MemoryStream ms = new MemoryStream(decompressedData))
         {
@@ -184,6 +184,13 @@ public partial class ChunkContainer : IRenderable
         }
     }
 
+    public void InvalidateChunk(Chunk chunk)
+    {
+        chunk.Invalidate();
+
+        ChunkAtlas.ReplaceChunk(chunk);
+    }
+
     public void HandleResize(Vector2D<int> newSize)
     {
         PhysicsObjectFramebufferTexture.Dispose();
@@ -254,4 +261,5 @@ public partial class ChunkContainer : IRenderable
 
     [GeneratedRegex("world_(?<x>-?\\d+)_(?<y>-?\\d+)\\.png_petri", RegexOptions.Compiled)]
     private static partial Regex GenerateWorldRegex();
+
 }

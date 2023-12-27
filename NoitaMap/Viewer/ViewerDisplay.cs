@@ -134,7 +134,14 @@ public partial class ViewerDisplay : IDisposable
             {
                 for (int i = 0; i < chunkPaths.Length; i++)
                 {
-                    ChunkContainer.LoadChunk(chunkPaths[i]);
+                    try
+                    {
+                        ChunkContainer.LoadChunk(chunkPaths[i]);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogCritical(ex);
+                    }
 
                     Interlocked.Increment(ref LoadedChunks);
                 }
@@ -171,7 +178,7 @@ public partial class ViewerDisplay : IDisposable
                 catch (Exception ex)
                 {
 #if  DEBUG
-                    byte[] decompressed = NoitaDecompressor.LoadCompressedFile(path);
+                    byte[] decompressed = NoitaFile.LoadCompressedFile(path);
 
                     Directory.CreateDirectory("entity_error_logs");
 
