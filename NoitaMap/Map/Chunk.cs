@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 
 namespace NoitaMap.Map;
 
-public class Chunk
+public class Chunk(Vector2 position)
 {
     public const int ChunkWidth = 512;
 
     public const int ChunkHeight = 512;
 
-    public Vector2 Position;
+    public Vector2 Position = position;
 
     public PhysicsObject[]? PhysicsObjects;
 
@@ -21,11 +21,6 @@ public class Chunk
     public bool ReadyToBeAddedToAtlas = false;
 
     public bool ReadyToBeAddedToAtlasAsAir = false;
-
-    public Chunk(Vector2 position)
-    {
-        Position = position;
-    }
 
     public void Deserialize(BinaryReader reader, MaterialProvider materialProvider)
     {
@@ -52,7 +47,7 @@ public class Chunk
             for (int y = 0; y < ChunkHeight; y++)
             {
                 int material = cellTable[x, y] & (~0x80);
-                bool customColor = (cellTable[x, y] & 0x80) != 0;
+                bool customColor = (cellTable[x, y] & 0x80) != 0;                
 
                 if (customColor)
                 {
@@ -76,7 +71,7 @@ public class Chunk
 
                     Material mat = materials[material];
 
-                    if (mat.Name == "_")
+                    if (mat.IsMissing)
                     {
                         WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
                     }

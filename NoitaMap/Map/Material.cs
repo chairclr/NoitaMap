@@ -17,6 +17,8 @@ public class Material
 
     public readonly Memory2D<Rgba32> MaterialTexture;
 
+    public readonly bool IsMissing;
+
     public Material(string pathToMaterialFile)
     {
         Name = Path.GetFileNameWithoutExtension(pathToMaterialFile);
@@ -43,5 +45,10 @@ public class Material
         Name = name;
 
         MaterialTexture = texture;
+
+        if (name == "_")
+        {
+            IsMissing = true;
+        }
     }
 }

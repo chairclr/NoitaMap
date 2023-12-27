@@ -107,6 +107,11 @@ public partial class ViewerDisplay
                     ImGui.EndTabItem();
                 }
 
+                if (ImGui.BeginTabItem("Test"))
+                {
+                    ImGui.EndTabItem();
+                }
+
                 ImGui.EndTabBar();
             }
 

@@ -26,7 +26,10 @@ public unsafe class FontAssets
         io.Fonts.Clear();
 
         ImFontConfigPtr font = ImGuiNative.ImFontConfig_ImFontConfig();
-        font.SizePixels = 13f * 2f;
+        font.SizePixels = 13 * 2f;
+        font.PixelSnapH = true;
+        font.OversampleH = 1;
+        font.OversampleV = 1;
         io.Fonts.AddFontDefault(font);
 
         ImGui.GetStyle().ScaleAllSizes(2f);
