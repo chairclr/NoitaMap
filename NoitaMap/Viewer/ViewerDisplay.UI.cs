@@ -2,6 +2,7 @@
 using System.Numerics;
 using ImGuiNET;
 using NoitaMap.Compression;
+using NoitaMap.Graphics;
 using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Map.Components;
@@ -27,7 +28,15 @@ public partial class ViewerDisplay
 
     private bool DebugDrawCurrentCell = false;
 
+    private bool DebugPaint = false;
+
+    private float BrushSize = 32f;
+
+    private string MaterialName = "";
+
     private bool ShowSearch = false;
+
+    private HashSet<Chunk> ModifiedChunks = new HashSet<Chunk>();
 
     private string SearchText = "";
 
@@ -107,6 +116,43 @@ public partial class ViewerDisplay
                     ImGui.Checkbox("Draw PixelSpriteComponent borders", ref DebugDrawPixelSpriteComponentBorders);
                     ImGui.Checkbox("Draw SpriteComponent borders", ref DebugDrawSpriteComponentBorders);
                     ImGui.Checkbox("Draw hovered cell", ref DebugDrawCurrentCell);
+                    ImGui.Checkbox("Paint", ref DebugPaint);
+
+                    if (DebugPaint)
+                    {
+                        ImGui.SliderFloat("Brush size", ref BrushSize, 1f, 512f * 10f);
+
+                        if (BrushSize <= 0f)
+                        {
+                            BrushSize = 0f;
+                        }
+
+
+                        ImGui.InputText("Material", ref MaterialName, 256);
+
+                        if (!ChunkContainer.MaterialProvider.Material.TryGetValue(MaterialName, out _) && MaterialName.Length > 0)
+                        {
+                            (string closestMat, _) = ChunkContainer.MaterialProvider.Material.OrderByDescending(x => x.Key.CompareTo(MaterialName)).FirstOrDefault();
+
+                            ImGui.TextDisabled(closestMat);
+                        }
+
+                        if (ImGui.Button("Save chunks"))
+                        {
+                            using MemoryStream ms = new MemoryStream();
+                            using BinaryWriter writer = new BinaryWriter(ms);
+
+                            foreach (Chunk chunk in ModifiedChunks)
+                            {
+                                ms.Position = 0;
+                                chunk.Serialize(writer);
+
+                                NoitaFile.WriteCompressedFile($"{PathService.WorldPath}/world_{chunk.Position.X}_{chunk.Position.Y}.png_petri", ms.GetBuffer().AsSpan()[..(int)ms.Position]);
+                            }
+
+                            ModifiedChunks.Clear();
+                        }
+                    }
 
                     ImGui.Checkbox("Force PhysicsObject no framebuffer", ref ChunkContainer.ForceNoFrambuffer);
 
@@ -119,7 +165,7 @@ public partial class ViewerDisplay
                     {
                         Chunk chunk = ChunkContainer.Chunks.Single(x => x.Position == Vector2.Zero);
 
-                        Material mat = ChunkContainer.MaterialProvider.GetMaterial("lava");
+                        Material mat = ChunkContainer.MaterialProvider.GetMaterial("steel_static");
 
                         for (int x = 0; x < 100; x++)
                             for (int y = 0; y < 100; y++)
@@ -135,6 +181,8 @@ public partial class ViewerDisplay
 
                         NoitaFile.WriteCompressedFile($"{PathService.WorldPath}/world_0_0.png_petri", ms.GetBuffer()[..(int)ms.Position]);
                     }
+
+
 
                     ImGui.EndTabItem();
                 }
@@ -236,18 +284,56 @@ public partial class ViewerDisplay
             Matrix4x4.Invert(Renderer.View, out Matrix4x4 inverse);
             Vector2 v = Vector2.Transform(InputSystem.MousePosition, inverse);
 
-            Vector2 cv = new Vector2(float.Floor(v.X / 512f), float.Floor(v.Y / 512f));
-
-            Chunk? chunk = ChunkContainer.Chunks.FirstOrDefault(x => x.Position == cv);
-
-            if (chunk is not null)
+            if (ChunkContainer.TryGetChunk(v, out Chunk? chunk))
             {
                 int x = ((int)v.X) % 512;
                 int y = ((int)v.Y) % 512;
 
+                if (x < 0) x = 512 + x;
+                if (y < 0) y = 512 + y;
+
                 Material mat = chunk.GetPixel(y, x);
 
-                drawList.AddText(InputSystem.MousePosition, Color.White.ToPixel<Rgba32>().PackedValue, $"({x}, {y}) {mat.Name}");
+                drawList.AddText(InputSystem.MousePosition, Color.White.ToPixel<Rgba32>().PackedValue, $"({float.Floor(v.X)}, {float.Floor(v.Y)}) {mat.Name}");
+            }
+        }
+
+        if (DebugPaint)
+        {
+
+            drawList.AddCircleFilled(InputSystem.MousePosition, BrushSize * Renderer.ViewScale.X, Color.Red.WithAlpha(0.3f).ToPixel<Rgba32>().PackedValue);
+
+            if (ChunkContainer.MaterialProvider.Material.TryGetValue(MaterialName, out Material? mat))
+            {
+                Matrix4x4.Invert(Renderer.View, out Matrix4x4 inverse);
+                Vector2 v = Vector2.Transform(InputSystem.MousePosition, inverse);
+
+                List<Chunk> chunksToEdit = new List<Chunk>();
+
+                for (float x = -BrushSize - 256f; x < BrushSize + 256f; x += 512f)
+                {
+                    for (float y = -BrushSize - 256f; y < BrushSize + 256f; y += 512f)
+                    {
+                        if (ChunkContainer.TryGetChunk(v + new Vector2(x, y), out Chunk? chunk))
+                        {
+                            chunksToEdit.Add(chunk);
+                        }
+                    }
+                }
+
+                if (InputSystem.RightMouseDown)
+                {
+                    foreach (Chunk chunk in chunksToEdit)
+                    {
+                        Vector2 p = v - chunk.Position;
+
+                        chunk.SetBulkCircle((int)p.X, (int)p.Y, BrushSize, mat);
+
+                        ChunkContainer.InvalidateChunk(chunk);
+
+                        ModifiedChunks.Add(chunk);
+                    }
+                }
             }
         }
     }
@@ -283,7 +369,7 @@ public partial class ViewerDisplay
                     break;
                 }
 
-                bool found = 
+                bool found =
                 (pixelScene.BackgroundFilename?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false)
                 || (pixelScene.ColorsFilename?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false)
                 || (pixelScene.MaterialFilename?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
@@ -299,7 +385,7 @@ public partial class ViewerDisplay
                         ###pixelscene{i}
                         """))
                     {
-                        Renderer.ViewOffset = 
+                        Renderer.ViewOffset =
                             new Vector2(pixelScene.X, pixelScene.Y)
                             - (ImGui.GetIO().DisplaySize / 2f) / Renderer.ViewScale
                             + (new Vector2(pixelScene.TextureWidth, pixelScene.TextureHeight) / 2f);

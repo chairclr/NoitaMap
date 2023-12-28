@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
+using Vortice.Direct3D;
 
 namespace NoitaMap.Map;
 
@@ -77,17 +78,21 @@ public class Chunk(Vector2 position)
                 int material = unindexedCellTable[x, y] & (~0x80);
                 bool customColor = (unindexedCellTable[x, y] & 0x80) != 0;
 
-                CellTable[x, y] = new Cell()
-                {
-                    MaterialIndex = (byte)material
-                };
+                ref Cell cell = ref CellTable[x, y];
+
+                cell.MaterialIndex = (byte)material;
 
                 if (customColor)
                 {
-                    WorkingTextureData[x, y] = customColorsUnindexed[customColorIndex];
+                    Rgba32 col = customColorsUnindexed[customColorIndex];
 
-                    CellTable[x, y].HasCustomColor = true;
-                    CellTable[x, y].CustomColor = customColorsUnindexed[customColorIndex];
+                    WorkingTextureData[x, y] = col;
+
+                    cell = cell with
+                    {
+                        HasCustomColor = true,
+                        CustomColor = col,
+                    };
 
                     // explicit > implicit
                     customColorIndex++;
@@ -117,8 +122,8 @@ public class Chunk(Vector2 position)
                         int wx = (x + chunkX * ChunkWidth) * 6;
                         int wy = (y + chunkY * ChunkHeight) * 6;
 
-                        int colorX = ((wx & Material.MaterialWidthM1) + Material.MaterialWidthM1) & Material.MaterialWidthM1;
-                        int colorY = ((wy & Material.MaterialHeightM1) + Material.MaterialHeightM1) & Material.MaterialHeightM1;
+                        int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidth) % Material.MaterialWidth;
+                        int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeight) % Material.MaterialHeight;
 
                         WorkingTextureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
                     }
@@ -229,12 +234,14 @@ public class Chunk(Vector2 position)
         {
             for (int y = 0; y < ChunkHeight; y++)
             {
-                int material = CellTable[x, y].MaterialIndex;
-                bool customColor = CellTable[x, y].HasCustomColor;
+                ref Cell cell = ref CellTable[x, y];
+
+                int material = cell.MaterialIndex;
+                bool customColor = cell.HasCustomColor;
 
                 if (customColor)
                 {
-                    WorkingTextureData[x, y] = CellTable[x, y].CustomColor;
+                    WorkingTextureData[x, y] = cell.CustomColor;
                 }
                 else
                 {
@@ -254,8 +261,8 @@ public class Chunk(Vector2 position)
                         int wx = (x + chunkX * ChunkWidth) * 6;
                         int wy = (y + chunkY * ChunkHeight) * 6;
 
-                        int colorX = ((wx & Material.MaterialWidthM1) + Material.MaterialWidthM1) & Material.MaterialWidthM1;
-                        int colorY = ((wy & Material.MaterialHeightM1) + Material.MaterialHeightM1) & Material.MaterialHeightM1;
+                        int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidthM1) % Material.MaterialWidthM1;
+                        int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeightM1) % Material.MaterialHeightM1;
 
                         WorkingTextureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
                     }
@@ -301,6 +308,43 @@ public class Chunk(Vector2 position)
     public Material GetPixel(int x, int y)
     {
         return MaterialMap![CellTable![x, y].MaterialIndex];
+    }
+
+    public void SetBulkCircle(int rx, int ry, float r, Material material)
+    {
+        if (!MaterialMap!.Contains(material))
+        {
+            MaterialMap.Add(material);
+            ReverseMaterialMap!.Add(material.Index, MaterialMap.Count - 1);
+        }
+
+        byte newIndex = (byte)ReverseMaterialMap![material.Index];
+
+        int startX = (int)float.Clamp(rx - r, 0f, ChunkWidth);
+        int endX = (int)float.Clamp(rx + r, 0f, ChunkWidth);
+
+        int startY = (int)float.Clamp(ry - r, 0f, ChunkHeight);
+        int endY = (int)float.Clamp(ry + r, 0f, ChunkHeight);
+
+        float rsqr = r * r;
+
+        for (int x = startX; x < endX; x++)
+        {
+            for (int y = startY; y < endY; y++)
+            {
+                float dx = rx - x;
+                float dy = ry - y;
+
+                if (dx * dx + dy * dy < rsqr)
+                {
+                    CellTable![y, x] = CellTable![y, x] with 
+                    {
+                        MaterialIndex = newIndex,
+                        HasCustomColor = false
+                    };
+                }
+            }
+        }
     }
 
     private string[] ReadMaterialNames(BinaryReader reader)

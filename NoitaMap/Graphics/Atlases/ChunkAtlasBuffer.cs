@@ -16,7 +16,11 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
     public readonly List<Chunk> Chunks = new List<Chunk>();
 
+    public Dictionary<Vector2, Chunk> ChunkTable = new Dictionary<Vector2, Chunk>();
+
     private readonly ConcurrentQueue<Chunk> ThreadedChunkQueue = new ConcurrentQueue<Chunk>();
+
+    private readonly ConcurrentQueue<Chunk> ThreadedChunkRerenderQueue = new ConcurrentQueue<Chunk>();
 
     private int CurrentX;
 
@@ -56,6 +60,16 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
         ThreadedChunkQueue.Enqueue(chunk);
     }
 
+    public void InvalidateChunk(Chunk chunk)
+    {
+        if (!chunk.ReadyToBeAddedToAtlas)
+        {
+            throw new InvalidOperationException("Chunk not ready to be added to atlas");
+        }
+
+        ThreadedChunkRerenderQueue.Enqueue(chunk);
+    }
+
     public void Update()
     {
         bool needsUpdate = false;
@@ -72,6 +86,12 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             needsUpdate = true;
 
             i++;
+        }
+
+        i = 0;
+        while (i < MaxBatchSize && ThreadedChunkRerenderQueue.TryDequeue(out Chunk? chunk))
+        {
+            ReplaceChunk(chunk);
         }
 
         if (needsUpdate)
@@ -147,6 +167,8 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
         CurrentX += Chunk.ChunkWidth;
 
         Chunks.Add(chunk);
+
+        ChunkTable.Add(chunk.Position, chunk);
 
         InstancesPerAtlas[^1]++;
 

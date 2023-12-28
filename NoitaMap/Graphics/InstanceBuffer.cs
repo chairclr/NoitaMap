@@ -122,7 +122,7 @@ public class InstanceBuffer<T> : InstanceBuffer
 
             fixed (void* instancePointer = &span[0])
             {
-                Unsafe.CopyBlock((void*)resource.Data, instancePointer, (uint)(Instances.Count * Unsafe.SizeOf<T>()));
+                Unsafe.CopyBlock((void*)resource.Data, instancePointer, (uint)(span.Length * Unsafe.SizeOf<T>()));
             }
 
             GraphicsDevice.Unmap(Buffer);

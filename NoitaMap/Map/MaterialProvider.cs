@@ -6,6 +6,8 @@ public class MaterialProvider
 
     private readonly Material MissingMaterial;
 
+    public IReadOnlyDictionary<string, Material> Material => Materials;
+
     public MaterialProvider()
     {
         string materialPath = Path.Combine(File.Exists(typeof(MaterialProvider).Assembly.Location) ? Path.GetDirectoryName(typeof(MaterialProvider).Assembly.Location)! : Environment.CurrentDirectory, "Assets", "Materials");

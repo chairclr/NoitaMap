@@ -1,4 +1,7 @@
-﻿using System.Numerics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
+using System.Runtime.Intrinsics;
 using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
 using NoitaMap.Graphics.Atlases;
@@ -20,6 +23,14 @@ public partial class ChunkContainer : IRenderable
     public readonly ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
     private readonly ChunkAtlasBuffer ChunkAtlas;
+
+    private readonly ConcurrentQueue<Chunk> ChunksToRerender = new ConcurrentQueue<Chunk>();
+
+    private readonly HashSet<Chunk> RerenderingChunk = new HashSet<Chunk>();
+
+    private Task ChunkRerenderTask;
+
+    private CancellationTokenSource ChunkRendererCancellationToken = new CancellationTokenSource();
 
     public IReadOnlyList<Chunk> Chunks => ChunkAtlas.Chunks;
 
@@ -69,7 +80,7 @@ public partial class ChunkContainer : IRenderable
 
         PhysicsObjectFramebuffer = Renderer.GraphicsDevice.ResourceFactory.CreateFramebuffer(new FramebufferDescription()
         {
-            ColorTargets = new FramebufferAttachmentDescription[] { new FramebufferAttachmentDescription(PhysicsObjectFramebufferTexture, 0) }
+            ColorTargets = [new FramebufferAttachmentDescription(PhysicsObjectFramebufferTexture, 0)]
         });
         PhysicsObjectFramebuffer.Name = nameof(PhysicsObjectFramebuffer);
 
@@ -94,6 +105,8 @@ public partial class ChunkContainer : IRenderable
                 UV = y
             };
         }, instanceBuffer);
+
+        ChunkRerenderTask = Task.Run(RerenderChunkLoop);
     }
 
     public void LoadChunk(string chunkFilePath)
@@ -186,9 +199,16 @@ public partial class ChunkContainer : IRenderable
 
     public void InvalidateChunk(Chunk chunk)
     {
-        chunk.Invalidate();
+        lock (RerenderingChunk)
+        {
+            if (!RerenderingChunk.Add(chunk))
+            {
+                return;
+            }
+        }
 
-        ChunkAtlas.ReplaceChunk(chunk);
+
+        ChunksToRerender.Enqueue(chunk);
     }
 
     public void HandleResize(Vector2D<int> newSize)
@@ -222,6 +242,26 @@ public partial class ChunkContainer : IRenderable
         PhysicsObjectResourceSet = Renderer.CreateTextureBinding(PhysicsObjectFramebufferTexture);
     }
 
+    private void RerenderChunkLoop()
+    {
+        while (!ChunkRendererCancellationToken.IsCancellationRequested)
+        {
+            while (ChunksToRerender.TryDequeue(out Chunk? chunk))
+            {
+                chunk.Invalidate();
+
+                ChunkAtlas.ReplaceChunk(chunk);
+
+                lock (RerenderingChunk)
+                {
+                    RerenderingChunk.Remove(chunk);
+                }
+            }
+
+            Thread.Sleep(16);
+        }
+    }
+
     private static Vector2 GetChunkPositionFromPath(string filePath)
     {
         string fileName = Path.GetFileName(filePath);
@@ -231,10 +271,21 @@ public partial class ChunkContainer : IRenderable
         return new Vector2(int.Parse(match.Groups["x"].Value), int.Parse(match.Groups["y"].Value));
     }
 
+    public bool TryGetChunk(Vector2 chunkPosition, [NotNullWhen(true)] out Chunk? chunk)
+    {
+        chunkPosition = (Vector128.Floor(chunkPosition.AsVector128() / new Vector2(512f).AsVector128()) * new Vector2(512f).AsVector128()).AsVector2();
+        
+        return ChunkAtlas.ChunkTable.TryGetValue(chunkPosition, out chunk);
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         if (!Disposed)
         {
+            ChunkRendererCancellationToken.Cancel();
+
+            ChunkRerenderTask.Wait();
+
             ConstantBuffer.Dispose();
 
             ChunkAtlas.Dispose();
