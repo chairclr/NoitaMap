@@ -310,9 +310,9 @@ public partial class ViewerDisplay
 
                 List<Chunk> chunksToEdit = new List<Chunk>();
 
-                for (float x = -BrushSize - 256f; x < BrushSize + 256f; x += 512f)
+                for (float x = -BrushSize - 512f; x < BrushSize + 512f; x += 512f)
                 {
-                    for (float y = -BrushSize - 256f; y < BrushSize + 256f; y += 512f)
+                    for (float y = -BrushSize - 512f; y < BrushSize + 512f; y += 512f)
                     {
                         if (ChunkContainer.TryGetChunk(v + new Vector2(x, y), out Chunk? chunk))
                         {

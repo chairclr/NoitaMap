@@ -127,7 +127,7 @@ public partial class ChunkContainer : IRenderable
             int width = reader.ReadBEInt32();
             int height = reader.ReadBEInt32();
 
-            if (version != 24 || width != Chunk.ChunkWidth || height != Chunk.ChunkHeight)
+            if (version != 24 || width != Chunk.ChunkSize || height != Chunk.ChunkSize)
             {
                 throw new InvalidDataException($"Chunk header was not correct. Version = {version} Width = {width} Height = {height}");
             }

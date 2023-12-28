@@ -111,7 +111,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
 
         Texture containingAtlas = Textures[chunk.ContainingAtlas];
 
-        GraphicsDevice.UpdateTexture(containingAtlas, chunk.WorkingTextureData.AsSpan(), (uint)chunk.AtlasX, (uint)chunk.AtlasY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
+        GraphicsDevice.UpdateTexture(containingAtlas, chunk.WorkingTextureData.AsSpan(), (uint)chunk.AtlasX, (uint)chunk.AtlasY, 0, Chunk.ChunkSize, Chunk.ChunkSize, 1, 0, 0);
     }
 
     private StatisticTimer AddChunkToAtlasTimer = new StatisticTimer("Add Chunk to Atlas");
@@ -131,7 +131,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
         {
             CurrentX = 0;
 
-            CurrentY += Chunk.ChunkHeight;
+            CurrentY += Chunk.ChunkSize;
         }
 
         if (CurrentY >= SingleAtlasSize)
@@ -162,9 +162,9 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
             TextureSize = size,
         });
 
-        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, chunk.WorkingTextureData.AsSpan(), (uint)CurrentX, (uint)CurrentY, 0, Chunk.ChunkWidth, Chunk.ChunkHeight, 1, 0, 0);
+        GraphicsDevice.UpdateTexture(CurrentAtlasTexture, chunk.WorkingTextureData.AsSpan(), (uint)CurrentX, (uint)CurrentY, 0, Chunk.ChunkSize, Chunk.ChunkSize, 1, 0, 0);
 
-        CurrentX += Chunk.ChunkWidth;
+        CurrentX += Chunk.ChunkSize;
 
         Chunks.Add(chunk);
 

@@ -110,7 +110,7 @@ public partial class ViewerDisplay : IDisposable
 
             TotalChunkCount = chunkPaths.Length;
 
-            int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)(Environment.ProcessorCount - 2));
+            int ChunksPerThread = (int)MathF.Ceiling((float)chunkPaths.Length / (float)Math.Max(Environment.ProcessorCount - 2, 1));
 
             // Split up all of the paths into a collection of (at most) ChunksPerThread paths for each thread to process
             // This is so that each thread can process ChunksPerThread chunks at once, rather than having too many threads

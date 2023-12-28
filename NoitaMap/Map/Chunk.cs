@@ -8,9 +8,7 @@ namespace NoitaMap.Map;
 
 public class Chunk(Vector2 position)
 {
-    public const int ChunkWidth = 512;
-
-    public const int ChunkHeight = 512;
+    public const int ChunkSize = 512;
 
     public Vector2 Position = position;
 
@@ -42,8 +40,8 @@ public class Chunk(Vector2 position)
     {
         MaterialProvider = materialProvider;
 
-        byte[,] unindexedCellTable = new byte[ChunkWidth, ChunkHeight];
-        CellTable = new Cell[ChunkWidth, ChunkHeight];
+        byte[,] unindexedCellTable = new byte[ChunkSize, ChunkSize];
+        CellTable = new Cell[ChunkSize, ChunkSize];
 
         reader.Read(unindexedCellTable.AsSpan());
 
@@ -66,14 +64,14 @@ public class Chunk(Vector2 position)
         int chunkX = (int)Position.X;
         int chunkY = (int)Position.Y;
 
-        WorkingTextureData = new Rgba32[ChunkWidth, ChunkHeight];
+        WorkingTextureData = new Rgba32[ChunkSize, ChunkSize];
 
         bool wasAnyNotAir = false;
 
         int customColorIndex = 0;
-        for (int x = 0; x < ChunkWidth; x++)
+        for (int x = 0; x < ChunkSize; x++)
         {
-            for (int y = 0; y < ChunkHeight; y++)
+            for (int y = 0; y < ChunkSize; y++)
             {
                 int material = unindexedCellTable[x, y] & (~0x80);
                 bool customColor = (unindexedCellTable[x, y] & 0x80) != 0;
@@ -115,12 +113,12 @@ public class Chunk(Vector2 position)
 
                     if (mat.IsMissing)
                     {
-                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
+                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkSize) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkSize) % mat.MaterialTexture.Height];
                     }
                     else
                     {
-                        int wx = (x + chunkX * ChunkWidth) * 6;
-                        int wy = (y + chunkY * ChunkHeight) * 6;
+                        int wx = (x + chunkX * ChunkSize) * 6;
+                        int wy = (y + chunkY * ChunkSize) * 6;
 
                         int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidth) % Material.MaterialWidth;
                         int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeight) % Material.MaterialHeight;
@@ -157,13 +155,13 @@ public class Chunk(Vector2 position)
 
     public void Serialize(BinaryWriter writer)
     {
-        byte[,] unindexedCellTable = new byte[ChunkWidth, ChunkHeight];
+        byte[,] unindexedCellTable = new byte[ChunkSize, ChunkSize];
 
         List<Rgba32> customColors = new List<Rgba32>();
 
-        for (int x = 0; x < ChunkWidth; x++)
+        for (int x = 0; x < ChunkSize; x++)
         {
-            for (int y = 0; y < ChunkHeight; y++)
+            for (int y = 0; y < ChunkSize; y++)
             {
                 unindexedCellTable[x, y] = (byte)CellTable![x, y].MaterialIndex;
 
@@ -179,8 +177,8 @@ public class Chunk(Vector2 position)
         // --- HEADER ---
         // Version = 24
         writer.WriteBE(24);
-        writer.WriteBE(ChunkWidth);
-        writer.WriteBE(ChunkHeight);
+        writer.WriteBE(ChunkSize);
+        writer.WriteBE(ChunkSize);
 
         // --- CELL DATA ---
         writer.Write(unindexedCellTable.AsSpan());
@@ -228,11 +226,11 @@ public class Chunk(Vector2 position)
         int chunkX = (int)Position.X;
         int chunkY = (int)Position.Y;
 
-        WorkingTextureData = new Rgba32[ChunkWidth, ChunkHeight];
+        WorkingTextureData = new Rgba32[ChunkSize, ChunkSize];
 
-        for (int x = 0; x < ChunkWidth; x++)
+        for (int x = 0; x < ChunkSize; x++)
         {
-            for (int y = 0; y < ChunkHeight; y++)
+            for (int y = 0; y < ChunkSize; y++)
             {
                 ref Cell cell = ref CellTable[x, y];
 
@@ -254,12 +252,12 @@ public class Chunk(Vector2 position)
 
                     if (mat.IsMissing)
                     {
-                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkWidth) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkHeight) % mat.MaterialTexture.Height];
+                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkSize) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkSize) % mat.MaterialTexture.Height];
                     }
                     else
                     {
-                        int wx = (x + chunkX * ChunkWidth) * 6;
-                        int wy = (y + chunkY * ChunkHeight) * 6;
+                        int wx = (x + chunkX * ChunkSize) * 6;
+                        int wy = (y + chunkY * ChunkSize) * 6;
 
                         int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidthM1) % Material.MaterialWidthM1;
                         int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeightM1) % Material.MaterialHeightM1;
@@ -320,11 +318,11 @@ public class Chunk(Vector2 position)
 
         byte newIndex = (byte)ReverseMaterialMap![material.Index];
 
-        int startX = (int)float.Clamp(rx - r, 0f, ChunkWidth);
-        int endX = (int)float.Clamp(rx + r, 0f, ChunkWidth);
+        int startX = (int)float.Clamp(rx - r, 0f, ChunkSize);
+        int endX = (int)float.Clamp(rx + r, 0f, ChunkSize);
 
-        int startY = (int)float.Clamp(ry - r, 0f, ChunkHeight);
-        int endY = (int)float.Clamp(ry + r, 0f, ChunkHeight);
+        int startY = (int)float.Clamp(ry - r, 0f, ChunkSize);
+        int endY = (int)float.Clamp(ry + r, 0f, ChunkSize);
 
         float rsqr = r * r;
 
