@@ -6,3 +6,6 @@ obj/
 !/NoitaMap/Assets/**
 !/NoitaMap/Assets/**
 /NoitaMap/Properties/launchSettings.json
+
+NoitaMap/entity_error_logs/
+NoitaMap/imgui.ini
