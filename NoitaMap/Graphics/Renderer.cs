@@ -229,7 +229,6 @@ public class Renderer : IDisposable
 
         ConstantBuffer.Update();
 
-
         MainCommandList.Begin();
 
         MainCommandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
@@ -283,8 +282,6 @@ public class Renderer : IDisposable
     {
         if (!Disposed)
         {
-            GraphicsDevice.WaitForFence(CommandListFence);
-        
             MainFrameBuffer.Dispose();
 
             ConstantBuffer.Dispose();
