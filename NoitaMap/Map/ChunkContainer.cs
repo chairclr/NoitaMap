@@ -65,7 +65,7 @@ public partial class ChunkContainer : IRenderable
         PhysicsObjectFramebufferTexture = Renderer.GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
         {
             Type = TextureType.Texture2D,
-            Format = PixelFormat.B8_G8_R8_A8_UNorm,
+            Format = PixelFormat.B8G8R8A8UNorm,
             Width = (uint)Renderer.Window.Size.X,
             Height = (uint)Renderer.Window.Size.Y,
             Usage = TextureUsage.Sampled | TextureUsage.RenderTarget,
@@ -161,7 +161,7 @@ public partial class ChunkContainer : IRenderable
 
             commandList.SetFramebuffer(PhysicsObjectFramebuffer);
 
-            commandList.ClearColorTarget(0, RgbaFloat.Clear);
+            commandList.ClearColorTarget(0, RgbaFloat.CLEAR);
 
             ConstantBuffer.Data.ViewProjection =
                 Matrix4x4.CreateTranslation(-new Vector3(MathF.Floor(Renderer.ViewOffset.X), MathF.Floor(Renderer.ViewOffset.Y), 0f)) *
@@ -222,7 +222,7 @@ public partial class ChunkContainer : IRenderable
         PhysicsObjectFramebufferTexture = Renderer.GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
         {
             Type = TextureType.Texture2D,
-            Format = PixelFormat.B8_G8_R8_A8_UNorm,
+            Format = PixelFormat.B8G8R8A8UNorm,
             Width = (uint)newSize.X,
             Height = (uint)newSize.Y,
             Usage = TextureUsage.Sampled | TextureUsage.RenderTarget,

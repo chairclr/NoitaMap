@@ -71,7 +71,7 @@ public abstract class AtlasedQuadBuffer : IDisposable
         return GraphicsDevice.ResourceFactory.CreateTexture(new TextureDescription()
         {
             Type = TextureType.Texture2D,
-            Format = PixelFormat.R8_G8_B8_A8_UNorm,
+            Format = PixelFormat.R8G8B8A8UNorm,
             Width = (uint)width,
             Height = (uint)height,
             Usage = TextureUsage.Sampled,

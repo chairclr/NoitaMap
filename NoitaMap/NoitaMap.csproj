@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
     <PackageReference Include="ImGui.NET" Version="1.89.7.1" />
-    <PackageReference Include="ppy.Veldrid" Version="4.9.3-gf4e09bb395" />
+    <PackageReference Include="ppy.Veldrid" Version="4.9.58-gfe61932a71" />
     <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-gc5e8498253" />
     <PackageReference Include="Silk.NET.Input" Version="2.20.0" />
     <PackageReference Include="Silk.NET.Input.Sdl" Version="2.20.0" />

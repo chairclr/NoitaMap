@@ -85,7 +85,7 @@ public class ImGuiRenderer : IRenderable
         GraphicsDevice.WaitForIdle();
 
         FontTexture?.Dispose();
-        FontTexture = GraphicsDevice.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled));
+        FontTexture = GraphicsDevice.ResourceFactory.CreateTexture(TextureDescription.Texture2D((uint)width, (uint)height, 1, 1, Veldrid.PixelFormat.R8G8B8A8UNorm, TextureUsage.Sampled));
         FontTexture.Name = "ImGui.NET Font Texture";
         GraphicsDevice.UpdateTexture(FontTexture, (nint)pixels, (uint)(4 * width * height), 0, 0, 0, (uint)width, (uint)height, 1, 0, 0);
 
@@ -349,7 +349,7 @@ public class ImGuiRenderer : IRenderable
                 new VertexLayoutDescription(
                     new VertexElementDescription("in_position", VertexElementSemantic.Position, VertexElementFormat.Float2),
                     new VertexElementDescription("in_texCoord", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
-                    new VertexElementDescription("in_color", VertexElementSemantic.Color, VertexElementFormat.Byte4_Norm))
+                    new VertexElementDescription("in_color", VertexElementSemantic.Color, VertexElementFormat.Byte4Norm))
         };
 
         Layout = factory.CreateResourceLayout(new ResourceLayoutDescription(
@@ -361,7 +361,7 @@ public class ImGuiRenderer : IRenderable
         TextureLayout.Name = "ImGui.NET Texture Layout";
 
         GraphicsPipelineDescription pd = new GraphicsPipelineDescription(
-            BlendStateDescription.SingleAlphaBlend,
+            BlendStateDescription.SINGLE_ALPHA_BLEND,
             new DepthStencilStateDescription(false, false, ComparisonKind.Always),
             new RasterizerStateDescription(FaceCullMode.None, PolygonFillMode.Solid, FrontFace.Clockwise, true, true),
             PrimitiveTopology.TriangleList,

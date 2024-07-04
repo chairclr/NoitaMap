@@ -120,7 +120,7 @@ public class Renderer : IDisposable
     {
         return GraphicsDevice.ResourceFactory.CreateGraphicsPipeline(new GraphicsPipelineDescription()
         {
-            BlendState = BlendStateDescription.SingleAlphaBlend,
+            BlendState = BlendStateDescription.SINGLE_ALPHA_BLEND,
             DepthStencilState = new DepthStencilStateDescription()
             {
                 DepthComparison = ComparisonKind.Never,
@@ -229,13 +229,12 @@ public class Renderer : IDisposable
 
         ConstantBuffer.Update();
 
-        GraphicsDevice.ResetFence(CommandListFence);
 
         MainCommandList.Begin();
 
         MainCommandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
 
-        MainCommandList.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
+        MainCommandList.ClearColorTarget(0, RgbaFloat.CORNFLOWER_BLUE);
 
         MainCommandList.SetPipeline(MainPipeline);
 
@@ -253,6 +252,8 @@ public class Renderer : IDisposable
         GraphicsDevice.SubmitCommands(MainCommandList, CommandListFence);
 
         GraphicsDevice.WaitForFence(CommandListFence);
+
+        GraphicsDevice.ResetFence(CommandListFence);
 
         GraphicsDevice.SwapBuffers();
     }

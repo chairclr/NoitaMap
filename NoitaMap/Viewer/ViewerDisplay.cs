@@ -78,11 +78,9 @@ public partial class ViewerDisplay : IDisposable
     {
         GraphicsDeviceOptions graphicsOptions = new GraphicsDeviceOptions()
         {
-#if DEBUG
-            Debug = true,
-#endif
             SyncToVerticalBlank = true,
             HasMainSwapchain = true,
+            ResourceBindingModel = ResourceBindingModel.Improved,
         };
 
         VeldridWindow.CreateGraphicsDevice(Window, graphicsOptions, out GraphicsDevice);
