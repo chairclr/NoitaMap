@@ -2,6 +2,7 @@
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
 using NoitaMap.Map.Entities;
+using SixLabors.ImageSharp;
 
 namespace NoitaMap.Map.Components;
 

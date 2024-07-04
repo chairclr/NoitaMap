@@ -7,6 +7,7 @@ using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Map.Components;
 using NoitaMap.Map.Entities;
+using SixLabors.ImageSharp;
 
 namespace NoitaMap.Viewer;
 

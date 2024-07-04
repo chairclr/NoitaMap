@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.HighPerformance;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 
 namespace NoitaMap.Map;

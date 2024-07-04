@@ -21,7 +21,11 @@
     <PackageReference Include="Silk.NET.Input" Version="2.20.0" />
     <PackageReference Include="Silk.NET.Input.Sdl" Version="2.20.0" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.20.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="SixLabors.ImageSharp.PixelFormats" />
   </ItemGroup>
   
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild">

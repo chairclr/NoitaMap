@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 using CommunityToolkit.HighPerformance;
 using ImGuiNET;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 
 namespace NoitaMap.Viewer;

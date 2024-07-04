@@ -5,6 +5,7 @@ using NoitaMap.Graphics;
 using NoitaMap.Logging;
 using NoitaMap.Map.Entities;
 using Vortice.DXGI;
+using SixLabors.ImageSharp;
 
 namespace NoitaMap.Map.Components;
 

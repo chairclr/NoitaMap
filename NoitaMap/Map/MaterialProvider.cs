@@ -1,4 +1,6 @@
-﻿namespace NoitaMap.Map;
+﻿using SixLabors.ImageSharp;
+
+namespace NoitaMap.Map;
 
 public class MaterialProvider
 {
