@@ -8,7 +8,7 @@ public static class ShaderLoader
 {
     public static Shader[] Load(GraphicsDevice graphicsDevice, string pixelShader, string vertexShader)
     {
-        string shaderPath = Path.Combine(File.Exists(typeof(ShaderLoader).Assembly.Location) ? Path.GetDirectoryName(typeof(ShaderLoader).Assembly.Location)! : Environment.CurrentDirectory, "Assets", "Shaders", "Compiled");
+        string shaderPath = Path.Combine(PathService.ApplicationPath, "Assets", "Shaders", "Compiled");
 
         byte[] vertexShaderBytes = File.ReadAllBytes(Path.Combine(shaderPath, $"{vertexShader}.spirv"));
         byte[] pixelShaderBytes = File.ReadAllBytes(Path.Combine(shaderPath, $"{pixelShader}.spirv"));

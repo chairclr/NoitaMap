@@ -12,7 +12,7 @@ public partial class FastLZ
         {
             if (dllName == "fastlz")
             {
-                string libraryPath = Path.Combine(File.Exists(assembly.Location) ? Path.GetDirectoryName(assembly.Location)! : Environment.CurrentDirectory, "Assets", "Libraries");
+                string libraryPath = Path.Combine(PathService.ApplicationPath, "Assets", "Libraries");
 
                 string arch = RuntimeInformation.ProcessArchitecture switch
                 {

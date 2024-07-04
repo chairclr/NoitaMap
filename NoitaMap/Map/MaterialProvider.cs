@@ -12,7 +12,7 @@ public class MaterialProvider
 
     public MaterialProvider()
     {
-        string materialPath = Path.Combine(File.Exists(typeof(MaterialProvider).Assembly.Location) ? Path.GetDirectoryName(typeof(MaterialProvider).Assembly.Location)! : Environment.CurrentDirectory, "Assets", "Materials");
+        string materialPath = Path.Combine(PathService.ApplicationPath, "Assets", "Materials");
 
         int i = 0;
         foreach (string path in Directory.EnumerateFiles(materialPath, "*.png"))

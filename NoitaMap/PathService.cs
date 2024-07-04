@@ -4,11 +4,21 @@ namespace NoitaMap;
 
 public static class PathService
 {
+    /// <summary>
+    /// Returns the directory that the application is in. 
+    /// </summary>
+    public static string ApplicationPath { get; }
+
     public static string SavePath { get; private set; } = null!;
 
     public static string WorldPath { get; private set; } = null!;
 
     public static string? DataPath { get; private set; }
+
+    static PathService()
+    {
+        ApplicationPath = AppContext.BaseDirectory;
+    }
 
     public static void SetPaths(string[] args)
     {
