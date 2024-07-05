@@ -27,7 +27,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: 
+          name: bin
           path: |
-            win-x64
-            linux-x64
+            win-x64/
+            linux-x64/
