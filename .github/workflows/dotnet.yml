@@ -22,12 +22,19 @@ jobs:
         run: dotnet build NoitaMap/NoitaMap.csproj --no-restore 
       - name: Publish
         run: |
-          dotnet publish NoitaMap/NoitaMap.csproj -r win-x64 -p:PublishSingleFile=true --self-contained true -o win-x64
-          dotnet publish NoitaMap/NoitaMap.csproj -r linux-x64 -p:PublishSingleFile=true --self-contained true -o linux-x64
-      - name: Upload artifacts
+          dotnet publish NoitaMap/NoitaMap.csproj -r win-x64 -p:PublishSingleFile=true --self-contained true -o ~/win-x64
+          dotnet publish NoitaMap/NoitaMap.csproj -r linux-x64 -p:PublishSingleFile=true --self-contained true -o ~/linux-x64
+
+      - name: Upload windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: bin
+          name: win-x64
           path: |
-            win-x64/
-            linux-x64/
+            ~/win-x64/
+
+      - name: Upload linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: |
+            ~/linux-x64/
