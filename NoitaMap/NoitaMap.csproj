@@ -27,13 +27,20 @@
   <ItemGroup>
     <Using Include="SixLabors.ImageSharp.PixelFormats" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ShaderFiles Include="Map/VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
+    <ShaderFiles Include="Map/PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
+    <ShaderFiles Include="ImGui/VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
+    <ShaderFiles Include="ImGui/PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
+  </ItemGroup>
   
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild">
-    <CompileShaderTask ShaderFile="Map/VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
-    <CompileShaderTask ShaderFile="Map/PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
-    
-    <CompileShaderTask ShaderFile="ImGui/VertexShader" ShaderProfile="vs_6_0" ShaderEntryPoint="VSMain" />
-    <CompileShaderTask ShaderFile="ImGui/PixelShader" ShaderProfile="ps_6_0" ShaderEntryPoint="PSMain" />
+
+    <CompileShaderTask
+      ShaderFile="%(ShaderFiles.Identity)"
+      ShaderProfile="%(ShaderFiles.ShaderProfile)"
+      ShaderEntryPoint="%(ShaderFiles.ShaderEntryPoint)" /> 
 
     <ItemGroup>
       <None Include="$(ProjectDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
@@ -60,7 +67,9 @@
           bool windows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
           bool linux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
           if ((!windows && !linux) || !Environment.Is64BitOperatingSystem)
-              return Success; // just skips the task
+          {
+              return Success; // skips the task on non windows / linux 64 bit platforms 
+          }
 
           Log.LogMessage(MessageImportance.High, "Compiling Shader " + ShaderFile);
 
@@ -78,7 +87,9 @@
           }
 
           if (linux) // dxc can't find its libraries otherwise
+          {
               Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", Path.Combine(projectDirectory, "dxc", "linux"));
+          }
 
           Process process = new Process();
           process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", windows ? "win" : "linux", windows ? "dxc.exe" : "dxc");

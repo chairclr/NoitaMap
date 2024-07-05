@@ -13,7 +13,7 @@ public unsafe class FontAssets
         fontConfig.PixelSnapH = true;
         fontConfig.OversampleH = 1;
         fontConfig.OversampleV = 1;
-        
+
         ImFontPtr noitaFont = io.Fonts.AddFontFromFileTTF(Path.Combine(PathService.ApplicationPath, "Assets", "Fonts", "NoitaPixel.ttf"), fontConfig.SizePixels, fontConfig);
 
         io.NativePtr->FontDefault = noitaFont.NativePtr;
