@@ -202,8 +202,16 @@ public partial class ViewerDisplay : IDisposable
             {
                 StatisticTimer timer = new StatisticTimer("Load AreaEntity").Begin();
 
-                AreaContainer.LoadArea(path);
+                try
+                {
+                    AreaContainer.LoadArea(path);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Error decoding area at path \"{path}\":");
+                    Logger.LogWarning(ex);
 
+                }
                 timer.End(StatisticMode.Sum);
             }
         });

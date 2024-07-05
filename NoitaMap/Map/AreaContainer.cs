@@ -12,6 +12,8 @@ public class AreaContainer : IRenderable
 
     public readonly List<AreaEntity> AreaEntities = new List<AreaEntity>();
 
+    public IReadOnlyList<AreaEntitySprite> AreaEntitySprites => AreaSpriteAtlas.AtlasObjects;
+
     private readonly QuadObjectAtlasBuffer<AreaEntitySprite> AreaSpriteAtlas;
 
     private bool Disposed;

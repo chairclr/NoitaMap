@@ -285,13 +285,18 @@ public partial class ViewerDisplay
 
         if (DebugDrawAreaEntityBorders)
         {
-            foreach (AreaEntity area in AreaContainer.AreaEntities)
+            foreach (AreaEntitySprite sprite in AreaContainer.AreaEntitySprites)
             {
-                Vector2 p0 = Vector2.Transform(Vector2.Zero, Matrix4x4.CreateTranslation(area.Position.X, area.Position.Y, 0) * Renderer.View);
+                Matrix4x4 mat = sprite.WorldMatrix * Renderer.View;
+
+                Vector2 p0 = Vector2.Transform(Vector2.Zero, mat);
+                Vector2 p1 = Vector2.Transform(Vector2.UnitY, mat);
+                Vector2 p2 = Vector2.Transform(Vector2.One, mat);
+                Vector2 p3 = Vector2.Transform(Vector2.UnitX, mat);
 
                 Color color = Color.GreenYellow;
 
-                drawList.AddCircleFilled(p0, 10f, color.ToPixel<Rgba32>().PackedValue);
+                drawList.AddQuad(p0, p1, p2, p3, color.ToPixel<Rgba32>().PackedValue, 4f);
             }
         }
 

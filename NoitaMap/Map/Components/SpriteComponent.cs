@@ -298,10 +298,10 @@ public class SpriteData
     public string? Filename { get; set; }
 
     [XmlAttribute(AttributeName = "offset_x")]
-    public int OffsetX { get; set; }
+    public float OffsetX { get; set; }
 
     [XmlAttribute(AttributeName = "offset_y")]
-    public int OffsetY { get; set; }
+    public float OffsetY { get; set; }
 
     [XmlAttribute(AttributeName = "default_animation")]
     public string? DefaultAnimation { get; set; }
