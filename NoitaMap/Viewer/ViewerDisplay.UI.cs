@@ -39,6 +39,8 @@ public partial class ViewerDisplay
 
     private HashSet<Chunk> ModifiedChunks = new HashSet<Chunk>();
 
+    private bool DebugDrawAreaEntityBorders = false;
+
     private string SearchText = "";
 
     private void DrawUI()
@@ -116,6 +118,7 @@ public partial class ViewerDisplay
                     ImGui.Checkbox("Draw PixelScene borders", ref DebugDrawPixelSceneBorders);
                     ImGui.Checkbox("Draw PixelSpriteComponent borders", ref DebugDrawPixelSpriteComponentBorders);
                     ImGui.Checkbox("Draw SpriteComponent borders", ref DebugDrawSpriteComponentBorders);
+                    ImGui.Checkbox("Draw AreaEntity borders", ref DebugDrawAreaEntityBorders);
                     ImGui.Checkbox("Draw hovered cell", ref DebugDrawCurrentCell);
                     ImGui.Checkbox("Paint", ref DebugPaint);
 
@@ -277,6 +280,18 @@ public partial class ViewerDisplay
                 Color color = Color.Orange;
 
                 drawList.AddQuad(p0, p1, p2, p3, color.ToPixel<Rgba32>().PackedValue, 4f);
+            }
+        }
+
+        if (DebugDrawAreaEntityBorders)
+        {
+            foreach (AreaEntity area in AreaContainer.AreaEntities)
+            {
+                Vector2 p0 = Vector2.Transform(Vector2.Zero, Matrix4x4.CreateTranslation(area.Position.X, area.Position.Y, 0) * Renderer.View);
+
+                Color color = Color.GreenYellow;
+
+                drawList.AddCircleFilled(p0, 10f, color.ToPixel<Rgba32>().PackedValue);
             }
         }
 

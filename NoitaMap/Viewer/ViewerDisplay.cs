@@ -26,6 +26,8 @@ public partial class ViewerDisplay : IDisposable
 
     private EntityContainer EntityContainer;
 
+    private AreaContainer AreaContainer;
+
     private int TotalChunkCount = 0;
 
     private int LoadedChunks = 0;
@@ -91,6 +93,7 @@ public partial class ViewerDisplay : IDisposable
         [
             WorldPixelScenes = new WorldPixelScenes(Renderer),
             EntityContainer = new EntityContainer(Renderer),
+            AreaContainer = new AreaContainer(Renderer),
             ChunkContainer = new ChunkContainer(Renderer),
             Renderer.ImGuiRenderer
         ];
@@ -197,7 +200,9 @@ public partial class ViewerDisplay : IDisposable
 
             foreach (string path in areaPaths)
             {
-                StatisticTimer timer = new StatisticTimer("Load Area").Begin();
+                StatisticTimer timer = new StatisticTimer("Load AreaEntity").Begin();
+
+                AreaContainer.LoadArea(path);
 
                 timer.End(StatisticMode.Sum);
             }

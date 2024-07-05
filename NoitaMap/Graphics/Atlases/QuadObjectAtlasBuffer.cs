@@ -1,4 +1,3 @@
-
 using System.Collections.Concurrent;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
