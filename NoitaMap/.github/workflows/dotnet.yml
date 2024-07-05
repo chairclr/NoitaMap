@@ -1,0 +1,33 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Publish
+        run: |
+          dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained true -o ../win-x64
+          dotnet publish -r linux-x64 -p:PublishSingleFile=true --self-contained true -o ../linux-x64
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: 
+          path: |
+            ../win-x64
+            ../linux-x64
