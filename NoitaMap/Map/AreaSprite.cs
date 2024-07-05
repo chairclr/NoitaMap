@@ -45,6 +45,7 @@ public class AreaEntitySprite : IAtlasObject
             * Matrix4x4.CreateTranslation(position.X, position.Y, 0f);
     }
 
+    // TODO: Refactor this lmao
     private void LoadImage(string xmlFilePath)
     {
         if (PathService.DataPath is null)
