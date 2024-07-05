@@ -81,6 +81,7 @@ public class DummyComponent : Component
                 case "class ConfigGunActionInfo":
                 case "class ConfigExplosion":
                     {
+                        /*
                         ObjectSchema objectSchema = ObjectSchema.GetSchema(type);
 
                         foreach (ObjectSchema.ObjectSchemaField field in objectSchema.SchemaFields)
@@ -90,6 +91,8 @@ public class DummyComponent : Component
 
                             ProcessField(field.RawType, field.Name, (int)field.Size!);
                         }
+                        */
+                        throw new Exception($"Unparsable type detected: {type}");
                     }
                     break;
                 case "struct SpriteStains *":

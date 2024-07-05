@@ -190,6 +190,18 @@ public partial class ViewerDisplay : IDisposable
                 timer.End(StatisticMode.Sum);
             }
         });
+
+        Task.Run(() => 
+        {
+            string[] areaPaths = Directory.EnumerateFiles(PathService.WorldPath, "area_*.bin").ToArray();
+
+            foreach (string path in areaPaths)
+            {
+                StatisticTimer timer = new StatisticTimer("Load Area").Begin();
+
+                timer.End(StatisticMode.Sum);
+            }
+        });
     }
 
     public Stopwatch DeltaTimeWatch = Stopwatch.StartNew();
