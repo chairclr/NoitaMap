@@ -1,0 +1,20 @@
+{
+    "configurations": {
+        "run": {
+            "adapter": "netcoredbg",
+            "configuration": {
+                "request": "launch",
+                "program": "${workspaceRoot}/NoitaMap/bin/Release/net8.0/NoitaMap.dll",
+                "args": [
+                    "-s",
+                    "/home/chair/.local/share/Steam/steamapps/compatdata/881100/pfx/drive_c/users/steamuser/AppData/LocalLow/Nolla_Games_Noita/save00",
+                    "-d",
+                    "/home/chair/.wine/drive_c/users/chair/AppData/LocalLow/Nolla_Games_Noita/data"
+                ],
+                "stopAtEntry": true,
+                "cwd": "${workspaceRoot}",
+                "env": {}
+            }
+        }
+    }
+}

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Numerics;
 using NoitaMap.Graphics;
 using NoitaMap.Logging;
 using NoitaMap.Map;
