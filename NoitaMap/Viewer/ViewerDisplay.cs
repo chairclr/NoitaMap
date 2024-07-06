@@ -177,7 +177,7 @@ public partial class ViewerDisplay : IDisposable
                 }
                 catch (Exception ex)
                 {
-#if  DEBUG
+#if DEBUG
                     byte[] decompressed = NoitaFile.LoadCompressedFile(path);
 
                     Directory.CreateDirectory("entity_error_logs");

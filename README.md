@@ -12,9 +12,13 @@ A cool map viewer for [Noita](https://noitagame.com/) written in C# using [Veldr
 - View the world pixel scenes such as Orb Room backgrounds and Holy Mountain backgrounds
 - Pan and zoom around the world
 - Multithreaded loading for fast and user-friendly loading
-- Support for mulitple different gprahics APIs and platforms (D3D11 and OpenGL are the only ones tested, but Vulkan and Metal should work)
+- Support for mulitple different gprahics APIs and platforms (D3D11, Vulkan, and Metal)
+- Editing the world
+- Load enemies from area files
 
 ## Planned features
-- Editing the map
 - Proper backgrounds for the world
-- Better performance and memory usage
+- More comprehnsive controls and UI/UX
+
+## Screenshots
+- TODO

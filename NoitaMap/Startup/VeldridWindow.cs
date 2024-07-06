@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using NoitaMap.Logging;
+﻿using NoitaMap.Logging;
 using Silk.NET.Windowing;
 using Veldrid;
 
