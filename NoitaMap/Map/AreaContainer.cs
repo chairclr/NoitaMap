@@ -64,55 +64,66 @@ public class AreaContainer : IRenderable
                 int bigNumberIdk = reader.ReadBEInt32();
                 int smallerNumberMaybeHealthIdk = reader.ReadBEInt32();
 
-                foreach (Vector2 pos in positionData[i])
+                try
                 {
-                    ThreadedAreaQueue.Enqueue(new AreaEntity(xmlFilePath, pos));
-
-                    if (PathService.DataPath is null)
+                    foreach (Vector2 pos in positionData[i])
                     {
-                        return;
+                        ThreadedAreaQueue.Enqueue(new AreaEntity(xmlFilePath, pos));
+
+                        LoadEntitySprite(xmlFilePath, pos);
                     }
-
-                    Logger.LogInformation(xmlFilePath);
-
-                    string caselessBaseXmlFilePath = xmlFilePath.ToLower();
-
-                    string? fullXmlPath = null;
-                    if (caselessBaseXmlFilePath.StartsWith("data/"))
-                    {
-                        fullXmlPath = Path.Combine(PathService.DataPath, caselessBaseXmlFilePath.Remove(0, 5));
-                    }
-
-                    if (fullXmlPath is null || !File.Exists(fullXmlPath))
-                    {
-                        return;
-                    }
-
-                    string baseXmlContent = File.ReadAllText(fullXmlPath);
-
-                    Logger.LogInformation(xmlFilePath);
-
-                    baseXmlContent = PreProcessXml(xmlFilePath, baseXmlContent);
-
-                    XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.LoadXml(baseXmlContent);
-
-                    XmlNodeList? spriteNodes = xmlDoc.SelectNodes("//SpriteComponent");
-
-                    if (spriteNodes is null)
-                    {
-                        return;
-                    }
-
-                    foreach (XmlNode node in spriteNodes)
-                    {
-                        AreaSpriteAtlas.AddAtlasObject(new AreaEntitySprite(node, pos));
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Error while loading entity {xmlFilePath} for area file {path}:");
+                    Logger.LogWarning(ex.ToString());
                 }
             }
         }
 
         decompressedData = null;
+    }
+
+    private void LoadEntitySprite(string xmlFilePath, Vector2 pos)
+    {
+        if (PathService.DataPath is null)
+        {
+            return;
+        }
+
+        string caselessBaseXmlFilePath = xmlFilePath.ToLower();
+
+        string? fullXmlPath = null;
+        if (caselessBaseXmlFilePath.StartsWith("data/"))
+        {
+            fullXmlPath = Path.Combine(PathService.DataPath, caselessBaseXmlFilePath.Remove(0, 5));
+        }
+
+        if (fullXmlPath is null || !File.Exists(fullXmlPath))
+        {
+            return;
+        }
+
+        string baseXmlContent = File.ReadAllText(fullXmlPath);
+
+        Logger.LogInformation(xmlFilePath);
+
+        baseXmlContent = PreProcessXml(xmlFilePath, baseXmlContent);
+
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.LoadXml(baseXmlContent);
+
+        XmlNodeList? spriteNodes = xmlDoc.SelectNodes("//SpriteComponent");
+
+        if (spriteNodes is null)
+        {
+            return;
+        }
+
+        foreach (XmlNode node in spriteNodes)
+        {
+            AreaSpriteAtlas.AddAtlasObject(new AreaEntitySprite(node, pos));
+        }
     }
 
     public void Update()
