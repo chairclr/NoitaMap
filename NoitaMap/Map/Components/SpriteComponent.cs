@@ -185,7 +185,7 @@ public class SpriteComponent(Entity entity, string name) : Component(entity, nam
 
             using Image<Rgba32> image = ImageUtility.LoadImage(imagePath);
 
-            SpriteRectAnimation? rectAnimation = 
+            SpriteRectAnimation? rectAnimation =
                 spriteData.RectAnimation!.FirstOrDefault(x => RectAnimation == x.Name)
                 ?? spriteData.RectAnimation!.Single(x => spriteData.DefaultAnimation == x.Name);
 

@@ -18,7 +18,7 @@ public interface ILogger
 
     public void LogCritical(string? message) => Log(LogLevel.Critical, message);
 
-    public void LogCritical(string? message, StackTrace stackTrace) 
+    public void LogCritical(string? message, StackTrace stackTrace)
     {
         Log(LogLevel.Critical, message);
         Log(LogLevel.Critical, $"Stack trace:\n{stackTrace}");

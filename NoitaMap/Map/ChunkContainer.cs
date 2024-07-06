@@ -274,7 +274,7 @@ public partial class ChunkContainer : IRenderable
     public bool TryGetChunk(Vector2 chunkPosition, [NotNullWhen(true)] out Chunk? chunk)
     {
         chunkPosition = (Vector128.Floor(chunkPosition.AsVector128() / new Vector2(512f).AsVector128()) * new Vector2(512f).AsVector128()).AsVector2();
-        
+
         return ChunkAtlas.ChunkTable.TryGetValue(chunkPosition, out chunk);
     }
 

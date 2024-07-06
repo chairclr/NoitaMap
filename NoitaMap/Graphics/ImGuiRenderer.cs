@@ -138,7 +138,7 @@ public class ImGuiRenderer : IRenderable
             throw new InvalidOperationException("Frame not begun");
 
         ImGui.EndFrame();
-        
+
         FrameBegun = false;
     }
 

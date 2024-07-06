@@ -6,7 +6,7 @@ namespace NoitaMap.Map;
 
 public class AreaEntity
 {
-    public Vector2 Position; 
+    public Vector2 Position;
 
     public string XmlFilePath;
 

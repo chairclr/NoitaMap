@@ -107,7 +107,7 @@ public class Renderer : IDisposable
 
         ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
 
-        Window.FramebufferResize += (Vector2D<int> newSize) => 
+        Window.FramebufferResize += (Vector2D<int> newSize) =>
         {
             PendingNewSize = newSize;
             PendingResize = true;
@@ -142,8 +142,8 @@ public class Renderer : IDisposable
                 [
                     new VertexLayoutDescription
                     (
-                        new VertexElementDescription("position",    VertexElementFormat.Float3, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("uv",          VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
+                        new VertexElementDescription("position", VertexElementFormat.Float3, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("uv", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
                     ),
                     new VertexLayoutDescription
                     (
@@ -153,8 +153,8 @@ public class Renderer : IDisposable
                         new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
                         new VertexElementDescription("worldMatrix", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("texPos",      VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-                        new VertexElementDescription("texSize",     VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
+                        new VertexElementDescription("texPos", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                        new VertexElementDescription("texSize", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)
                     ),
                 ],
             },

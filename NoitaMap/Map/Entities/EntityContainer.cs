@@ -49,7 +49,7 @@ public class EntityContainer : IRenderable
     private readonly QuadObjectAtlasBuffer<SpriteComponent> RegularSpriteAtlas;
 
     public IReadOnlyList<PixelSpriteComponent> PixelSprites => PixelSpriteAtlas.AtlasObjects;
-    
+
     public IReadOnlyList<SpriteComponent> RegularSprites => RegularSpriteAtlas.AtlasObjects;
 
     private bool Disposed;

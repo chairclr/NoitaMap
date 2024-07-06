@@ -21,7 +21,7 @@ public partial class ViewerDisplay : IDisposable
     public Renderer Renderer;
 
     private ChunkContainer ChunkContainer;
-    
+
     private WorldPixelScenes WorldPixelScenes;
 
     private EntityContainer EntityContainer;
@@ -54,7 +54,7 @@ public partial class ViewerDisplay : IDisposable
 
         Window.Load += Load;
 
-        Window.Render += (double d) => 
+        Window.Render += (double d) =>
         {
             DeltaTimeWatch.Stop();
 
@@ -194,7 +194,7 @@ public partial class ViewerDisplay : IDisposable
             }
         });
 
-        Task.Run(() => 
+        Task.Run(() =>
         {
             string[] areaPaths = Directory.EnumerateFiles(PathService.WorldPath, "area_*.bin").ToArray();
 

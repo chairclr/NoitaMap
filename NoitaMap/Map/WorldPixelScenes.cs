@@ -37,7 +37,7 @@ public class WorldPixelScenes : IRenderable
     private readonly QuadObjectAtlasBuffer<PixelScene> PixelScenesAtlas;
 
     public IReadOnlyList<PixelScene> PixelScenes => PixelScenesAtlas.AtlasObjects;
-    
+
     private bool Disposed;
 
     public WorldPixelScenes(Renderer renderer)

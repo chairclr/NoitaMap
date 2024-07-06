@@ -335,7 +335,7 @@ public class Chunk(Vector2 position)
 
                 if (dx * dx + dy * dy < rsqr)
                 {
-                    CellTable![y, x] = CellTable![y, x] with 
+                    CellTable![y, x] = CellTable![y, x] with
                     {
                         MaterialIndex = newIndex,
                         HasCustomColor = false
@@ -377,7 +377,7 @@ public class Chunk(Vector2 position)
     private struct Cell
     {
         public Rgba32 CustomColor;
-        
+
         public byte MaterialIndex;
 
         public bool HasCustomColor;

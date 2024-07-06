@@ -9,5 +9,5 @@ public interface IRenderable : IDisposable
 
     public void Render(CommandList commandList);
 
-    public virtual void HandleResize(Vector2D<int> newSize) {  }
+    public virtual void HandleResize(Vector2D<int> newSize) { }
 }

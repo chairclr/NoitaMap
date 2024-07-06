@@ -37,7 +37,7 @@ public static class ShaderLoader
             pixelShaderBytes = Encoding.UTF8.GetBytes(result.FragmentShader);
         }
 
-        
+
 
         Shader vs = graphicsDevice.ResourceFactory.CreateShader(new ShaderDescription()
         {

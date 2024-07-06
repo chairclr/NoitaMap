@@ -70,7 +70,7 @@ public class AreaEntitySprite : IAtlasObject
 
         XmlDocument xmlDoc = new XmlDocument();
         xmlDoc.LoadXml(baseXmlContent);
-        
+
         XmlNode? spriteNode = xmlDoc.SelectSingleNode("//SpriteComponent");
 
         if (spriteNode is null)
@@ -80,7 +80,7 @@ public class AreaEntitySprite : IAtlasObject
 
         string spriteXml = spriteNode.OuterXml;
 
-        
+
         XmlSerializer serializer = new XmlSerializer(typeof(SpriteComponentData));
         using StringReader xmlText = new StringReader(spriteXml);
 
@@ -93,7 +93,7 @@ public class AreaEntitySprite : IAtlasObject
         }
 
         OffsetX = spriteComponentData.OffsetX / 2;
-        OffsetY = spriteComponentData.OffsetY / 2; 
+        OffsetY = spriteComponentData.OffsetY / 2;
 
         TransformOffsetX = spriteComponentData.TransformOffsetX;
         TransformOffsetY = spriteComponentData.TransformOffsetY;
@@ -161,64 +161,64 @@ public class AreaEntitySprite : IAtlasObject
         }
 
         OffsetX += spriteData.OffsetX;
-        OffsetY += spriteData.OffsetY; 
+        OffsetY += spriteData.OffsetY;
     }
 }
 
-[XmlRoot(ElementName="SpriteComponent")]
-public class SpriteComponentData 
-{ 
-	[XmlAttribute(AttributeName="_tags")] 
-	public string? Tags { get; set; } 
+[XmlRoot(ElementName = "SpriteComponent")]
+public class SpriteComponentData
+{
+    [XmlAttribute(AttributeName = "_tags")]
+    public string? Tags { get; set; }
 
-	[XmlAttribute(AttributeName="_enabled")] 
-	public int Enabled { get; set; } 
+    [XmlAttribute(AttributeName = "_enabled")]
+    public int Enabled { get; set; }
 
-	[XmlAttribute(AttributeName="transform_offset.x")] 
-	public float TransformOffsetX { get; set; } 
+    [XmlAttribute(AttributeName = "transform_offset.x")]
+    public float TransformOffsetX { get; set; }
 
-	[XmlAttribute(AttributeName="transform_offset.y")] 
-	public float TransformOffsetY { get; set; } 
+    [XmlAttribute(AttributeName = "transform_offset.y")]
+    public float TransformOffsetY { get; set; }
 
-	[XmlAttribute(AttributeName="alpha")] 
-	public float Alpha { get; set; } 
+    [XmlAttribute(AttributeName = "alpha")]
+    public float Alpha { get; set; }
 
-	[XmlAttribute(AttributeName="has_special_scale")] 
-	public int HasSpecialScale { get; set; } 
+    [XmlAttribute(AttributeName = "has_special_scale")]
+    public int HasSpecialScale { get; set; }
 
-	[XmlAttribute(AttributeName="image_file")] 
-	public string? ImageFile { get; set; } 
+    [XmlAttribute(AttributeName = "image_file")]
+    public string? ImageFile { get; set; }
 
-	[XmlAttribute(AttributeName="is_text_sprite")] 
-	public int IsTextSprite { get; set; } 
+    [XmlAttribute(AttributeName = "is_text_sprite")]
+    public int IsTextSprite { get; set; }
 
-	[XmlAttribute(AttributeName="offset_x")] 
-	public float OffsetX { get; set; } 
+    [XmlAttribute(AttributeName = "offset_x")]
+    public float OffsetX { get; set; }
 
-	[XmlAttribute(AttributeName="offset_y")] 
-	public float OffsetY { get; set; }
+    [XmlAttribute(AttributeName = "offset_y")]
+    public float OffsetY { get; set; }
 
-	[XmlAttribute(AttributeName="special_scale_x")] 
-	public float SpecialScaleX { get; set; } 
+    [XmlAttribute(AttributeName = "special_scale_x")]
+    public float SpecialScaleX { get; set; }
 
-	[XmlAttribute(AttributeName="special_scale_y")] 
-	public float SpecialScaleY { get; set; } 
+    [XmlAttribute(AttributeName = "special_scale_y")]
+    public float SpecialScaleY { get; set; }
 
-	[XmlAttribute(AttributeName="ui_is_parent")] 
-	public int UiIsParent { get; set; } 
+    [XmlAttribute(AttributeName = "ui_is_parent")]
+    public int UiIsParent { get; set; }
 
-	[XmlAttribute(AttributeName="update_transform")] 
-	public int UpdateTransform { get; set; } 
+    [XmlAttribute(AttributeName = "update_transform")]
+    public int UpdateTransform { get; set; }
 
-	[XmlAttribute(AttributeName="visible")] 
-	public int Visible { get; set; } 
+    [XmlAttribute(AttributeName = "visible")]
+    public int Visible { get; set; }
 
-	[XmlAttribute(AttributeName="emissive")] 
-	public int Emissive { get; set; } 
+    [XmlAttribute(AttributeName = "emissive")]
+    public int Emissive { get; set; }
 
-	[XmlAttribute(AttributeName="never_ragdollify_on_death")] 
-	public int NeverRagdollifyOnDeath { get; set; } 
+    [XmlAttribute(AttributeName = "never_ragdollify_on_death")]
+    public int NeverRagdollifyOnDeath { get; set; }
 
-	[XmlAttribute(AttributeName="z_index")] 
-	public int ZIndex { get; set; } 
+    [XmlAttribute(AttributeName = "z_index")]
+    public int ZIndex { get; set; }
 }
