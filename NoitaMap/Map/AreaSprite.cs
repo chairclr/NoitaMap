@@ -1,5 +1,3 @@
-
-
 using System.Numerics;
 using System.Xml;
 using System.Xml.Serialization;
@@ -34,9 +32,9 @@ public class AreaEntitySprite : IAtlasObject
 
     public float TransformOffsetY;
 
-    public AreaEntitySprite(string xmlFilePath, Vector2 position)
+    public AreaEntitySprite(XmlNode spriteComponentNode, Vector2 position)
     {
-        LoadImage(xmlFilePath);
+        LoadSpriteComponent(spriteComponentNode);
 
         WorldMatrix =
             Matrix4x4.CreateScale(TextureWidth * ScaleX, TextureHeight * ScaleY, 1f)
@@ -45,46 +43,14 @@ public class AreaEntitySprite : IAtlasObject
             * Matrix4x4.CreateTranslation(position.X, position.Y, 0f);
     }
 
-    // TODO: Refactor this lmao
-    private void LoadImage(string xmlFilePath)
+    private void LoadSpriteComponent(XmlNode spriteComponentNode)
     {
         if (PathService.DataPath is null)
         {
             return;
         }
 
-        string caselessBaseXmlFilePath = xmlFilePath.ToLower();
-
-        string? fullXmlPath = null;
-        if (caselessBaseXmlFilePath.StartsWith("data/"))
-        {
-            fullXmlPath = Path.Combine(PathService.DataPath, caselessBaseXmlFilePath.Remove(0, 5));
-        }
-
-        if (fullXmlPath is null || !File.Exists(fullXmlPath))
-        {
-            return;
-        }
-
-        string baseXmlContent = File.ReadAllText(fullXmlPath);
-
-        XmlDocument xmlDoc = new XmlDocument();
-        xmlDoc.LoadXml(baseXmlContent);
-
-        XmlNode? spriteNode = xmlDoc.SelectSingleNode("//SpriteComponent");
-
-        if (spriteNode is null)
-        {
-            return;
-        }
-
-        string spriteXml = spriteNode.OuterXml;
-
-
-        XmlSerializer serializer = new XmlSerializer(typeof(SpriteComponentData));
-        using StringReader xmlText = new StringReader(spriteXml);
-
-        SpriteComponentData spriteComponentData = (SpriteComponentData)serializer.Deserialize(xmlText)!;
+        SpriteComponentData spriteComponentData = XmlUtility.LoadXml<SpriteComponentData>(spriteComponentNode.OuterXml);
 
         if (spriteComponentData.HasSpecialScale != 0)
         {
@@ -113,13 +79,7 @@ public class AreaEntitySprite : IAtlasObject
             return;
         }
 
-        string gfxXmlContent = File.ReadAllText(fullGfxPath);
-
-        XmlSerializer gfxSerializer = new XmlSerializer(typeof(SpriteData));
-        using StringReader gfxXmlText = new StringReader(gfxXmlContent);
-
-        SpriteData spriteData = (SpriteData)gfxSerializer.Deserialize(gfxXmlText)!;
-
+        SpriteData spriteData = XmlUtility.LoadXml<SpriteData>(File.ReadAllText(fullGfxPath));
 
         string? imagePath = spriteData.Filename?.ToLower();
 
@@ -133,7 +93,6 @@ public class AreaEntitySprite : IAtlasObject
             imagePath = Path.Combine(PathService.DataPath!, imagePath.Remove(0, 5));
         }
 
-        using Image<Rgba32> image = ImageUtility.LoadImage(imagePath);
 
         SpriteRectAnimation? rectAnimation = spriteData.RectAnimation!.FirstOrDefault(x => spriteData.DefaultAnimation == x.Name);
 
@@ -142,8 +101,24 @@ public class AreaEntitySprite : IAtlasObject
             return;
         }
 
+        LoadImage(imagePath, rectAnimation);
+        
+        OffsetX += spriteData.OffsetX;
+        OffsetY += spriteData.OffsetY;
+    }
+
+    private void LoadImage(string imagePath, SpriteRectAnimation rectAnimation)
+    {
+        using Image<Rgba32> image = ImageUtility.LoadImage(imagePath);
+
         int width = rectAnimation.FrameWidth;
         int height = rectAnimation.FrameHeight;
+
+        if (rectAnimation.ShrinkByOnePixel == 1)
+        {
+            width--;
+            height--;
+        }
 
         WorkingTextureData = new Rgba32[height, width];
 
@@ -160,8 +135,6 @@ public class AreaEntitySprite : IAtlasObject
             }
         }
 
-        OffsetX += spriteData.OffsetX;
-        OffsetY += spriteData.OffsetY;
     }
 }
 
@@ -220,5 +193,5 @@ public class SpriteComponentData
     public int NeverRagdollifyOnDeath { get; set; }
 
     [XmlAttribute(AttributeName = "z_index")]
-    public int ZIndex { get; set; }
+    public float ZIndex { get; set; }
 }

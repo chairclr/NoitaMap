@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Numerics;
+using System.Xml;
 using NoitaMap.Graphics;
 using NoitaMap.Logging;
 using Veldrid;
@@ -67,7 +68,46 @@ public class AreaContainer : IRenderable
                 {
                     ThreadedAreaQueue.Enqueue(new AreaEntity(xmlFilePath, pos));
 
-                    AreaSpriteAtlas.AddAtlasObject(new AreaEntitySprite(xmlFilePath, pos));
+                    if (PathService.DataPath is null)
+                    {
+                        return;
+                    }
+
+                    Logger.LogInformation(xmlFilePath);
+
+                    string caselessBaseXmlFilePath = xmlFilePath.ToLower();
+
+                    string? fullXmlPath = null;
+                    if (caselessBaseXmlFilePath.StartsWith("data/"))
+                    {
+                        fullXmlPath = Path.Combine(PathService.DataPath, caselessBaseXmlFilePath.Remove(0, 5));
+                    }
+
+                    if (fullXmlPath is null || !File.Exists(fullXmlPath))
+                    {
+                        return;
+                    }
+
+                    string baseXmlContent = File.ReadAllText(fullXmlPath);
+
+                    Logger.LogInformation(xmlFilePath);
+
+                    baseXmlContent = PreProcessXml(xmlFilePath, baseXmlContent);
+
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(baseXmlContent);
+
+                    XmlNodeList? spriteNodes = xmlDoc.SelectNodes("//SpriteComponent");
+
+                    if (spriteNodes is null)
+                    {
+                        return;
+                    }
+
+                    foreach (XmlNode node in spriteNodes)
+                    {
+                        AreaSpriteAtlas.AddAtlasObject(new AreaEntitySprite(node, pos));
+                    }
                 }
             }
         }
@@ -98,6 +138,21 @@ public class AreaContainer : IRenderable
 
             Disposed = true;
         }
+    }
+
+    private string PreProcessXml(string xmlPath, string xmlContent)
+    {
+        if (xmlPath == "data/entities/animals/worm_big.xml")
+        {
+            xmlContent = xmlContent.Replace("next_rect_animation=\"eat\" \r\n\t\tnext_rect_animation=\"\"", "next_rect_animation=\"eat\"");
+        }
+
+        if (xmlPath == "data/entities/animals/fireskull.xml")
+        {
+            xmlContent = xmlContent.Replace("count_min=\"5\"\r\n    count_max=\"5\"", "");
+        }
+
+        return xmlContent;
     }
 
     public void Dispose()
