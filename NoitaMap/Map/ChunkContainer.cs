@@ -4,8 +4,6 @@ using System.Numerics;
 using System.Runtime.Intrinsics;
 using System.Text.RegularExpressions;
 using NoitaMap.Graphics;
-using NoitaMap.Graphics.Atlases;
-using NoitaMap.Map;
 using NoitaMap.Viewer;
 using Silk.NET.Maths;
 using Veldrid;
@@ -312,5 +310,5 @@ public partial class ChunkContainer : IRenderable
 
     [GeneratedRegex("world_(?<x>-?\\d+)_(?<y>-?\\d+)\\.png_petri", RegexOptions.Compiled)]
     private static partial Regex GenerateWorldRegex();
-
 }
+

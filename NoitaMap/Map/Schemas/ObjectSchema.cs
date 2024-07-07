@@ -9,32 +9,36 @@ public class ObjectSchema
 
     public string Name;
 
+    public string SchemaName;
+
     public List<ObjectSchemaField> SchemaFields = new List<ObjectSchemaField>();
 
-    private ObjectSchema(string className)
+    private ObjectSchema(string schemaHash, string className)
     {
+        SchemaName = schemaHash;
+
         if (className.StartsWith("class "))
         {
             className = className[6..];
         }
 
-        ObjectSchemaRoot root = JsonSerializer.Deserialize<ObjectSchemaRoot>(File.ReadAllText($"Assets/Objects/{className}.json"))!;
+        ObjectSchemaRoot root = JsonSerializer.Deserialize<ObjectSchemaRoot>(File.ReadAllText(Path.Join(PathService.ApplicationPath, $"Assets/Objects/{schemaHash}/{className}.json")))!;
 
         Name = root.Name;
 
         SchemaFields = root.Fields;
     }
 
-    public static ObjectSchema GetSchema(string name)
+    public static ObjectSchema GetSchema(string schemaHash, string name)
     {
-        if (SchemaCache.TryGetValue(name, out ObjectSchema? schema))
+        if (SchemaCache.TryGetValue(schemaHash + name, out ObjectSchema? schema))
         {
             return schema;
         }
 
-        schema = new ObjectSchema(name);
+        schema = new ObjectSchema(schemaHash, name);
 
-        SchemaCache.Add(name, schema);
+        SchemaCache.Add(schemaHash + name, schema);
 
         return schema;
     }

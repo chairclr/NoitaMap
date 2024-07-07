@@ -1,0 +1,1 @@
+{"name":"OrbComponent","base":"Component","fields":[{"offset":72,"comment":"must be unique for every orb in the world","example_range_min":0,"example_range_max":20,"kind":"Members","default_value":"0","size":4,"raw_type":"int","type":"int","name":"orb_id"}]}

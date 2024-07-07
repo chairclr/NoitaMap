@@ -48,6 +48,8 @@ public partial class ViewerDisplay : IDisposable
         };
 
         SdlWindowing.Use();
+        
+        Logger.LogInformation("Creating Sdl window");
 
         Window = Silk.NET.Windowing.Window.Create(windowOptions);
 
@@ -72,6 +74,8 @@ public partial class ViewerDisplay : IDisposable
             Renderer!.Render();
         };
 
+        Logger.LogInformation("Running Sdl window");
+
         Window.Run();
     }
 
@@ -84,7 +88,11 @@ public partial class ViewerDisplay : IDisposable
             ResourceBindingModel = ResourceBindingModel.Improved,
         };
 
+        Logger.LogInformation("Creating Veldrid GraphisDevice");
+
         VeldridWindow.CreateGraphicsDevice(Window, graphicsOptions, out GraphicsDevice);
+
+        Logger.LogInformation("Creating Renderer");
 
         Renderer = new Renderer(Window, GraphicsDevice);
 
@@ -98,6 +106,13 @@ public partial class ViewerDisplay : IDisposable
         ];
 
         Renderer.Renderables.AddRange<IRenderable>(renderables);
+
+        Logger.LogInformation("Added base renderables:");
+
+        foreach (IRenderable renderable in Renderer.Renderables)
+        {
+            Logger.LogInformation($"\t{renderable.GetType().Name}");
+        }
 
         StartLoading();
     }
@@ -130,6 +145,8 @@ public partial class ViewerDisplay : IDisposable
                 }
             }
 
+            Logger.LogInformation($"Starting load of {chunkPaths.Length} chunks");
+
             Parallel.ForEach(threadedChunkPaths, chunkPaths =>
             {
                 for (int i = 0; i < chunkPaths.Length; i++)
@@ -140,6 +157,7 @@ public partial class ViewerDisplay : IDisposable
                     }
                     catch (Exception ex)
                     {
+                        Logger.LogCritical("An exception occured while loading a chunk:");
                         Logger.LogCritical(ex);
                     }
 
@@ -155,11 +173,17 @@ public partial class ViewerDisplay : IDisposable
 
             if (File.Exists(path))
             {
+                Logger.LogInformation("Starting load of world pixel scenes");
+
                 StatisticTimer timer = new StatisticTimer("Load World Pixel Scenes").Begin();
 
                 WorldPixelScenes.Load(path);
 
                 timer.End(StatisticMode.Single);
+            }
+            else
+            {
+                Logger.LogInformation("No world_pixel_scenes.bin file found");
             }
         });
 
@@ -167,25 +191,32 @@ public partial class ViewerDisplay : IDisposable
         {
             string[] entityPaths = Directory.EnumerateFiles(PathService.WorldPath, "entities_*.bin").ToArray();
 
+            Logger.LogInformation($"Starting load of {entityPaths.Length} entity files");
+
             foreach (string path in entityPaths)
             {
+                string entityFileName = Path.GetFileName(path);
+                
                 StatisticTimer timer = new StatisticTimer("Load Entity").Begin();
 
                 try
                 {
                     EntityContainer.LoadEntities(path);
                 }
+                catch (NotImplementedException) { }
                 catch (Exception ex)
                 {
 #if DEBUG
+                    Logger.LogInformation($"Debug mode enabled, writing decompressed {entityFileName} file");
+                    
                     byte[] decompressed = NoitaFile.LoadCompressedFile(path);
 
                     Directory.CreateDirectory("entity_error_logs");
 
-                    File.WriteAllBytes($"entity_error_logs/{Path.GetFileNameWithoutExtension(path)}.bin", decompressed);
+                    File.WriteAllBytes($"entity_error_logs/{entityFileName}", decompressed);
 #endif
 
-                    Logger.LogWarning($"Error decoding entity at path \"{path}\":");
+                    Logger.LogWarning($"Error decoding entity file {entityFileName}:");
                     Logger.LogWarning(ex);
                 }
 
@@ -197,6 +228,8 @@ public partial class ViewerDisplay : IDisposable
         {
             string[] areaPaths = Directory.EnumerateFiles(PathService.WorldPath, "area_*.bin").ToArray();
 
+            Logger.LogInformation($"Starting load of {areaPaths.Length} area files");
+
             foreach (string path in areaPaths)
             {
                 StatisticTimer timer = new StatisticTimer("Load AreaEntity").Begin();
@@ -207,7 +240,7 @@ public partial class ViewerDisplay : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogWarning($"Error decoding area at path \"{path}\":");
+                    Logger.LogWarning($"Error decoding area file {Path.GetFileName(path)}:");
                     Logger.LogWarning(ex);
 
                 }

@@ -1,15 +1,10 @@
-using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
-using NoitaMap.Graphics;
-using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
-using NoitaMap.Map.Entities;
-using NoitaMap.Startup;
+using NoitaMap.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
-using Silk.NET.Windowing.Sdl;
 using Veldrid;
 
 namespace NoitaMap.Graphics;
@@ -87,6 +82,8 @@ public class Renderer : IDisposable
                 new ResourceLayoutElementDescription("MainTextureView", ResourceKind.TextureReadOnly, ShaderStages.Fragment)
             ]
         });
+
+        Logger.LogInformation("Creating MainPipeline");
 
         MainPipeline = CreatePipeline(shaders);
 

@@ -81,8 +81,12 @@ public class DummyComponent : Component
                 case "class ConfigGunActionInfo":
                 case "class ConfigExplosion":
                     {
-                        /*
-                        ObjectSchema objectSchema = ObjectSchema.GetSchema(type);
+                        if (Schema.Name != "c8ecfb341d22516067569b04563bff9c")
+                        {
+                            throw new NotImplementedException($"No ObjectSchema file for {Schema.Name}");
+                        }
+
+                        ObjectSchema objectSchema = ObjectSchema.GetSchema(Schema.Name, type);
 
                         foreach (ObjectSchema.ObjectSchemaField field in objectSchema.SchemaFields)
                         {
@@ -91,8 +95,6 @@ public class DummyComponent : Component
 
                             ProcessField(field.RawType, field.Name, (int)field.Size!);
                         }
-                        */
-                        throw new Exception($"Unparsable type detected: {type}");
                     }
                     break;
                 case "struct SpriteStains *":
@@ -193,14 +195,15 @@ public class DummyComponent : Component
 
         try
         {
-            foreach (ComponentVar var in Schema.Vars[ComponentName])
+            foreach (ComponentVar componentVar in Schema.Vars[ComponentName])
             {
-                ProcessField(var.Type, var.Name, var.Size);
+                ProcessField(componentVar.Type, componentVar.Name, componentVar.Size);
             }
         }
+        catch (NotImplementedException) { throw; }
         catch
         {
-            Logger.LogWarning($"Error reading component. Exception at {reader.BaseStream.Position} for \"{ComponentName}\":");
+            Logger.LogWarning($"Error reading component {this.ComponentName}. Exception at {reader.BaseStream.Position} for \"{ComponentName}\":");
 
             throw;
         }

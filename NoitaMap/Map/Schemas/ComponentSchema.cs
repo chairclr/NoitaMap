@@ -11,20 +11,21 @@ public partial class ComponentSchema
 
     private static Dictionary<string, ComponentSchema> SchemaCache = new Dictionary<string, ComponentSchema>();
 
+    public readonly string Name;
+
     public Dictionary<string, ComponentVar[]> Vars = new Dictionary<string, ComponentVar[]>();
 
     private ComponentSchema(string name)
     {
+        Name = name;
+                        
         string text = File.ReadAllText(Path.Combine("Assets", "Schemas", $"{name}.xml"));
 
         // Nolla's xml isn't actualy really xml, and the attributes can include < and >, which is not supported by regular xml parses
         // We must replace < and > with &lt; and &gt; in order to actually parse it
         text = ILoveNollaGames.Replace(text, x => x.Value.Replace("<", "&lt;").Replace(">", "&gt;"));
 
-        XmlSerializer serializer = new XmlSerializer(typeof(ComponentSchemaRoot));
-        using StringReader reader = new StringReader(text);
-
-        ComponentSchemaRoot schema = (ComponentSchemaRoot)serializer.Deserialize(reader)!;
+        ComponentSchemaRoot schema = XmlUtility.LoadXml<ComponentSchemaRoot>(text)!;
 
         Vars = schema.Components.ToDictionary(x => x.Name, x => x.Vars.Select(x => new ComponentVar(x.Name, x.Type, x.Size)).ToArray());
     }

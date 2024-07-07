@@ -76,7 +76,7 @@ public class AreaContainer : IRenderable
                 catch (Exception ex)
                 {
                     Logger.LogWarning($"Error while loading entity {xmlFilePath} for area file {path}:");
-                    Logger.LogWarning(ex.ToString());
+                    Logger.LogWarning(ex);
                 }
             }
         }
@@ -104,11 +104,7 @@ public class AreaContainer : IRenderable
             return;
         }
 
-        string baseXmlContent = File.ReadAllText(fullXmlPath);
-
-        Logger.LogInformation(xmlFilePath);
-
-        baseXmlContent = PreProcessXml(xmlFilePath, baseXmlContent);
+        string baseXmlContent = PreProcessXml(xmlFilePath, File.ReadAllText(fullXmlPath));
 
         XmlDocument xmlDoc = new XmlDocument();
         xmlDoc.LoadXml(baseXmlContent);

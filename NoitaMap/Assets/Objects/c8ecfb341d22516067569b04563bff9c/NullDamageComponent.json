@@ -1,0 +1,1 @@
+{"name":"NullDamageComponent","base":"Component","fields":[{"offset":72,"comment":"if less than 1, then will roll the die to see if it will NULL all damage. Stick this into your projectile entity","example_range_min":0,"example_range_max":1,"kind":"Members","default_value":"1","size":4,"raw_type":"float","type":"float","name":"null_chance"}]}

@@ -1,9 +1,6 @@
-﻿using System.ComponentModel;
-using System.Numerics;
+﻿using System.Numerics;
 using ImGuiNET;
-using NoitaMap.Compression;
 using NoitaMap.Graphics;
-using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Map.Components;
 using NoitaMap.Map.Entities;

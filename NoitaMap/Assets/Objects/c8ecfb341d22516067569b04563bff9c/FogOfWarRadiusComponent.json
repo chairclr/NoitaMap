@@ -1,0 +1,1 @@
+{"name":"FogOfWarRadiusComponent","base":"Component","fields":[{"offset":72,"comment":"256 is the default player has","example_range_min":0,"example_range_max":1024,"kind":"Members","default_value":"256","size":4,"raw_type":"float","type":"float","name":"radius"}]}

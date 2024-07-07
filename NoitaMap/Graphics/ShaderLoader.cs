@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using NoitaMap.Logging;
 using Veldrid;
 using Veldrid.SPIRV;
 
@@ -9,6 +10,8 @@ public static class ShaderLoader
     public static Shader[] Load(GraphicsDevice graphicsDevice, string pixelShader, string vertexShader)
     {
         string shaderPath = Path.Combine(PathService.ApplicationPath, "Assets", "Shaders", "Compiled");
+
+        Logger.LogInformation($"Loading {pixelShader} and {vertexShader} shaders");
 
         byte[] vertexShaderBytes = File.ReadAllBytes(Path.Combine(shaderPath, $"{vertexShader}.spirv"));
         byte[] pixelShaderBytes = File.ReadAllBytes(Path.Combine(shaderPath, $"{pixelShader}.spirv"));
@@ -26,6 +29,8 @@ public static class ShaderLoader
                 GraphicsBackend.OpenGLES => CrossCompileTarget.ESSL,
                 _ => throw new Exception()
             };
+
+            Logger.LogInformation($"Loading cross compiling shaders to {compileTarget}");
 
             VertexFragmentCompilationResult result = SpirvCompilation.CompileVertexFragment(vertexShaderBytes, pixelShaderBytes, compileTarget, new CrossCompileOptions()
             {

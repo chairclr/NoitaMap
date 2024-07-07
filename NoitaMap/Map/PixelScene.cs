@@ -35,9 +35,9 @@ public class PixelScene : IAtlasObject
 
     public byte Unknown6;
 
-    public bool IsThereExtraUnknown;
+    public byte ExtraUnknownsCount;
 
-    public ulong ExtraUnknown;
+    public List<ulong> ExtraUnknowns = new List<ulong>();
 
     public Matrix4x4 WorldMatrix { get; set; }
 
@@ -84,11 +84,11 @@ public class PixelScene : IAtlasObject
 
         Unknown6 = reader.ReadByte();
 
-        IsThereExtraUnknown = reader.ReadBoolean();
+        ExtraUnknownsCount = reader.ReadByte();
 
-        if (IsThereExtraUnknown)
+        for (int i = 0; i <  ExtraUnknownsCount; i++)
         {
-            ExtraUnknown = reader.ReadBEUInt64();
+            ExtraUnknowns.Add(reader.ReadBEUInt64());
         }
 
         string? path = null;

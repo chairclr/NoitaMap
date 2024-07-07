@@ -63,22 +63,31 @@ public class Entity
             string componentName = reader.ReadNoitaString()!;
 
             Type? type = assembly.GetType($"NoitaMap.Map.Components.{componentName}");
-
-            if (type is null)
+            try
             {
-                DummyComponent component = new DummyComponent(this, componentName, Schema);
+                if (type is null)
+                {
+                    DummyComponent component = new DummyComponent(this, componentName, Schema);
 
-                component.Deserialize(reader);
+                    component.Deserialize(reader);
 
-                Components.Add(component);
+                    Components.Add(component);
+                }
+                else
+                {
+                    Component component = (Component)Activator.CreateInstance(type, this, componentName)!;
+
+
+                    component.Deserialize(reader);
+                    Components.Add(component);
+                }
             }
-            else
+            catch (NotImplementedException) { throw; }
+            catch
             {
-                Component component = (Component)Activator.CreateInstance(type, this, componentName)!;
+                Logger.LogWarning($"Error decoding component {i}/{componentCount}, {componentName} of {this.FileName}");
 
-                component.Deserialize(reader);
-
-                Components.Add(component);
+                throw;
             }
         }
     }

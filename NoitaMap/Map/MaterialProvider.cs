@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using NoitaMap.Logging;
+using SixLabors.ImageSharp;
 
 namespace NoitaMap.Map;
 
@@ -12,6 +13,8 @@ public class MaterialProvider
 
     public MaterialProvider()
     {
+        Logger.LogInformation("Loading material image files");
+
         string materialPath = Path.Combine(PathService.ApplicationPath, "Assets", "Materials");
 
         int i = 0;

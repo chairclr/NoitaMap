@@ -1,0 +1,1 @@
+{"name":"ConfigGunShotEffects","base":"ceng::IConfigBase","fields":[{"offset":4,"comment":"the amount of recoil we apply to the shooter","example_range_min":0,"example_range_max":1,"kind":"Members","default_value":"0","size":4,"raw_type":"float","type":"float","name":"recoil_knockback"}]}

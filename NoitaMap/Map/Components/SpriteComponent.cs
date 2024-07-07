@@ -2,9 +2,7 @@ using System.Numerics;
 using System.Xml.Serialization;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
-using NoitaMap.Logging;
 using NoitaMap.Map.Entities;
-using Vortice.DXGI;
 using SixLabors.ImageSharp;
 
 namespace NoitaMap.Map.Components;
@@ -164,12 +162,7 @@ public class SpriteComponent(Entity entity, string name) : Component(entity, nam
                 return;
             }
 
-            string text = File.ReadAllText(path);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(SpriteData));
-            using StringReader xmlText = new StringReader(text);
-
-            SpriteData spriteData = (SpriteData)serializer.Deserialize(xmlText)!;
+            SpriteData spriteData = XmlUtility.LoadXml<SpriteData>(File.ReadAllText(path))!;
 
             string? imagePath = spriteData.Filename?.ToLower();
 

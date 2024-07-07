@@ -33,7 +33,7 @@ internal class ConsoleLogger : ILogger
             _ => ConsoleColor.Gray
         };
 
-        string formattedMessage = $"[{DateTime.Now:HH:mm:ss}.{DateTime.Now:fff}] [{level}]{new string(' ', 11 - level.ToString().Length)}: Caught exception:\n{exception}";
+        string formattedMessage = $"[{DateTime.Now:HH:mm:ss}.{DateTime.Now:fff}] [{level}]{new string(' ', 11 - level.ToString().Length)}  {exception}";
 
         lock (ConsoleLogLock)
         {
