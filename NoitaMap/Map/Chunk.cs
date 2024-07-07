@@ -1,7 +1,10 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
+using NoitaMap.Logging;
 using Vortice.Direct3D;
 
 namespace NoitaMap.Map;
@@ -308,8 +311,13 @@ public class Chunk(Vector2 position)
         return MaterialMap![CellTable![x, y].MaterialIndex];
     }
 
-    public void SetBulkCircle(int rx, int ry, float r, Material material)
+    public unsafe void SetBulkCircle(int rx, int ry, float r, Material material)
     {
+        if (CellTable is null)
+        {
+            return;
+        }
+
         if (!MaterialMap!.Contains(material))
         {
             MaterialMap.Add(material);
@@ -326,22 +334,36 @@ public class Chunk(Vector2 position)
 
         float rsqr = r * r;
 
-        for (int x = startX; x < endX; x++)
+        Cell newCell = new Cell()
         {
-            for (int y = startY; y < endY; y++)
+            MaterialIndex = newIndex
+        };
+
+        for (int y = startY; y < endY; y++)
+        {
+            Span<Cell> cells = stackalloc Cell[endX - startX];
+            for (int x = startX; x < endX; x++)
             {
                 float dx = rx - x;
                 float dy = ry - y;
 
                 if (dx * dx + dy * dy < rsqr)
                 {
-                    CellTable![y, x] = CellTable![y, x] with
-                    {
-                        MaterialIndex = newIndex,
-                        HasCustomColor = false
-                    };
+                    cells[x - startX] = newCell;
+                }
+                else
+                {
+                    Unsafe.CopyBlock(
+                            ref Unsafe.As<Cell, byte>(ref cells.DangerousGetReferenceAt(x - startX)),
+                            ref Unsafe.As<Cell, byte>(ref CellTable.DangerousGetReferenceAt(y, x)),
+                            (uint)sizeof(Cell));
                 }
             }
+
+            Unsafe.CopyBlock(
+                    ref Unsafe.As<Cell, byte>(ref CellTable.DangerousGetReferenceAt(y, startX)),
+                    ref Unsafe.As<Cell, byte>(ref cells.DangerousGetReference()),
+                    (uint)cells.Length * (uint)sizeof(Cell));
         }
     }
 

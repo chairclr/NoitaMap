@@ -35,11 +35,7 @@ public class Renderer : IDisposable
 
     public ConstantBuffer<VertexConstantBuffer> ConstantBuffer;
 
-    public ImGuiRenderer ImGuiRenderer;
-
     public List<IRenderable> Renderables = new List<IRenderable>();
-
-    private Fence CommandListFence;
 
     private bool PendingResize = false;
 
@@ -102,15 +98,11 @@ public class Renderer : IDisposable
 
         PixelSamplerResourceSet = GraphicsDevice.ResourceFactory.CreateResourceSet(new ResourceSetDescription(PixelSamplerResourceLayout, GraphicsDevice.PointSampler));
 
-        ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, MainFrameBuffer.OutputDescription, Window.Size.X, Window.Size.Y);
-
         Window.FramebufferResize += (Vector2D<int> newSize) =>
         {
             PendingNewSize = newSize;
             PendingResize = true;
         };
-
-        CommandListFence = GraphicsDevice.ResourceFactory.CreateFence(false);
     }
 
     private Pipeline CreatePipeline(Shader[] shaders)
@@ -245,11 +237,7 @@ public class Renderer : IDisposable
 
         MainCommandList.End();
 
-        GraphicsDevice.SubmitCommands(MainCommandList, CommandListFence);
-
-        GraphicsDevice.WaitForFence(CommandListFence);
-
-        GraphicsDevice.ResetFence(CommandListFence);
+        GraphicsDevice.SubmitCommands(MainCommandList);
 
         GraphicsDevice.SwapBuffers();
     }
@@ -295,8 +283,6 @@ public class Renderer : IDisposable
             PixelSamplerResourceLayout.Dispose();
 
             PixelTextureResourceLayout.Dispose();
-
-            CommandListFence.Dispose();
 
             MainCommandList.Dispose();
 

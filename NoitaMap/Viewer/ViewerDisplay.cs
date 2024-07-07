@@ -27,6 +27,8 @@ public partial class ViewerDisplay : IDisposable
 
     private AreaContainer AreaContainer;
 
+    private ImGuiRenderer ImGuiRenderer;
+
     private int TotalChunkCount = 0;
 
     private int LoadedChunks = 0;
@@ -65,7 +67,7 @@ public partial class ViewerDisplay : IDisposable
 
             InputSystem.Update(Window);
 
-            Renderer!.ImGuiRenderer.BeginFrame(deltaTime);
+            ImGuiRenderer!.BeginFrame(deltaTime);
 
             Renderer!.Update();
 
@@ -102,7 +104,7 @@ public partial class ViewerDisplay : IDisposable
             EntityContainer = new EntityContainer(Renderer),
             AreaContainer = new AreaContainer(Renderer),
             ChunkContainer = new ChunkContainer(Renderer),
-            Renderer.ImGuiRenderer
+            ImGuiRenderer = new ImGuiRenderer(GraphicsDevice, GraphicsDevice.MainSwapchain.Framebuffer.OutputDescription, Window.Size.X, Window.Size.Y),
         ];
 
         Renderer.Renderables.AddRange<IRenderable>(renderables);
