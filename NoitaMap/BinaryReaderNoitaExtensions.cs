@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Text;
+﻿using System.Text;
 
 namespace NoitaMap;
 
@@ -14,19 +13,20 @@ public static class BinaryNoitaExtensions
             return null;
         }
 
-        // rent a buffer here for fast :thumbs_up:
-        byte[] stringBuffer = ArrayPool<byte>.Shared.Rent(size);
+        if (size > 8192*100)
+        {
+            return null;
+        }
 
-        reader.Read(stringBuffer.AsSpan()[..size]);
+        // stackalloc a buffer here for extra fast
+        Span<byte> stringBuffer = stackalloc byte[size];
 
-        string str = Encoding.UTF8.GetString(stringBuffer.AsSpan()[..size]);
+        reader.Read(stringBuffer);
 
-        ArrayPool<byte>.Shared.Return(stringBuffer);
-
-        return str;
+        return Encoding.UTF8.GetString(stringBuffer);
     }
 
-    public static void WriteNoitaString(this BinaryWriter writer, string? str)
+    public static void WriteNoitaString(this BinaryWriter writer, in string? str)
     {
         writer.WriteBE(str?.Length ?? 0);
 
@@ -38,12 +38,10 @@ public static class BinaryNoitaExtensions
         int size = str!.Length;
 
         // rent a buffer here for fast :thumbs_up:
-        byte[] stringBuffer = ArrayPool<byte>.Shared.Rent(size);
+        Span<byte> stringBuffer = stackalloc byte[size];
 
-        Encoding.UTF8.GetBytes(str, stringBuffer.AsSpan()[..size]);
+        Encoding.UTF8.GetBytes(str, stringBuffer);
 
-        writer.Write(stringBuffer.AsSpan()[..size]);
-
-        ArrayPool<byte>.Shared.Return(stringBuffer);
+        writer.Write(stringBuffer);
     }
 }

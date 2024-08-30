@@ -339,9 +339,10 @@ public class Chunk(Vector2 position)
             MaterialIndex = newIndex
         };
 
+        Span<Cell> cells = stackalloc Cell[endX - startX];
+
         for (int y = startY; y < endY; y++)
         {
-            Span<Cell> cells = stackalloc Cell[endX - startX];
             for (int x = startX; x < endX; x++)
             {
                 float dx = rx - x;
