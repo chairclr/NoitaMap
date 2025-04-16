@@ -8,20 +8,21 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <!-- Don't have TIME_STATS in publish builds -->
-  <PropertyGroup Condition="'$(PublishProtocol)'==''">
-    <DefineConstants>$(DefineConstants);TIME_STATS</DefineConstants>
-  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
+    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="ppy.SDL3-CS" Version="2025.220.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+    <PackageReference Include="Veldrid.RenderDoc" Version="1.0.1" />
+    <PackageReference Include="Vortice.Direct3D12" Version="3.7.3-beta" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
-    <PackageReference Include="ImGui.NET" Version="1.90.8.1" />
-    <PackageReference Include="ppy.Veldrid" Version="4.9.58-gfe61932a71" />
-    <PackageReference Include="ppy.Veldrid.SPIRV" Version="1.0.15-ge24108e71c" />
-    <PackageReference Include="Silk.NET.Input" Version="2.21.0" />
-    <PackageReference Include="Silk.NET.Input.Sdl" Version="2.21.0" />
-    <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.21.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
+    <Publicize Include="SharpGen.Runtime:SharpGen.Runtime.CppObject.get_Item" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,7 +37,6 @@
   </ItemGroup>
   
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild">
-
     <CompileShaderTask
       ShaderFile="%(ShaderFiles.Identity)"
       ShaderProfile="%(ShaderFiles.ShaderProfile)"
@@ -64,6 +64,7 @@
       <Using Namespace="System.Runtime.InteropServices" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
+          // Cannot call the better OperatingSystem.IsWhatever functions here
           bool windows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
           bool linux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
           if ((!windows && !linux) || !Environment.Is64BitOperatingSystem)
@@ -93,7 +94,7 @@
 
           Process process = new Process();
           process.StartInfo.FileName = Path.Combine(projectDirectory, "dxc", windows ? "win" : "linux", windows ? "dxc.exe" : "dxc");
-          process.StartInfo.Arguments = string.Format("-spirv -T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.spirv\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderOutputFile);
+          process.StartInfo.Arguments = string.Format("-T {0} -E {1} \"{2}.hlsl\" -Fo \"{3}.dxil\"", ShaderProfile, ShaderEntryPoint, shaderSourcePathNoExtension, shaderOutputFile);
           process.StartInfo.CreateNoWindow = true;
           process.StartInfo.UseShellExecute = false;
           process.StartInfo.RedirectStandardOutput = true;
