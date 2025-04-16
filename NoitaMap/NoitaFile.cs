@@ -1,17 +1,21 @@
 ﻿using NoitaMap.Compression;
+using NoitaMap.Logging;
 
 namespace NoitaMap;
 
 public static class NoitaFile
 {
+    /// <summary>
+    /// Reads a fastlz compressed Noita file into memory and then decompresses it. Throws <see cref="InvalidDataException"/> when decompression fails.
+    /// </summary>
     public static byte[] LoadCompressedFile(string filePath)
     {
         byte[] inputBuffer;
         byte[] outputBuffer;
 
-        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        using (FileStream fs = new(filePath, FileMode.Open))
         {
-            using BinaryReader fileReader = new BinaryReader(fs);
+            using BinaryReader fileReader = new(fs);
 
             int compressedSize = fileReader.ReadInt32();
             int uncompressedSize = fileReader.ReadInt32();
@@ -27,6 +31,7 @@ public static class NoitaFile
                 return inputBuffer;
             }
 
+            // Again, we can use AllocateUninit because we're using the whole thing
             outputBuffer = GC.AllocateUninitializedArray<byte>(uncompressedSize);
         }
 
@@ -34,16 +39,20 @@ public static class NoitaFile
 
         if (outputBuffer.Length != decompressedBytes)
         {
-            throw new Exception($"Failed to decompress file (compressedSize = {inputBuffer.Length}, uncompressedSize = {outputBuffer.Length}) '{filePath}'");
+            Log.LogCrit($"Failed to decompress {filePath}: {outputBuffer.Length} != {decompressedBytes}");
+            throw new InvalidDataException();
         }
 
         return outputBuffer;
     }
 
+    /// <summary>
+    /// Compresses <paramref name="data"/> and writes it into <paramref name="filePath"/> in Noita's fastlz format
+    /// </summary>
     public static void WriteCompressedFile(string filePath, Span<byte> data)
     {
         using FileStream fs = File.OpenWrite(filePath);
-        using BinaryWriter bw = new BinaryWriter(fs);
+        using BinaryWriter bw = new(fs);
 
         Span<byte> compressedData = FastLZ.Compress(1, data);
 
