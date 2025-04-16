@@ -16,7 +16,7 @@ byte[]      raw/unindexed cell data
 string[]    list of the names of all materials in the cell, indexed into by the cell data
 Rgba32[]    list of the custom colors of the cells, indexed into when the first bit of the raw cell data is set, and then increment the index
 
-PhysicsObject[] all of the physics objects in the chunk. See [physics objects](PhysicsObject.md) for more info
+PhysicsObject[] all of the physics objects in the chunk. See PhysicsObject.md for more info
 
 int         should always end in an extra zero int, not sure why
 ```
