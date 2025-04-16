@@ -8,52 +8,45 @@ public partial class FastLZ
 {
     static FastLZ()
     {
-        NativeLibrary.SetDllImportResolver(typeof(FastLZ).Assembly, (dllName, assembly, importSearchPath) =>
+        NativeLibrary.SetDllImportResolver(typeof(FastLZ).Assembly, static (dllName, assembly, importSearchPath) =>
         {
             if (dllName == "fastlz")
             {
-                string libraryPath = Path.Combine(PathService.ApplicationPath, "Assets", "Libraries");
+                string libraryPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Libraries");
 
-                string arch = RuntimeInformation.ProcessArchitecture switch
+                if (RuntimeInformation.ProcessArchitecture != Architecture.X64)
                 {
-                    Architecture.X86 => "x86",
-                    Architecture.X64 => "x64",
-                    Architecture.Arm64 => "arm64",
-                    _ => ""
-                };
-
-                if (OperatingSystem.IsWindows())
-                {
-                    return NativeLibrary.Load(Path.Combine(libraryPath, "win", arch, $"fastlz.dll"));
+                    throw new PlatformNotSupportedException();
                 }
+
                 else if (OperatingSystem.IsLinux())
                 {
-                    return NativeLibrary.Load(Path.Combine(libraryPath, "lin", arch, $"libfastlz.so"));
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "linux", "libfastlz.so"));
                 }
                 else if (OperatingSystem.IsMacOS())
                 {
-                    return NativeLibrary.Load(Path.Combine(libraryPath, "osx", arch, $"libfastlz.dylib"));
+                    return NativeLibrary.Load(Path.Combine(libraryPath, "win", "fastlz.dll"));
                 }
             }
 
-            Logger.LogCritical($"Failed to resolve dll import: {dllName}", new System.Diagnostics.StackTrace(true));
+            Log.LogCrit($"Failed to resolve dll import: {dllName}", new System.Diagnostics.StackTrace(true));
 
             return 0;
         });
     }
 
     /// <summary>
-    /// Decompresses a <![CDATA[Span<byte>]]>
+    /// Decompresses a span of bytes from <paramref name="input"/> and writes it to <paramref name="output"/>, then returns the number of bytes decompressed
     /// </summary>
-    /// <param name="input">Bytes to decompress</param>
-    /// <param name="output">Output buffer for decompressed bytes</param>
-    /// <returns>Number of bytes decompressed</returns>
     public static int Decompress(Span<byte> input, Span<byte> output)
     {
         return fastlz_decompress(ref input.DangerousGetReference(), input.Length, ref output.DangerousGetReference(), output.Length);
     }
 
-    public static Span<byte> Compress(int level, Span<byte> input)
+    /// <summary>
+    /// Compresses <paramref name="input"/> at using fastlz at <paramref name="level"/> and returns it
+    /// </summary>
+    public static Span<byte> Compress(Span<byte> input, int level = 1)
     {
         // +10% just in case
         Span<byte> outputBuffer = new byte[input.Length + (int)((float)input.Length * 0.1f)];
