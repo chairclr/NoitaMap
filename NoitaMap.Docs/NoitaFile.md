@@ -13,7 +13,7 @@ They also probably include world_tree.bin and world_sim.bin, but I haven't check
 ## Format
 
 ```
-LE Int32    compressed data size
-LE Int32    uncompressed data size
+LE int      compressed data size
+LE int      uncompressed data size
 byte[]      compressed data
 ```

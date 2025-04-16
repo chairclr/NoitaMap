@@ -1,76 +1,74 @@
-﻿using System.Buffers;
-using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
-using NoitaMap.Logging;
 using SixLabors.ImageSharp.PixelFormats;
-using Vortice.Direct3D;
 
 namespace NoitaMap;
 
-public class Chunk(Vector2 position)
+public class Chunk : INoitaSerializable
 {
     public const int ChunkSize = 512;
 
-    public Vector2 Position = position;
+    public int X;
+    public int Y;
+    public Vector2 Position => new(X, Y);
 
-    private MaterialProvider? MaterialProvider;
+    private readonly Cell[,] _cellTable;
 
-    public PhysicsObject[]? PhysicsObjects;
+    private readonly MaterialProvider _materialProvider;
+    private List<Material> _materialMap;
+    private Dictionary<int, int> _reverseMaterialMap;
 
-    public Rgba32[,]? WorkingTextureData;
+    public List<PhysicsObject> PhysicsObjects;
 
-    public Matrix4x4 WorldMatrix = Matrix4x4.Identity;
+    public bool IsAllAir { get; private set; }
 
-    public bool ReadyToBeAddedToAtlas = false;
-
-    public bool ReadyToBeAddedToAtlasAsAir = false;
-
-    private Cell[,]? CellTable;
-
-    public List<Material>? MaterialMap;
-
-    public Dictionary<int, int>? ReverseMaterialMap;
-
-    public int ContainingAtlas;
-
-    public int AtlasX;
-
-    public int AtlasY;
-
-    public void Deserialize(BinaryReader reader, MaterialProvider materialProvider)
+    public Chunk(int x, int y, MaterialProvider materialProvider)
     {
-        MaterialProvider = materialProvider;
+        X = x;
+        Y = y;
+        _materialProvider = materialProvider;
+
+        _cellTable = new Cell[ChunkSize, ChunkSize];
+        _materialMap = [];
+        _reverseMaterialMap = [];
+
+        PhysicsObjects = [];
+    }
+
+    public void Deserialize(BinaryReader reader)
+    {
+        int version = reader.ReadBEInt32();
+        int width = reader.ReadBEInt32();
+        int height = reader.ReadBEInt32();
+
+        if (version != 24 || width != ChunkSize || height != ChunkSize)
+        {
+            throw new InvalidDataException($"Chunk header was not correct. Version = {version} Width = {width} Height = {height}");
+        }
 
         byte[,] unindexedCellTable = new byte[ChunkSize, ChunkSize];
-        CellTable = new Cell[ChunkSize, ChunkSize];
 
         reader.Read(unindexedCellTable.AsSpan());
 
-        MaterialMap = [.. MaterialProvider.CreateMaterialMap(ReadMaterialNames(reader))];
+        _materialMap = [.. _materialProvider.CreateMaterialMap(ReadMaterialNames(reader))];
 
-        ReverseMaterialMap = new Dictionary<int, int>();
+        _reverseMaterialMap = [];
 
-        for (int i = 0; i < MaterialMap.Count; i++)
+        for (int i = 0; i < _materialMap.Count; i++)
         {
-            Material material = MaterialMap[i];
+            Material material = _materialMap[i];
 
             if (!material.IsMissing)
             {
-                ReverseMaterialMap.Add(material.Index, i);
+                _reverseMaterialMap.Add(material.Index, i);
             }
         }
 
-        Rgba32[] customColorsUnindexed = ReadCustomColors(reader, out _);
+        Rgba32[] customColors = ReadCustomColors(reader, out _);
 
-        int chunkX = (int)Position.X;
-        int chunkY = (int)Position.Y;
-
-        WorkingTextureData = new Rgba32[ChunkSize, ChunkSize];
-
-        bool wasAnyNotAir = false;
+        int airMask = 0;
 
         int customColorIndex = 0;
         for (int x = 0; x < ChunkSize; x++)
@@ -80,15 +78,13 @@ public class Chunk(Vector2 position)
                 int material = unindexedCellTable[x, y] & (~0x80);
                 bool customColor = (unindexedCellTable[x, y] & 0x80) != 0;
 
-                ref Cell cell = ref CellTable[x, y];
+                ref Cell cell = ref _cellTable[x, y];
 
                 cell.MaterialIndex = (byte)material;
 
                 if (customColor)
                 {
-                    Rgba32 col = customColorsUnindexed[customColorIndex];
-
-                    WorkingTextureData[x, y] = col;
+                    Rgba32 col = customColors[customColorIndex];
 
                     cell = cell with
                     {
@@ -99,61 +95,30 @@ public class Chunk(Vector2 position)
                     // explicit > implicit
                     customColorIndex++;
 
-                    wasAnyNotAir = true;
+                    airMask |= 1;
                 }
                 else
                 {
-                    if (material != 0)
-                    {
-                        wasAnyNotAir = true;
-                    }
-
-                    if (material == 0)
-                    {
-                        continue;
-                    }
-
-                    Material mat = MaterialMap[material];
-
-                    if (mat.IsMissing)
-                    {
-                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkSize) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkSize) % mat.MaterialTexture.Height];
-                    }
-                    else
-                    {
-                        int wx = (x + chunkX * ChunkSize) * 6;
-                        int wy = (y + chunkY * ChunkSize) * 6;
-
-                        int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidth) % Material.MaterialWidth;
-                        int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeight) % Material.MaterialHeight;
-
-                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
-                    }
+                    airMask |= material;
                 }
             }
         }
 
-        // All air optimization
-        if (!wasAnyNotAir)
+        // airMask will be 0 if there were no custom color materials and no indexed materials
+        if (airMask == 0)
         {
-            ReadyToBeAddedToAtlasAsAir = true;
-        }
-        else
-        {
-            WorldMatrix = Matrix4x4.CreateScale(512f, 512f, 1f) * Matrix4x4.CreateTranslation(new Vector3(Position, 0f));
-
-            ReadyToBeAddedToAtlas = true;
+            IsAllAir = true;
         }
 
+        PhysicsObjects = [];
         int physicsObjectCount = reader.ReadBEInt32();
-
-        PhysicsObjects = new PhysicsObject[physicsObjectCount];
 
         for (int i = 0; i < physicsObjectCount; i++)
         {
-            PhysicsObjects[i] = new PhysicsObject();
+            PhysicsObject physicsObject = new();
+            physicsObject.Deserialize(reader);
 
-            PhysicsObjects[i].Deserialize(reader);
+            PhysicsObjects.Add(physicsObject);
         }
     }
 
@@ -161,17 +126,17 @@ public class Chunk(Vector2 position)
     {
         byte[,] unindexedCellTable = new byte[ChunkSize, ChunkSize];
 
-        List<Rgba32> customColors = new List<Rgba32>();
+        List<Rgba32> customColors = [];
 
         for (int x = 0; x < ChunkSize; x++)
         {
             for (int y = 0; y < ChunkSize; y++)
             {
-                unindexedCellTable[x, y] = (byte)CellTable![x, y].MaterialIndex;
+                unindexedCellTable[x, y] = (byte)_cellTable![x, y].MaterialIndex;
 
-                if (CellTable[x, y].HasCustomColor)
+                if (_cellTable[x, y].HasCustomColor)
                 {
-                    customColors.Add(CellTable[x, y].CustomColor);
+                    customColors.Add(_cellTable[x, y].CustomColor);
 
                     unindexedCellTable[x, y] |= 0x80;
                 }
@@ -186,16 +151,13 @@ public class Chunk(Vector2 position)
 
         // --- CELL DATA ---
         writer.Write(unindexedCellTable.AsSpan());
-
-        writer.WriteBE(MaterialMap!.Count);
-
-        foreach (Material material in MaterialMap)
+        writer.WriteBE(_materialMap!.Count);
+        foreach (Material material in _materialMap)
         {
             writer.WriteNoitaString(material.Name);
         }
 
         writer.WriteBE(customColors!.Count);
-
         foreach (Rgba32 col in customColors)
         {
             writer.WriteBE(col.PackedValue);
@@ -204,7 +166,7 @@ public class Chunk(Vector2 position)
         // --- PHYSICS OBJECTS ---
         if (PhysicsObjects is not null)
         {
-            writer.WriteBE(PhysicsObjects.Length);
+            writer.WriteBE(PhysicsObjects.Count);
 
             foreach (PhysicsObject physicsObject in PhysicsObjects)
             {
@@ -216,34 +178,26 @@ public class Chunk(Vector2 position)
             writer.WriteBE(0);
         }
 
-        // ??
+        // ?? No idea, but seems to end in an extra 4 null bytes
         writer.WriteBE(0);
     }
 
-    public void Invalidate()
+    public Rgba32[,] GetPixelData()
     {
-        if (MaterialProvider is null || MaterialMap is null || CellTable is null)
-        {
-            return;
-        }
-
-        int chunkX = (int)Position.X;
-        int chunkY = (int)Position.Y;
-
-        WorkingTextureData = new Rgba32[ChunkSize, ChunkSize];
+        Rgba32[,] pixelData = new Rgba32[ChunkSize, ChunkSize];
 
         for (int x = 0; x < ChunkSize; x++)
         {
             for (int y = 0; y < ChunkSize; y++)
             {
-                ref Cell cell = ref CellTable[x, y];
+                ref Cell cell = ref _cellTable[x, y];
 
                 int material = cell.MaterialIndex;
                 bool customColor = cell.HasCustomColor;
 
                 if (customColor)
                 {
-                    WorkingTextureData[x, y] = cell.CustomColor;
+                    pixelData[x, y] = cell.CustomColor;
                 }
                 else
                 {
@@ -252,80 +206,80 @@ public class Chunk(Vector2 position)
                         continue;
                     }
 
-                    Material mat = MaterialMap[material];
+                    Material mat = _materialMap[material];
 
                     if (mat.IsMissing)
                     {
-                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[Math.Abs(x + chunkX * ChunkSize) % mat.MaterialTexture.Width, Math.Abs(y + chunkY * ChunkSize) % mat.MaterialTexture.Height];
+                        pixelData[x, y] = mat.MaterialTexture.Span[0, 0];
                     }
                     else
                     {
-                        int wx = (x + chunkX * ChunkSize) * 6;
-                        int wy = (y + chunkY * ChunkSize) * 6;
+                        int wx = (x + (X * ChunkSize)) * 6;
+                        int wy = (y + (Y * ChunkSize)) * 6;
 
                         int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidthM1) % Material.MaterialWidthM1;
                         int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeightM1) % Material.MaterialHeightM1;
 
-                        WorkingTextureData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
+                        pixelData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
                     }
                 }
             }
         }
 
-        ReadyToBeAddedToAtlas = true;
+        return pixelData;
+    }
+
+    public Material GetPixel(int x, int y)
+    {
+        return _materialMap![_cellTable![x, y].MaterialIndex];
     }
 
     public void SetPixel(int x, int y, Material material)
     {
-        if (!MaterialMap!.Contains(material))
+        if (!_materialMap!.Contains(material))
         {
-            MaterialMap.Add(material);
-            ReverseMaterialMap!.Add(material.Index, MaterialMap.Count - 1);
+            _materialMap.Add(material);
+            _reverseMaterialMap!.Add(material.Index, _materialMap.Count - 1);
         }
 
-        CellTable![x, y].HasCustomColor = false;
-        CellTable![x, y] = CellTable![x, y] with
+        _cellTable![x, y].HasCustomColor = false;
+        _cellTable![x, y] = _cellTable![x, y] with
         {
             HasCustomColor = false,
-            MaterialIndex = (byte)ReverseMaterialMap![material.Index]
+            MaterialIndex = (byte)_reverseMaterialMap![material.Index]
         };
     }
 
     public void SetPixel(int x, int y, Material material, Rgba32 customColor)
     {
-        if (!MaterialMap!.Contains(material))
+        if (!_materialMap!.Contains(material))
         {
-            MaterialMap.Add(material);
-            ReverseMaterialMap!.Add(material.Index, MaterialMap.Count - 1);
+            _materialMap.Add(material);
+            _reverseMaterialMap!.Add(material.Index, _materialMap.Count - 1);
         }
 
-        CellTable![x, y] = CellTable![x, y] with
+        _cellTable![x, y] = _cellTable![x, y] with
         {
             HasCustomColor = true,
             CustomColor = customColor,
-            MaterialIndex = (byte)ReverseMaterialMap![material.Index]
+            MaterialIndex = (byte)_reverseMaterialMap![material.Index]
         };
-    }
-
-    public Material GetPixel(int x, int y)
-    {
-        return MaterialMap![CellTable![x, y].MaterialIndex];
     }
 
     public unsafe void SetBulkCircle(int rx, int ry, float r, Material material)
     {
-        if (CellTable is null)
+        if (_cellTable is null)
         {
             return;
         }
 
-        if (!MaterialMap!.Contains(material))
+        if (!_materialMap!.Contains(material))
         {
-            MaterialMap.Add(material);
-            ReverseMaterialMap!.Add(material.Index, MaterialMap.Count - 1);
+            _materialMap.Add(material);
+            _reverseMaterialMap!.Add(material.Index, _materialMap.Count - 1);
         }
 
-        byte newIndex = (byte)ReverseMaterialMap![material.Index];
+        byte newIndex = (byte)_reverseMaterialMap![material.Index];
 
         int startX = (int)float.Clamp(rx - r, 0f, ChunkSize);
         int endX = (int)float.Clamp(rx + r, 0f, ChunkSize);
@@ -335,7 +289,7 @@ public class Chunk(Vector2 position)
 
         float rsqr = r * r;
 
-        Cell newCell = new Cell()
+        Cell newCell = new()
         {
             MaterialIndex = newIndex
         };
@@ -357,19 +311,19 @@ public class Chunk(Vector2 position)
                 {
                     Unsafe.CopyBlock(
                             ref Unsafe.As<Cell, byte>(ref cells.DangerousGetReferenceAt(x - startX)),
-                            ref Unsafe.As<Cell, byte>(ref CellTable.DangerousGetReferenceAt(y, x)),
+                            ref Unsafe.As<Cell, byte>(ref _cellTable.DangerousGetReferenceAt(y, x)),
                             (uint)sizeof(Cell));
                 }
             }
 
             Unsafe.CopyBlock(
-                    ref Unsafe.As<Cell, byte>(ref CellTable.DangerousGetReferenceAt(y, startX)),
+                    ref Unsafe.As<Cell, byte>(ref _cellTable.DangerousGetReferenceAt(y, startX)),
                     ref Unsafe.As<Cell, byte>(ref cells.DangerousGetReference()),
                     (uint)cells.Length * (uint)sizeof(Cell));
         }
     }
 
-    private string[] ReadMaterialNames(BinaryReader reader)
+    private static string[] ReadMaterialNames(BinaryReader reader)
     {
         int materialNameCount = reader.ReadBEInt32();
 
@@ -383,7 +337,7 @@ public class Chunk(Vector2 position)
         return materialNames;
     }
 
-    private Rgba32[] ReadCustomColors(BinaryReader reader, out int materialWorldColorCount)
+    private static Rgba32[] ReadCustomColors(BinaryReader reader, out int materialWorldColorCount)
     {
         materialWorldColorCount = reader.ReadBEInt32();
 
@@ -398,7 +352,7 @@ public class Chunk(Vector2 position)
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct Cell
+    public struct Cell
     {
         public Rgba32 CustomColor;
 
