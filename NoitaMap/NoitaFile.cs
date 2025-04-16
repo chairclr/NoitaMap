@@ -37,6 +37,7 @@ public static class NoitaFile
 
         int decompressedBytes = FastLZ.Decompress(inputBuffer, outputBuffer);
 
+        // If we decompressed a different number of bytes than the file said, throw
         if (outputBuffer.Length != decompressedBytes)
         {
             Log.LogCrit($"Failed to decompress {filePath}: {outputBuffer.Length} != {decompressedBytes}");
@@ -56,6 +57,7 @@ public static class NoitaFile
 
         Span<byte> compressedData = FastLZ.Compress(1, data);
 
+        // Seek to the start (idk if we need to do this)
         fs.Position = 0;
 
         bw.Write(compressedData.Length);
