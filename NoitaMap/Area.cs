@@ -1,8 +1,6 @@
-
-
 using System.Numerics;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
 public class AreaEntity
 {

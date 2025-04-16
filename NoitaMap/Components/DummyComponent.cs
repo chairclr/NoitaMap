@@ -1,8 +1,8 @@
 ﻿using NoitaMap.Logging;
-using NoitaMap.Map.Entities;
-using NoitaMap.Map.Schemas;
+using NoitaMap.Entities;
+using NoitaMap.Schemas;
 
-namespace NoitaMap.Map.Components;
+namespace NoitaMap.Components;
 
 public class DummyComponent : Component
 {

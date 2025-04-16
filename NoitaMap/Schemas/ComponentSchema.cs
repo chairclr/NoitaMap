@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace NoitaMap.Map.Components;
+namespace NoitaMap.Components;
 
 public partial class ComponentSchema
 {

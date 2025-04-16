@@ -1,7 +1,8 @@
 ﻿using NoitaMap.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
 public class MaterialProvider
 {

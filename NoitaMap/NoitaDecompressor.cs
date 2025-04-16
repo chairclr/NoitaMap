@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using NoitaMap.Compression;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
 public static class NoitaFile
 {

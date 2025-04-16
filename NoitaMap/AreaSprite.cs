@@ -1,12 +1,11 @@
 using System.Numerics;
 using System.Xml;
 using System.Xml.Serialization;
-using NoitaMap.Graphics;
 using NoitaMap.Logging;
-using NoitaMap.Map.Components;
+using NoitaMap.Components;
 using SixLabors.ImageSharp;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
 public class AreaEntitySprite : IAtlasObject
 {

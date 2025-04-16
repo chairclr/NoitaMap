@@ -1,6 +1,6 @@
-﻿using NoitaMap.Map.Entities;
+﻿using NoitaMap.Entities;
 
-namespace NoitaMap.Map.Components;
+namespace NoitaMap.Components;
 
 public abstract class Component
 {

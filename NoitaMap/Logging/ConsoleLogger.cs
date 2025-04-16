@@ -1,44 +1,43 @@
 namespace NoitaMap.Logging;
 
-internal class ConsoleLogger : ILogger
+internal class ConsoleLogger : Logger
 {
-    private static object ConsoleLogLock = new object();
+    private static readonly Lock _consoleLogLock = new();
 
-    public void Log(LogLevel level, string? message)
+    protected override void Log(LogLevel level, string caller, string? message)
     {
-        ConsoleColor color = level switch
-        {
-            LogLevel.Information => ConsoleColor.Gray,
-            LogLevel.Warning => ConsoleColor.Yellow,
-            LogLevel.Critical => ConsoleColor.Red,
-            _ => ConsoleColor.Gray
-        };
+        ConsoleColor color = GetColorForLogLevel(level);
+        string formattedMessage = $"[{caller}/{level}]: {message}";
 
-        string formattedMessage = $"[{DateTime.Now:HH:mm:ss}.{DateTime.Now:fff}] [{level}]{new string(' ', 11 - level.ToString().Length)}: {message}";
-
-        lock (ConsoleLogLock)
+        using (_consoleLogLock.EnterScope())
         {
             Console.ForegroundColor = color;
             Console.WriteLine(formattedMessage);
+            Console.ResetColor();
         }
     }
 
-    public void Log(LogLevel level, Exception? exception)
+    protected override void Log(LogLevel level, string caller, Exception? exception)
     {
-        ConsoleColor color = level switch
-        {
-            LogLevel.Information => ConsoleColor.Gray,
-            LogLevel.Warning => ConsoleColor.Yellow,
-            LogLevel.Critical => ConsoleColor.Red,
-            _ => ConsoleColor.Gray
-        };
+        ConsoleColor color = GetColorForLogLevel(level);
+        string formattedMessage = $"[{caller}/{level}]: {exception}";
 
-        string formattedMessage = $"[{DateTime.Now:HH:mm:ss}.{DateTime.Now:fff}] [{level}]{new string(' ', 11 - level.ToString().Length)}  {exception}";
-
-        lock (ConsoleLogLock)
+        using (_consoleLogLock.EnterScope())
         {
             Console.ForegroundColor = color;
             Console.WriteLine(formattedMessage);
+            Console.ResetColor();
         }
+    }
+
+    private static ConsoleColor GetColorForLogLevel(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Info => ConsoleColor.DarkGray,
+            LogLevel.Warn => ConsoleColor.Yellow,
+            LogLevel.Crit => ConsoleColor.Red,
+            _ => ConsoleColor.Gray
+        };
     }
 }

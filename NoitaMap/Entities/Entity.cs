@@ -1,9 +1,9 @@
 ﻿using System.Numerics;
 using System.Reflection;
 using NoitaMap.Logging;
-using NoitaMap.Map.Components;
+using NoitaMap.Components;
 
-namespace NoitaMap.Map.Entities;
+namespace NoitaMap.Entities;
 
 public class Entity
 {
@@ -62,7 +62,7 @@ public class Entity
         {
             string componentName = reader.ReadNoitaString()!;
 
-            Type? type = assembly.GetType($"NoitaMap.Map.Components.{componentName}");
+            Type? type = assembly.GetType($"NoitaMap.Components.{componentName}");
             try
             {
                 if (type is null)

@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using NoitaMap.Graphics;
 using NoitaMap.Logging;
-using NoitaMap.Map;
-using NoitaMap.Map.Entities;
+using NoitaMap;
+using NoitaMap.Entities;
 using NoitaMap.Startup;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;

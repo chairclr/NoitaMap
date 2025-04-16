@@ -1,8 +1,9 @@
 ﻿using System.Numerics;
+using SixLabors.ImageSharp.PixelFormats;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
-public class PhysicsObject : IAtlasObject
+public class PhysicsObject
 {
     public Vector2 Position;
 

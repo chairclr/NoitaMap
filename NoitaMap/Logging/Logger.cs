@@ -1,26 +1,46 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace NoitaMap.Logging;
 
-public class Logger
+public abstract class Logger
 {
-    public static ILogger CurrentLogger { get; private set; } = new ConsoleLogger();
+    protected abstract void Log(LogLevel level, string caller, string? message);
+    protected abstract void Log(LogLevel level, string caller, Exception? exception);
 
-    public static void Log(LogLevel level, string? message) => CurrentLogger.Log(level, message);
+    public void LogInfo(string? message, [CallerMemberName] string caller = "")
+    {
+        Log(LogLevel.Info, caller, message);
+    }
 
-    public static void Log(LogLevel level, Exception? exception) => CurrentLogger.Log(level, exception);
+    public void LogInfo(Exception? exception, [CallerMemberName] string caller = "")
+    {
+        Log(LogLevel.Info, caller, exception);
+    }
 
-    public static void LogInformation(string? message) => CurrentLogger.LogInformation(message);
+    public void LogWarn(string? message, [CallerMemberName] string caller = "")
+    {
+        Log(LogLevel.Warn, caller, message);
+    }
 
-    public static void LogInformation(Exception? exception) => CurrentLogger.LogInformation(exception);
+    public void LogWarn(Exception? exception, [CallerMemberName] string caller = "")
+    {
+        Log(LogLevel.Warn, caller, exception);
+    }
 
-    public static void LogWarning(string? message) => CurrentLogger.LogWarning(message);
+    public void LogCrit(string? message, [CallerMemberName] string caller = "")
+    {
+        Log(LogLevel.Crit, caller, message);
+    }
 
-    public static void LogWarning(Exception? exception) => CurrentLogger.LogWarning(exception);
+    public void LogCrit(string? message, StackTrace stackTrace, [CallerMemberName] string caller = "")
+    {
+        Log(LogLevel.Crit, caller, message);
+        Log(LogLevel.Crit, caller, $"Stack trace:\n{stackTrace}");
+    }
 
-    public static void LogCritical(string? message) => CurrentLogger.LogCritical(message);
-
-    public static void LogCritical(string? message, StackTrace stackTrace) => CurrentLogger.LogCritical(message, stackTrace);
-
-    public static void LogCritical(Exception? exception) => CurrentLogger.LogCritical(exception);
+    public void LogCrit(Exception? exception, [CallerMemberName] string caller = "")
+    {
+        Log(LogLevel.Crit, caller, exception);
+    }
 }

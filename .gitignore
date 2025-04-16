@@ -6,6 +6,11 @@ obj/
 !/NoitaMap/Assets/**
 !/NoitaMap/Assets/**
 /NoitaMap/Properties/launchSettings.json
+!/NoitaMap.Viewer/Assets/**
+!/NoitaMap.Viewer/Assets/**
 
-NoitaMap/entity_error_logs/
-NoitaMap/imgui.ini
+*_dxgi.log
+.netcoredbg_hist
+vkd3d-proton.cache
+vkd3d-proton.cache.write
+imgui.ini

@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.HighPerformance;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
 public class Material
 {

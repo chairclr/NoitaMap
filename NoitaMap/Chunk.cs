@@ -6,8 +6,9 @@ using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Logging;
 using Vortice.Direct3D;
+using SixLabors.ImageSharp.PixelFormats;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
 public class Chunk(Vector2 position)
 {

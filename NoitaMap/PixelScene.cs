@@ -2,8 +2,9 @@
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
-namespace NoitaMap.Map;
+namespace NoitaMap;
 
 public class PixelScene : IAtlasObject
 {

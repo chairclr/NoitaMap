@@ -1,10 +1,10 @@
 ﻿using System.Numerics;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
-using NoitaMap.Map.Entities;
+using NoitaMap.Entities;
 using SixLabors.ImageSharp;
 
-namespace NoitaMap.Map.Components;
+namespace NoitaMap.Components;
 
 public class PixelSpriteComponent(Entity entity, string name) : Component(entity, name), IAtlasObject
 {

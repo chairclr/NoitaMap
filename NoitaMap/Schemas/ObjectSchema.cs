@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NoitaMap.Map.Schemas;
+namespace NoitaMap.Schemas;
 
 public class ObjectSchema
 {

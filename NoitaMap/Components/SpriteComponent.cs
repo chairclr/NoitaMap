@@ -2,12 +2,13 @@ using System.Numerics;
 using System.Xml.Serialization;
 using CommunityToolkit.HighPerformance;
 using NoitaMap.Graphics;
-using NoitaMap.Map.Entities;
+using NoitaMap.Entities;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
-namespace NoitaMap.Map.Components;
+namespace NoitaMap.Components;
 
-public class SpriteComponent(Entity entity, string name) : Component(entity, name), IAtlasObject
+public class SpriteComponent(Entity entity, string name) : Component(entity, name)
 {
     public string? ImageFile;
 
