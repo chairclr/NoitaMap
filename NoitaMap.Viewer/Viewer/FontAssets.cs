@@ -19,4 +19,3 @@ public unsafe class FontAssets
         io.NativePtr->FontDefault = noitaFont.NativePtr;
     }
 }
-

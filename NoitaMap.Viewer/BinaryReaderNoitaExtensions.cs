@@ -13,7 +13,7 @@ public static class BinaryNoitaExtensions
             return null;
         }
 
-        if (size > 8192*100)
+        if (size > 8192 * 100)
         {
             return null;
         }

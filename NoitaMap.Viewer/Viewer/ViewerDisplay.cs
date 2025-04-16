@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
-using NoitaMap.Graphics;
-using NoitaMap.Logging;
 using NoitaMap;
 using NoitaMap.Entities;
+using NoitaMap.Graphics;
+using NoitaMap.Logging;
 using NoitaMap.Startup;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -50,7 +50,7 @@ public partial class ViewerDisplay : IDisposable
         };
 
         SdlWindowing.Use();
-        
+
         Logger.LogInformation("Creating Sdl window");
 
         Window = Silk.NET.Windowing.Window.Create(windowOptions);
@@ -198,7 +198,7 @@ public partial class ViewerDisplay : IDisposable
             foreach (string path in entityPaths)
             {
                 string entityFileName = Path.GetFileName(path);
-                
+
                 StatisticTimer timer = new StatisticTimer("Load Entity").Begin();
 
                 try
@@ -210,7 +210,7 @@ public partial class ViewerDisplay : IDisposable
                 {
 #if DEBUG
                     Logger.LogInformation($"Debug mode enabled, writing decompressed {entityFileName} file");
-                    
+
                     byte[] decompressed = NoitaFile.LoadCompressedFile(path);
 
                     Directory.CreateDirectory("entity_error_logs");

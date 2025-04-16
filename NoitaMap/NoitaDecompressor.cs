@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using NoitaMap.Compression;
+﻿using NoitaMap.Compression;
 
 namespace NoitaMap;
 
@@ -20,7 +19,7 @@ public static class NoitaFile
             // We can be sure that we will fill both of these buffers completely
             inputBuffer = GC.AllocateUninitializedArray<byte>(compressedSize);
 
-            fs.Read(inputBuffer);
+            fs.ReadExactly(inputBuffer);
 
             // If the compressed size is equal to the uncompressed size, then the file isn't compressed
             if (compressedSize == uncompressedSize)

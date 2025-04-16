@@ -87,7 +87,7 @@ public class PixelScene : IAtlasObject
 
         ExtraUnknownsCount = reader.ReadByte();
 
-        for (int i = 0; i <  ExtraUnknownsCount; i++)
+        for (int i = 0; i < ExtraUnknownsCount; i++)
         {
             ExtraUnknowns.Add(reader.ReadBEUInt64());
         }

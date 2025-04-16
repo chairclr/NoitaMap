@@ -9,7 +9,7 @@ public partial class ComponentSchema
 {
     private static readonly Regex ILoveNollaGames = GenerateCoolRegex();
 
-    private static Dictionary<string, ComponentSchema> SchemaCache = new Dictionary<string, ComponentSchema>();
+    private static readonly Dictionary<string, ComponentSchema> SchemaCache = new Dictionary<string, ComponentSchema>();
 
     public readonly string Name;
 
@@ -18,7 +18,7 @@ public partial class ComponentSchema
     private ComponentSchema(string name)
     {
         Name = name;
-                        
+
         string text = File.ReadAllText(Path.Combine("Assets", "Schemas", $"{name}.xml"));
 
         // Nolla's xml isn't actualy really xml, and the attributes can include < and >, which is not supported by regular xml parses

@@ -5,7 +5,7 @@ namespace NoitaMap.Schemas;
 
 public class ObjectSchema
 {
-    private static Dictionary<string, ObjectSchema> SchemaCache = new Dictionary<string, ObjectSchema>();
+    private static readonly Dictionary<string, ObjectSchema> SchemaCache = new Dictionary<string, ObjectSchema>();
 
     public string Name;
 

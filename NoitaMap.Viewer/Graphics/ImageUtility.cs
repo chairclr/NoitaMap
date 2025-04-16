@@ -1,5 +1,5 @@
-﻿using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 
 namespace NoitaMap.Graphics;
 

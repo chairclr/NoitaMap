@@ -34,7 +34,7 @@ public partial class ViewerDisplay
 
     private bool ShowSearch = false;
 
-    private HashSet<Chunk> ModifiedChunks = new HashSet<Chunk>();
+    private readonly HashSet<Chunk> ModifiedChunks = new HashSet<Chunk>();
 
     private bool DebugDrawAreaEntityBorders = false;
 

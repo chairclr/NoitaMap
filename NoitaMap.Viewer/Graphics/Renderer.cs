@@ -1,8 +1,8 @@
 using System.Numerics;
 using ImGuiNET;
+using NoitaMap.Logging;
 using NoitaMap.Map;
 using NoitaMap.Viewer;
-using NoitaMap.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Veldrid;

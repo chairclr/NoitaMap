@@ -1,5 +1,5 @@
-﻿using NoitaMap.Logging;
-using NoitaMap.Entities;
+﻿using NoitaMap.Entities;
+using NoitaMap.Logging;
 using NoitaMap.Schemas;
 
 namespace NoitaMap.Components;

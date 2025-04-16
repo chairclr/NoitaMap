@@ -1,8 +1,8 @@
 using System.Numerics;
 using System.Xml;
 using System.Xml.Serialization;
-using NoitaMap.Logging;
 using NoitaMap.Components;
+using NoitaMap.Logging;
 using SixLabors.ImageSharp;
 
 namespace NoitaMap;
@@ -101,7 +101,7 @@ public class AreaEntitySprite : IAtlasObject
         }
 
         LoadImage(imagePath, rectAnimation);
-        
+
         OffsetX += spriteData.OffsetX;
         OffsetY += spriteData.OffsetY;
     }

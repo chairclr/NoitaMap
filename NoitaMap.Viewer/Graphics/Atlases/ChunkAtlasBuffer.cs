@@ -114,7 +114,7 @@ public class ChunkAtlasBuffer : AtlasedQuadBuffer, IDisposable
         GraphicsDevice.UpdateTexture(containingAtlas, chunk.WorkingTextureData.AsSpan(), (uint)chunk.AtlasX, (uint)chunk.AtlasY, 0, Chunk.ChunkSize, Chunk.ChunkSize, 1, 0, 0);
     }
 
-    private StatisticTimer AddChunkToAtlasTimer = new StatisticTimer("Add Chunk to Atlas");
+    private readonly StatisticTimer AddChunkToAtlasTimer = new StatisticTimer("Add Chunk to Atlas");
 
     private void ProcessChunk(Chunk chunk)
     {
