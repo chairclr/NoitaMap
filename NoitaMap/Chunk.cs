@@ -206,8 +206,8 @@ public class Chunk : INoitaSerializable
                         int wx = (x + (X * ChunkSize)) * 6;
                         int wy = (y + (Y * ChunkSize)) * 6;
 
-                        int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidthM1) % Material.MaterialWidthM1;
-                        int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeightM1) % Material.MaterialHeightM1;
+                        int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidth - 1) % (Material.MaterialWidth - 1);
+                        int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeight - 1) % (Material.MaterialHeight - 1);
 
                         pixelData[x, y] = mat.MaterialPixels.Span[colorY, colorX];
                     }

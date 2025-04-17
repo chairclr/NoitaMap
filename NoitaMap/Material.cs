@@ -8,7 +8,6 @@ namespace NoitaMap;
 public class Material
 {
     public const int MaterialWidth = 252;
-
     public const int MaterialHeight = 252;
 
     public readonly string Name;
