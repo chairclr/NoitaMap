@@ -26,13 +26,13 @@ public class PhysicsObject : INoitaSerializable
 
     public void Deserialize(BinaryReader reader)
     {
-        reader.Read(UnknownData1[.. 12]);
+        reader.Read(UnknownData1[..12]);
 
         Position.X = reader.ReadBESingle();
         Position.Y = reader.ReadBESingle();
         Rotation = reader.ReadBESingle();
 
-        reader.Read(UnknownData2[.. 49]);
+        reader.Read(UnknownData2[..49]);
 
         PixelWidth = reader.ReadBEInt32();
         PixelHeight = reader.ReadBEInt32();

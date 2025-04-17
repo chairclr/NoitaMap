@@ -37,7 +37,7 @@ public static class BinaryNoitaExtensions
 
             reader.Read(stringBuffer);
 
-            string str =Encoding.UTF8.GetString(stringBuffer);
+            string str = Encoding.UTF8.GetString(stringBuffer);
 
             ArrayPool<byte>.Shared.Return(stringBuffer);
 
