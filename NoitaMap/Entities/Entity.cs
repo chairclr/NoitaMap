@@ -23,7 +23,7 @@ public class Entity
 
     public readonly ComponentSchema Schema;
 
-    public List<Component> Components = new List<Component>();
+    public List<Component> Components = [];
 
     public Entity(ComponentSchema schema)
     {
@@ -85,7 +85,7 @@ public class Entity
             catch (NotImplementedException) { throw; }
             catch
             {
-                Logger.LogWarning($"Error decoding component {i}/{componentCount}, {componentName} of {this.FileName}");
+                Log.LogWarn($"Error decoding component {i}/{componentCount}, {componentName} of {this.FileName}");
 
                 throw;
             }

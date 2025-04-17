@@ -55,7 +55,7 @@ public static class NoitaFile
         using FileStream fs = File.OpenWrite(filePath);
         using BinaryWriter bw = new(fs);
 
-        Span<byte> compressedData = FastLZ.Compress(1, data);
+        Span<byte> compressedData = FastLZ.Compress(data, 1);
 
         // Seek to the start (idk if we need to do this)
         fs.Position = 0;

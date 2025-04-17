@@ -5,13 +5,13 @@ namespace NoitaMap;
 
 public class PhysicsObject : INoitaSerializable
 {
-    public UnknownDataBlock1 UnknownData1;
+    public byte[] UnknownData1 = new byte[12];
 
     public Vector2 Position;
 
     public float Rotation;
 
-    public UnknownDataBlock2 UnknownData2;
+    public byte[] UnknownData2 = new byte[49];
 
     public Rgba32[,] PixelData { get; private set; }
 
@@ -26,13 +26,13 @@ public class PhysicsObject : INoitaSerializable
 
     public void Deserialize(BinaryReader reader)
     {
-        reader.Read(UnknownData1.Data);
+        reader.Read(UnknownData1[.. 12]);
 
         Position.X = reader.ReadBESingle();
         Position.Y = reader.ReadBESingle();
         Rotation = reader.ReadBESingle();
 
-        reader.Read(UnknownData2.Data);
+        reader.Read(UnknownData2[.. 49]);
 
         PixelWidth = reader.ReadBEInt32();
         PixelHeight = reader.ReadBEInt32();
@@ -51,13 +51,13 @@ public class PhysicsObject : INoitaSerializable
 
     public void Serialize(BinaryWriter writer)
     {
-        writer.Write(UnknownData1.Data);
+        writer.Write(UnknownData1);
 
         writer.WriteBE(Position.X);
         writer.WriteBE(Position.Y);
         writer.WriteBE(Rotation);
 
-        writer.Write(UnknownData2.Data);
+        writer.Write(UnknownData2);
 
         writer.WriteBE(PixelWidth);
         writer.WriteBE(PixelHeight);
@@ -69,19 +69,5 @@ public class PhysicsObject : INoitaSerializable
                 writer.WriteBE(PixelData[x, y].PackedValue);
             }
         }
-    }
-
-    public unsafe struct UnknownDataBlock1
-    {
-        private fixed byte _data[12];
-
-        public Span<byte> Data => new(_data, 0, 12);
-    }
-
-    public unsafe struct UnknownDataBlock2
-    {
-        private fixed byte _data[49];
-
-        public Span<byte> Data => new(_data, 0, 49);
     }
 }

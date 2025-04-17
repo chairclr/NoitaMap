@@ -22,7 +22,7 @@ public class ObjectSchema
             className = className[6..];
         }
 
-        ObjectSchemaRoot root = JsonSerializer.Deserialize<ObjectSchemaRoot>(File.ReadAllText(Path.Join(PathService.ApplicationPath, $"Assets/Objects/{schemaHash}/{className}.json")))!;
+        ObjectSchemaRoot root = JsonSerializer.Deserialize<ObjectSchemaRoot>(File.ReadAllText(Path.Join(AppContext.BaseDirectory, $"Assets/Objects/{schemaHash}/{className}.json")))!;
 
         Name = root.Name;
 

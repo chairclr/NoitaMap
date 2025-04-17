@@ -203,7 +203,7 @@ public class DummyComponent : Component
         catch (NotImplementedException) { throw; }
         catch
         {
-            Logger.LogWarning($"Error reading component {this.ComponentName}. Exception at {reader.BaseStream.Position} for \"{ComponentName}\":");
+            Log.LogWarn($"Error reading component {ComponentName}. Exception at {reader.BaseStream.Position} for \"{ComponentName}\":");
 
             throw;
         }

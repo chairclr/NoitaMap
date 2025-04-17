@@ -1,10 +1,6 @@
 using System.Numerics;
 using System.Xml.Serialization;
-using CommunityToolkit.HighPerformance;
 using NoitaMap.Entities;
-using NoitaMap.Graphics;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace NoitaMap.Components;
 
@@ -58,16 +54,6 @@ public class SpriteComponent(Entity entity, string name) : Component(entity, nam
 
     public bool NeverRagdollifyOnDeath;
 
-    public Matrix4x4 WorldMatrix { get; set; }
-
-    public Rgba32[,]? WorkingTextureData { get; set; }
-
-    public int TextureWidth { get; set; }
-
-    public int TextureHeight { get; set; }
-
-    public int TextureHash { get; set; }
-
     public override void Deserialize(BinaryReader reader)
     {
         base.Deserialize(reader);
@@ -119,24 +105,9 @@ public class SpriteComponent(Entity entity, string name) : Component(entity, nam
         SpecialScaleY = reader.ReadBESingle();
 
         NeverRagdollifyOnDeath = reader.ReadBoolean();
-
-        LoadImage();
-
-        Vector2 scale = Vector2.One;
-
-        if (HasSpecialScale)
-        {
-            scale = new Vector2(SpecialScaleX, SpecialScaleY);
-        }
-
-        WorldMatrix =
-            Matrix4x4.CreateScale(TextureWidth * scale.X, TextureHeight * scale.Y, 1f)
-            * Matrix4x4.CreateTranslation(-TransformOffset.X - OffsetX, -TransformOffset.Y - OffsetY, 0f)
-            * Matrix4x4.CreateRotationZ(Entity.Rotation)
-            * Matrix4x4.CreateTranslation(Entity.Position.X, Entity.Position.Y, 0f);
     }
 
-    private void LoadImage()
+    /*private void LoadImage()
     {
         if (ImageFile is null || PathService.DataPath is null)
         {
@@ -220,7 +191,7 @@ public class SpriteComponent(Entity entity, string name) : Component(entity, nam
 
             image.CopyPixelDataTo(WorkingTextureData.AsSpan());
         }
-    }
+    }*/
 }
 
 [XmlRoot(ElementName = "RectAnimation")]

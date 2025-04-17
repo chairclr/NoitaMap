@@ -1,12 +1,10 @@
 ﻿using System.Numerics;
-using CommunityToolkit.HighPerformance;
 using NoitaMap.Entities;
-using NoitaMap.Graphics;
-using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace NoitaMap.Components;
 
-public class PixelSpriteComponent(Entity entity, string name) : Component(entity, name), IAtlasObject
+public class PixelSpriteComponent(Entity entity, string name) : Component(entity, name)
 {
     public string? ImageFile;
 
@@ -22,7 +20,7 @@ public class PixelSpriteComponent(Entity entity, string name) : Component(entity
 
     public bool KillWhenSpriteDies;
 
-    public bool CreateBox2dDodies;
+    public bool CreateBox2dBodies;
 
     public Vector2 Position;
 
@@ -30,13 +28,11 @@ public class PixelSpriteComponent(Entity entity, string name) : Component(entity
 
     public Matrix4x4 WorldMatrix { get; set; }
 
-    public Rgba32[,]? WorkingTextureData { get; set; }
+    public Rgba32[,]? CustomTexture { get; set; }
 
-    public int TextureWidth { get; set; }
+    public int CustomTextureWidth { get; set; }
 
-    public int TextureHeight { get; set; }
-
-    public int TextureHash { get; set; }
+    public int CustomTextureHeight { get; set; }
 
     public override void Deserialize(BinaryReader reader)
     {
@@ -56,7 +52,7 @@ public class PixelSpriteComponent(Entity entity, string name) : Component(entity
 
         KillWhenSpriteDies = reader.ReadBoolean();
 
-        CreateBox2dDodies = reader.ReadBoolean();
+        CreateBox2dBodies = reader.ReadBoolean();
 
         // pixel sprite pointer
 
@@ -91,56 +87,22 @@ public class PixelSpriteComponent(Entity entity, string name) : Component(entity
 
         bool hasCustomTexture = reader.ReadBoolean();
 
-        Vector2 extraTextureOffset = Vector2.Zero;
-
         if (hasCustomTexture)
         {
-            TextureWidth = reader.ReadBEInt32();
+            CustomTextureWidth = reader.ReadBEInt32();
 
-            TextureHeight = reader.ReadBEInt32();
+            CustomTextureHeight = reader.ReadBEInt32();
 
-            WorkingTextureData = new Rgba32[TextureWidth, TextureHeight];
+            CustomTexture = new Rgba32[CustomTextureWidth, CustomTextureHeight];
 
-            for (int tx = 0; tx < TextureWidth; tx++)
+            for (int tx = 0; tx < CustomTextureWidth; tx++)
             {
-                for (int ty = 0; ty < TextureHeight; ty++)
+                for (int ty = 0; ty < CustomTextureHeight; ty++)
                 {
                     uint value = reader.ReadBEUInt32();
-                    WorkingTextureData[tx, ty].PackedValue = value;
-                    TextureHash = HashCode.Combine(TextureHash, value);
-                }
-            }
-
-            extraTextureOffset = new Vector2(-(TextureWidth * Scale.X) / 2f, -TextureHeight * Scale.Y);
-        }
-        else
-        {
-            if (ImageFile is not null && PathService.DataPath is not null)
-            {
-                string? path = null;
-
-                if (ImageFile.StartsWith("data/"))
-                {
-                    path = Path.Combine(PathService.DataPath!, ImageFile.Remove(0, 5));
-                }
-
-                if (path is not null)
-                {
-                    using Image<Rgba32> image = ImageUtility.LoadImage(path);
-
-                    WorkingTextureData = new Rgba32[image.Width, image.Height];
-
-                    TextureWidth = image.Width;
-
-                    TextureHeight = image.Height;
-
-                    TextureHash = path.GetHashCode();
-
-                    image.CopyPixelDataTo(WorkingTextureData.AsSpan());
+                    CustomTexture[tx, ty].PackedValue = value;
                 }
             }
         }
-
-        WorldMatrix = Matrix4x4.CreateScale(TextureWidth * Scale.X, TextureHeight * Scale.Y, 1f) * Matrix4x4.CreateTranslation(Position.X - AnchorX + extraTextureOffset.X, Position.Y - AnchorY + extraTextureOffset.Y, 0f);
     }
 }
