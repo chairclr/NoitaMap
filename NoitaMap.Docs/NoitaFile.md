@@ -40,3 +40,11 @@ Most other data types are big endian but otherwise as expected
 [world_x_y.png_petri/chunk files](NoitaChunk.md) contain the pixel data and physics objects of each world chunk
 
 [world_pixel_scenes.bin files](NoitaPixelScenes.md) contain the background images and information the game uses to load structure materials from images
+
+the [.streaminfo file](NoitaStreamInfo.md) contains information such as the world seed, number of frames in the world, the schema used, game modes, and more.
+
+## Undocumented file formats
+
+world_sim.bin contains information used in the verlet simulation for vines and other objects
+
+world_tree.bin conatins.. I have no idea
