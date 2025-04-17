@@ -47,7 +47,7 @@ struct ChunkInfo
 {
     BE int  x
     BE int  y
-    bool    loaded
+    bool    loaded, maybe generated?
 }
 
 struct Background
