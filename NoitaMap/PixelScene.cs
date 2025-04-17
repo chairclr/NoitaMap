@@ -1,54 +1,27 @@
-﻿using System.Numerics;
-using CommunityToolkit.HighPerformance;
-using NoitaMap.Graphics;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+﻿using SixLabors.ImageSharp.PixelFormats;
 
 namespace NoitaMap;
 
-public class PixelScene : IAtlasObject
+public class PixelScene : INoitaSerializable
 {
     public int X;
-
     public int Y;
 
+    public string? ColorsFilename;
+    public string? MaterialFilename;
     public string? BackgroundFilename;
 
-    public string? ColorsFilename;
-
-    public string? MaterialFilename;
-
     public bool SkipBiomeChecks;
-
     public bool SkipEdgeTextures;
 
-    public int BackgroundZIndexProbably;
+    public int BackgroundZIndex;
 
     public string? JustLoadAnEntity;
 
-    public bool Unknown2;
+    public bool CleanAreaBefore;
+    public bool DebugReloadMe;
 
-    public bool Unknown3;
-
-    public bool Unknown4;
-
-    public bool Unknown5;
-
-    public byte Unknown6;
-
-    public byte ExtraUnknownsCount;
-
-    public List<ulong> ExtraUnknowns = new List<ulong>();
-
-    public Matrix4x4 WorldMatrix { get; set; }
-
-    public Rgba32[,]? WorkingTextureData { get; set; }
-
-    public int TextureWidth { get; set; }
-
-    public int TextureHeight { get; set; }
-
-    public int TextureHash { get; set; }
+    public Dictionary<Rgba32, int> ColorMaterials = [];
 
     public PixelScene()
     {
@@ -58,64 +31,86 @@ public class PixelScene : IAtlasObject
     public void Deserialize(BinaryReader reader)
     {
         X = reader.ReadBEInt32();
-
         Y = reader.ReadBEInt32();
 
+        MaterialFilename = reader.ReadNoitaString();
+        ColorsFilename = reader.ReadNoitaString();
         BackgroundFilename = reader.ReadNoitaString();
 
-        ColorsFilename = reader.ReadNoitaString();
-
-        MaterialFilename = reader.ReadNoitaString();
-
         SkipBiomeChecks = reader.ReadBoolean();
-
         SkipEdgeTextures = reader.ReadBoolean();
 
-        BackgroundZIndexProbably = reader.ReadBEInt32();
+        BackgroundZIndex = reader.ReadBEInt32();
 
         JustLoadAnEntity = reader.ReadNoitaString();
 
-        Unknown2 = reader.ReadBoolean();
+        CleanAreaBefore = reader.ReadBoolean();
+        DebugReloadMe = reader.ReadBoolean();
 
-        Unknown3 = reader.ReadBoolean();
-
-        Unknown4 = reader.ReadBoolean();
-
-        Unknown5 = reader.ReadBoolean();
-
-        Unknown6 = reader.ReadByte();
-
-        ExtraUnknownsCount = reader.ReadByte();
-
-        for (int i = 0; i < ExtraUnknownsCount; i++)
+        uint colorMaterialCount = reader.ReadBEUInt32();
+        for (int i = 0; i < colorMaterialCount; i++)
         {
-            ExtraUnknowns.Add(reader.ReadBEUInt64());
+            Rgba32 color = new(reader.ReadUInt32());
+
+            int cellType = reader.ReadBEInt32();
+
+            ColorMaterials[color] = cellType;
+        }
+    }
+
+    public void Serialize(BinaryWriter writer)
+    {
+        writer.WriteBE(X);
+        writer.WriteBE(Y);
+
+        writer.WriteNoitaString(BackgroundFilename);
+        writer.WriteNoitaString(ColorsFilename);
+        writer.WriteNoitaString(MaterialFilename);
+
+        writer.Write(SkipBiomeChecks);
+        writer.Write(SkipEdgeTextures);
+
+        writer.WriteBE(BackgroundZIndex);
+
+        writer.WriteNoitaString(JustLoadAnEntity);
+
+        writer.Write(CleanAreaBefore);
+        writer.Write(DebugReloadMe);
+
+        writer.WriteBE(ColorMaterials.Count);
+        foreach ((Rgba32 color, int cellType) in ColorMaterials)
+        {
+            writer.WriteBE(color.PackedValue);
+            writer.WriteBE(cellType);
+        }
+    }
+
+    public class BackgroundImage : INoitaSerializable
+    {
+        public int X;
+        public int Y;
+
+        public string? Filename;
+
+        public BackgroundImage()
+        {
+
         }
 
-        string? path = null;
-        if (MaterialFilename is not null)
+        public void Deserialize(BinaryReader reader)
         {
-            if (MaterialFilename.StartsWith("data/"))
-            {
-                path = Path.Combine(PathService.DataPath!, MaterialFilename.Remove(0, 5));
-            }
+            X = reader.ReadBEInt32();
+            Y = reader.ReadBEInt32();
 
-            if (File.Exists(path))
-            {
-                TextureHash = path.GetHashCode();
-
-                using Image<Rgba32> image = ImageUtility.LoadImage(path);
-
-                WorkingTextureData = new Rgba32[image.Width, image.Height];
-
-                TextureWidth = image.Width;
-
-                TextureHeight = image.Height;
-
-                image.CopyPixelDataTo(WorkingTextureData.AsSpan());
-            }
+            Filename = reader.ReadNoitaString();
         }
 
-        WorldMatrix = Matrix4x4.CreateScale(TextureWidth, TextureHeight, 1f) * Matrix4x4.CreateTranslation(X, Y, 0f);
+        public void Serialize(BinaryWriter writer)
+        {
+            writer.WriteBE(X);
+            writer.WriteBE(Y);
+
+            writer.WriteNoitaString(Filename);
+        }
     }
 }

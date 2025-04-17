@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 
 namespace NoitaMap;
 
@@ -13,17 +14,35 @@ public static class BinaryNoitaExtensions
             return null;
         }
 
-        if (size > 8192 * 100)
+        // Hardcap to 10 million chars, just in case we make a funny mistake reading bytes
+        if (size > 10_000_000)
         {
             return null;
         }
 
-        // stackalloc a buffer here for extra fast
-        Span<byte> stringBuffer = stackalloc byte[size];
+        // If we can fit this string on the stack, do so
+        if (size < 500_000)
+        {
+            // stackalloc a buffer here for extra fast
+            Span<byte> stringBuffer = stackalloc byte[size];
 
-        reader.Read(stringBuffer);
+            reader.Read(stringBuffer);
 
-        return Encoding.UTF8.GetString(stringBuffer);
+            return Encoding.UTF8.GetString(stringBuffer);
+        }
+        else
+        {
+            // Rent a buffer here for extra fast
+            byte[] stringBuffer = ArrayPool<byte>.Shared.Rent(size);
+
+            reader.Read(stringBuffer);
+
+            string str =Encoding.UTF8.GetString(stringBuffer);
+
+            ArrayPool<byte>.Shared.Return(stringBuffer);
+
+            return str;
+        }
     }
 
     public static void WriteNoitaString(this BinaryWriter writer, in string? str)
@@ -37,11 +56,25 @@ public static class BinaryNoitaExtensions
 
         int size = str!.Length;
 
-        // rent a buffer here for fast :thumbs_up:
-        Span<byte> stringBuffer = stackalloc byte[size];
 
-        Encoding.UTF8.GetBytes(str, stringBuffer);
+        // If we can fit this string on the stack, do so
+        if (size < 500_000)
+        {
+            // stackalloc a buffer here for extra fast
+            Span<byte> stringBuffer = stackalloc byte[size];
 
-        writer.Write(stringBuffer);
+            Encoding.UTF8.GetBytes(str, stringBuffer);
+            writer.Write(stringBuffer);
+        }
+        else
+        {
+            // Rent a buffer here for extra fast
+            byte[] stringBuffer = ArrayPool<byte>.Shared.Rent(size);
+
+            Encoding.UTF8.GetBytes(str, stringBuffer);
+            writer.Write(stringBuffer);
+
+            ArrayPool<byte>.Shared.Return(stringBuffer);
+        }
     }
 }

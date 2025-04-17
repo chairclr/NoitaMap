@@ -14,9 +14,9 @@ BE int      chunk height, should alwayus be 512
 
 byte[]      raw/unindexed cell data
 string[]    list of the names of all materials in the cell, indexed into by the cell data
-Rgba32[]    list of the custom colors of the cells, indexed into when the first bit of the raw cell data is set, and then increment the index
+Rgba32[,]   list of the custom colors of the cells, indexed into when the first bit of the raw cell data is set, and then increment the index
 
-PhysicsObject[] all of the physics objects in the chunk. See PhysicsObject.md for more info
+PhysicsObject[] all of the physics objects in the chunk
 
 int         should always end in an extra zero int, not sure why
 ```
@@ -34,7 +34,7 @@ bool[5]     5 unknown booleans
 float       unknown float
 uint        pixels width
 uint        pixels height
-Rgba32[]    raw pixel data for this physics object
+Rgba32[,]   raw pixel data for this physics object
 ```
 
 
