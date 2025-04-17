@@ -24,13 +24,16 @@ int         should always end in an extra zero int, not sure why
 ## Physics Object Format
 
 ```
-byte[]      12 unknown bytes
+u/long      unknown 64bit int
+uint        unknown 32bit uint
 float       pos.x
 float       pos.y
 float       rotation
-byte[]      49 unknown bytes
-int         pixels width
-int         pixels height
+u/long[5]   5 unknown 64 bit int/uints
+bool[5]     5 unknown booleans
+float       unknown float
+uint        pixels width
+uint        pixels height
 Rgba32[]    raw pixel data for this physics object
 ```
 
