@@ -5,7 +5,7 @@ Chunks also include all of the physics bodies contained in them
 
 Chunks support up to 128 materials and allow pixels to have custom colors
 
-## Format
+## Chunk Format
 
 ```
 BE int      version, should always be 24
@@ -21,9 +21,22 @@ PhysicsObject[] all of the physics objects in the chunk. See PhysicsObject.md fo
 int         should always end in an extra zero int, not sure why
 ```
 
+## Physics Object Format
+
+```
+byte[]      12 unknown bytes
+float       pos.x
+float       pos.y
+float       rotation
+byte[]      49 unknown bytes
+int         pixels width
+int         pixels height
+Rgba32[]    raw pixel data for this physics object
+```
+
 
 ## Cell data -> Cell color
-Here is some pseudocode to decode cell data into colors:
+Here is some pseudocode to decode cell data into raw pixel data:
 
 ```
 for (int x = 0; x < ChunkSize; x++)

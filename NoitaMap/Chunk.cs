@@ -10,17 +10,17 @@ public class Chunk : INoitaSerializable
 {
     public const int ChunkSize = 512;
 
-    public int X;
-    public int Y;
+    public readonly int X;
+    public readonly int Y;
     public Vector2 Position => new(X, Y);
 
     private readonly Cell[,] _cellTable;
 
     private readonly MaterialProvider _materialProvider;
-    private List<Material> _materialMap;
-    private Dictionary<int, int> _reverseMaterialMap;
+    private List<Material> _materialMap = [];
+    private Dictionary<int, int> _reverseMaterialMap = [];
 
-    public List<PhysicsObject> PhysicsObjects;
+    public List<PhysicsObject> PhysicsObjects = [];
 
     public bool IsAllAir { get; private set; }
 
@@ -31,10 +31,6 @@ public class Chunk : INoitaSerializable
         _materialProvider = materialProvider;
 
         _cellTable = new Cell[ChunkSize, ChunkSize];
-        _materialMap = [];
-        _reverseMaterialMap = [];
-
-        PhysicsObjects = [];
     }
 
     public void Deserialize(BinaryReader reader)
@@ -164,18 +160,11 @@ public class Chunk : INoitaSerializable
         }
 
         // --- PHYSICS OBJECTS ---
-        if (PhysicsObjects is not null)
-        {
-            writer.WriteBE(PhysicsObjects.Count);
+        writer.WriteBE(PhysicsObjects.Count);
 
-            foreach (PhysicsObject physicsObject in PhysicsObjects)
-            {
-                physicsObject.Serialize(writer);
-            }
-        }
-        else
+        foreach (PhysicsObject physicsObject in PhysicsObjects)
         {
-            writer.WriteBE(0);
+            physicsObject.Serialize(writer);
         }
 
         // ?? No idea, but seems to end in an extra 4 null bytes
@@ -210,7 +199,7 @@ public class Chunk : INoitaSerializable
 
                     if (mat.IsMissing)
                     {
-                        pixelData[x, y] = mat.MaterialTexture.Span[0, 0];
+                        pixelData[x, y] = mat.MaterialPixels.Span[0, 0];
                     }
                     else
                     {
@@ -220,7 +209,7 @@ public class Chunk : INoitaSerializable
                         int colorX = ((wx % Material.MaterialWidth) + Material.MaterialWidthM1) % Material.MaterialWidthM1;
                         int colorY = ((wy % Material.MaterialHeight) + Material.MaterialHeightM1) % Material.MaterialHeightM1;
 
-                        pixelData[x, y] = mat.MaterialTexture.Span[colorY, colorX];
+                        pixelData[x, y] = mat.MaterialPixels.Span[colorY, colorX];
                     }
                 }
             }
