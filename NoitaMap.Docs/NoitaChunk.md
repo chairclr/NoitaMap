@@ -24,14 +24,14 @@ int         should always end in an extra zero int, not sure why
 ## Physics Object Format
 
 ```
-u/long      unknown 64bit int
-uint        unknown 32bit uint
+ulong       id 
+uint        material type
 float       pos.x
 float       pos.y
 float       rotation
-u/long[5]   5 unknown 64 bit int/uints
-bool[5]     5 unknown booleans
-float       unknown float
+u/long[5]   5 unknown 64 bit doubles, maybe 2 vec2d's relating to the permiter of the body or something?
+bool[5]     5 unknown booleans, 4 relating to the body, 1 relating to physics bridge. probably stuff like going through sand, collision mask, etc.
+float       unknown float, relating to physics bridge
 uint        pixels width
 uint        pixels height
 Rgba32[,]   raw pixel data for this physics object

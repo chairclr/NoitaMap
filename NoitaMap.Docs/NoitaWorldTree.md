@@ -11,6 +11,7 @@ temp[]      not sure what this represents, but goes to end of file
 
 struct temp
 {
-    BE int  some index or world chunk index, seems to just count up
+    BE int  index, which kind of indexes into a 256 by 256 pixel image. the temp[] only contains existing indexes I guess. 
     byte[64] fixed array of 64 bytes, seems to mostly be 0xFF but randomly changes
 }
+```
