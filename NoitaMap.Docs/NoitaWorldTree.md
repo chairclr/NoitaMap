@@ -17,13 +17,13 @@ tl;dr it's a memory efficient way of generally knowing how many cells are in a g
 ## Noita World Tree File Format
 
 ```
-BE int      version, should always be 0
+int         version, should always be 0
 
-ChunkEst[]  large image data
+ChunkEst[]  broad image/chunk data
 
 struct ChunkEst
 {
-    BE int  index into the 256x256 larger image. x = index % 256, y = index / 256
+    int     index into the 256x256 larger image. x = index % 256, y = index / 256
     byte[64] fixed array of bytes representing the data in the chunk. x = i * 8, y = i / 8
 }
 ```

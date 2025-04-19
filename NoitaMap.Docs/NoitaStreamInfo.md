@@ -5,60 +5,60 @@ The .streaminfo file contains more global information about a save, with things 
 ## Noita Stream Info file Format
 
 ```
-BE int      version, should always be 24
+int         version, should always be 24
 
-BE uint     seed
-BE int      frames played
-BE float    seconds played
-BE ulong    unknown counter
+uint        seed
+int         frames played
+float       seconds played
+ulong       unknown counter
 
 Background[] backgrounds
 
-BE int      chunk count
+int         chunk count
 
 string      schema hash, used for entity files I guess
 
-BE int      game mode index
-BE int      game mode name
-BE long     game mode steam id
+int         game mode index
+int         game mode name
+long        game mode steam id
 
 bool        non-Nolla mod used
 
 save and quit date time, in local time (from my testing):
 {
-    BE short year
-    BE short month
-    BE short day
-    BE short hour
-    BE short minute
-    BE short second
+    short   year
+    short   month
+    short   day
+    short   hour
+    short   minute
+    short   second
 }
 
 these are likely camera related:
-BE int      unknown 1
-BE int      unknown 2
-BE int      unknown 3
-BE int      unknown 4
+int         unknown 1
+int         unknown 2
+int         unknown 3
+int         unknown 4
 
 ChunkInfo[chunk count] chunks, not length encoded
 
 
 struct ChunkInfo
 {
-    BE int  x
-    BE int  y
+    int     x
+    int     y
     bool    loaded, maybe generated?
 }
 
 struct Background
 {
-    BE float x
-    BE float y
-    string filename
+    float   x
+    float   y
+    string  filename
 
-    BE float z index
+    float   z index
 
-    BE float x offset
-    BE float y offset
+    float   x offset
+    float   y offset
 }
 ```

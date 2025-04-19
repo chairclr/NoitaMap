@@ -7,8 +7,8 @@ They also are used by the game to generate complex material structures from imag
 ## Pixel Scene File Format
 
 ```
-BE int      version, should always be 3
-BE int      magic num, should always be 0x2F0AA9F
+int         version, should always be 3
+int         magic num, should always be 0x2F0AA9F
 
 PixelScene[] pending list
 PixelScene[] placed list
@@ -16,30 +16,30 @@ PixelSceneBackgroundImage[] background images
 
 struct PixelScene
 {
-    BE int x
-    BE int y
-    string material filename
-    string color filename
-    string background filename
-    bool   skip biome checks
-    bool   skip edge textures
-    BE int background z index
-    string just load an entity, empty when there's nothing to load I guess
-    bool   clean area before
+    int     x
+    int     y
+    string  material filename
+    string  color filename
+    string  background filename
+    bool    skip biome checks
+    bool    skip edge textures
+    int     background z index
+    string  just load an entity, empty when there's nothing to load I guess
+    bool    clean area before
 
     ColorMaterial[] color materials, see below
 
     struct ColorMaterial 
     {
         Rgba32 color
-        BE int cell type
+        int cell type
     }
 }
 
 struct PixelSceneBackgroundImage
 {
-    BE int x
-    BE int y
-    string filename
+    int     x
+    int     y
+    string  filename
 }
 ```

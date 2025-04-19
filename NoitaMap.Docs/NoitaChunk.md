@@ -8,9 +8,9 @@ Chunks support up to 128 materials and allow pixels to have custom colors
 ## Chunk Format
 
 ```
-BE int      version, should always be 24
-BE int      chunk width, should always be 512
-BE int      chunk height, should alwayus be 512
+int         version, should always be 24
+int         chunk width, should always be 512
+int         chunk height, should alwayus be 512
 
 byte[]      raw/unindexed cell data
 string[]    list of the names of all materials in the cell, indexed into by the cell data

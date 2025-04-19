@@ -22,13 +22,13 @@ byte[]      compressed data
 ## Common type formats/patterns
 `string`s are length encoded ascii/utf8? strings:
 ```
-BE int      string length
+int         string length
 byte[len]   chars
 ```
 
 most `array`s are length encoded contiguous blocks of memory:
 ```
-BE int      array length
+int         array length
 T[len]      elements
 ```
 
