@@ -14,6 +14,28 @@ PixelScene[] pending list
 PixelScene[] placed list
 PixelSceneBackgroundImage[] background images
 
+struct PixelScene
+{
+    BE int x
+    BE int y
+    string material filename
+    string color filename
+    string background filename
+    bool   skip biome checks
+    bool   skip edge textures
+    BE int background z index
+    string just load an entity, empty when there's nothing to load I guess
+    bool   clean area before
+
+    ColorMaterial[] color materials, see below
+
+    struct ColorMaterial 
+    {
+        Rgba32 color
+        BE int cell type
+    }
+}
+
 struct PixelSceneBackgroundImage
 {
     BE int x
@@ -21,27 +43,3 @@ struct PixelSceneBackgroundImage
     string filename
 }
 ```
-
-## Pixel Scene Format
-
-```
-BE int      x
-BE int      y
-string      material filename
-string      color filename
-string      background filename
-bool        skip biome checks
-bool        skip edge textures
-BE int      background z index
-string      just load an entity, empty when there's nothing to load I guess
-bool        clean area before
-
-ColorMaterial[] color materials, see below
-
-struct ColorMaterial 
-{
-    Rgba32 color
-    BE int cell type
-}
-```
-
