@@ -43,8 +43,9 @@ Most other data types are big endian but otherwise as expected
 
 the [.streaminfo file](NoitaStreamInfo.md) contains information such as the world seed, number of frames in the world, the schema used, game modes, and more.
 
+[world_tree.bin file](NoitaWorldTree.md) contain broad/estimate informating describing how many cells are in each part of the world.
+
 ## Undocumented file formats
 
 world_sim.bin contains information used in the verlet simulation for vines and other objects
 
-world_tree.bin conatins.. I have no idea
