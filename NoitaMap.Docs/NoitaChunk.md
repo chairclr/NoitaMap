@@ -24,7 +24,7 @@ int         should always end in an extra zero int, not sure why
 ## Physics Object Format
 
 ```
-ulong       id 
+ulong       id
 uint        material type
 float       pos.x
 float       pos.y
