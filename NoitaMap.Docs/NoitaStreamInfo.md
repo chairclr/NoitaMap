@@ -19,7 +19,7 @@ int         chunk count
 string      schema hash, used for entity files I guess
 
 int         game mode index
-int         game mode name
+string      game mode name
 long        game mode steam id
 
 bool        non-Nolla mod used
