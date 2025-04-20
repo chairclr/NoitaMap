@@ -34,6 +34,12 @@ public class StreamInfo : INoitaSerializable
 
     public void Deserialize(BinaryReader reader)
     {
+        int version = reader.ReadBEInt32();
+        if (version != 24)
+        {
+            throw new InvalidOperationException();
+        }
+
         Seed = reader.ReadBEUInt32();
 
         FramesPlayed = reader.ReadBEUInt32();
@@ -81,6 +87,7 @@ public class StreamInfo : INoitaSerializable
 
     public void Serialize(BinaryWriter writer)
     {
+        writer.WriteBE(24);
         writer.WriteBE(Seed);
 
         writer.WriteBE(FramesPlayed);

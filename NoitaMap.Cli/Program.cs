@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
 using System.Text.RegularExpressions;
+using System.Threading;
 using NoitaMap;
 using NoitaMap.Logging;
 using SixLabors.ImageSharp;
@@ -29,9 +29,44 @@ internal class Program
 
             string filename = Path.GetFileName(path);
 
-            if (filename == ".streaminfo")
+            if (filename == ".stream_info")
             {
-                throw new NotImplementedException();
+                byte[] bytes = NoitaFile.LoadCompressedFile(path);
+
+                using MemoryStream ms = new(bytes);
+                using BinaryReader reader = new(ms);
+
+                StreamInfo streamInfo = new();
+                streamInfo.Deserialize(reader);
+
+                Log.LogInfo("Deserialized stream info");
+
+                Log.LogInfo($"Seed: {streamInfo.Seed}");
+                Log.LogInfo($"FramesPlayed: {streamInfo.FramesPlayed}");
+                Log.LogInfo($"SecondsPlayed: {streamInfo.SecondsPlayed}");
+                Log.LogInfo($"UnknownCounter: {streamInfo.UnknownCounter}");
+                Log.LogInfo($"SchemaHash: {streamInfo.SchemaHash}");
+                Log.LogInfo($"GameModeIndex: {streamInfo.GameModeIndex}");
+                Log.LogInfo($"GameModeName: {streamInfo.GameModeName}");
+                Log.LogInfo($"GameModeSteamId: {streamInfo.GameModeSteamId}");
+                Log.LogInfo($"NonNollaModUsed: {streamInfo.NonNollaModUsed}");
+                Log.LogInfo($"SaveAndQuitTime: {streamInfo.SaveAndQuitTime}");
+                Log.LogInfo($"NewGameUIName: {streamInfo.NewGameUIName}");
+                Log.LogInfo($"UnknownCameras: {streamInfo.UnknownCamera1}, {streamInfo.UnknownCamera2}, {streamInfo.UnknownCamera3}, {streamInfo.UnknownCamera4}");
+
+                Log.LogInfo("Backgrounds:");
+                foreach (StreamInfo.Background bg in streamInfo.Backgrounds)
+                {
+                    Log.LogInfo($"at ({bg.Position}): {bg.Filename}");
+                }
+
+                Log.LogInfo("ChunkLoadInfo:");
+                foreach (StreamInfo.ChunkLoadedInfo chunk in streamInfo.ChunkLoadInfo)
+                {
+                    Log.LogInfo($"Loaded at ({chunk.X}, {chunk.Y}): {chunk.Loaded}");
+                }
+
+                return;
             }
 
             if (filename == "world_pixel_scenes.bin")
@@ -42,7 +77,6 @@ internal class Program
                 using BinaryReader reader = new(ms);
 
                 WorldPixelScenes pixelScenes = new();
-
                 pixelScenes.Deserialize(reader);
 
                 Log.LogInfo("Deserialized world pixel scenes");
@@ -78,14 +112,15 @@ internal class Program
 
                 MaterialProvider mp = new MaterialProvider();
 
-                Chunk chunk = new Chunk(cx, cy, mp);
-
                 byte[] bytes = NoitaFile.LoadCompressedFile(path);
 
                 using MemoryStream ms = new(bytes);
                 using BinaryReader reader = new(ms);
 
+                Chunk chunk = new Chunk(cx, cy, mp);
                 chunk.Deserialize(reader);
+
+                Log.LogInfo("Deserialized chunk");
 
                 Rgba32[,] pixelData = chunk.GetPixelData();
 
