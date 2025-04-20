@@ -34,6 +34,8 @@ save and quit date time, in local time (from my testing):
     short   second
 }
 
+string      ui newgame name, like ng+ I guess?
+
 these are likely camera related:
 int         unknown 1
 int         unknown 2
